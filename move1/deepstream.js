@@ -22,8 +22,17 @@ function sendPos(pos, direction) {
     client.event.emit('player.move', cords);
 }
 
+
+client.event.subscribe('heartbeat', data => {
+    console.log(data);
+})
+
+
 client.event.subscribe('player.move', data => {
-    console.log(`> player.move ${data.x}|${data.y}|${data.z}|p:${data.p}`);
+    if(data.p == uuid) {
+        return;
+    }
+    console.log(`${data.p}> player.move |${data.x}|${data.y}|${data.z}|${data.rx}|${data.ry}|${data.rz}`);
     console.log(data);
 })
 
@@ -60,7 +69,9 @@ function throttle(func, wait, options) {
     };
 };
 
-
+setInterval(()=> {
+    client.event.emit('heartbeat', uuid);
+}, 5000);
 
 
 window.networkLayer = {
