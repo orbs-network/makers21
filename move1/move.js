@@ -159,7 +159,7 @@ AFRAME.registerComponent('move-control', {
 
     //player.object3D.position = 
     player.object3D.position.add(direction);
-    window.networkLayer.sendPos(player.object3D.position);
+    window.networkLayer.sendPos(player.object3D.position, player.object3D.rotation);
     // get the current position
     //var pos = player.getAttribute("position")
     // add the direction vector

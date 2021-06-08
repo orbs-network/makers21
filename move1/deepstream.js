@@ -16,12 +16,15 @@ client.on('connectionStateChanged', connectionState => {
     // will be called with 'OFFLINE' once the connection is successfully paused.
 })
 
-function sendPos(pos) {
-    client.event.emit('player.move', {x:pos.x, y:pos.y, z:pos.z, p: uuid, ts: Date.now() });
+function sendPos(pos, direction) {
+    let dir = { rx: direction.x, ry: direction.y, rz: direction.z}
+    let cords = Object.assign({p: uuid, ts: Date.now()}, pos, dir);
+    client.event.emit('player.move', cords);
 }
 
 client.event.subscribe('player.move', data => {
     console.log(`> player.move ${data.x}|${data.y}|${data.z}|p:${data.p}`);
+    console.log(data);
 })
 
 
