@@ -1,10 +1,13 @@
 <html>
-<script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-<script src="https://unpkg.com/aframe-environment-component@1.2.0/dist/aframe-environment-component.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1/camera_utils.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/face_mesh.js" crossorigin="anonymous"></script>
-<script src="./move.js"></script>
+  <head>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-environment-component@1.2.0/dist/aframe-environment-component.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/face_mesh.js" crossorigin="anonymous"></script>
+    <script src="./move.js"></script>
+    <link rel="stylesheet" href="../static/style.css">
+  </head>
 <body>  
 <!-- scene -->
 <a-scene>
@@ -41,7 +44,7 @@
     </a-entity>
   </a-cone>
   <!-- <a-entity id="cam" camera="active: true"  look-controls rotation-reader position="0 1.6 0" > -->
-  <a-entity id="camera" camera="active: true" position="0 1.6 0" move-control>  
+  <a-entity id="camera" camera="active: true" position="0 1.6 0" move-control>
     <a-entity id="cursor" cursor="fuse: true;fuseTimeout:500"     
     	material="color:silver"
     	geometry="primitive:ring"
@@ -53,6 +56,112 @@
 
 <!-- camera input -->
 <video style="display: none;" class="input_video"></video>
+
+<div id="control-panel" class="control-panel">
+
+  <div>
+    <label for="speed-control">Speed</label>
+    <input type="range" min="1" max="100" value="0" class="slider" id="speed-control">
+    <label id="speed-control-text" class="control-percentage">50%</label>
+    <script type="text/javascript">
+      const speedControlElement = document.getElementById('speed-control');
+      speedControlElement.addEventListener('input', () => {
+        speed = speedControlElement.value / 200;
+        document.getElementById('speed-control-text').innerHTML = speedControlElement.value + '% (' + parseFloat(speed).toFixed(2) + ')';
+      });
+      speedControlElement.addEventListener('change', () => {
+        localStorage.setItem("speed", speed);
+      });
+      speedControlElement.value = speed * 200;
+      speedControlElement.dispatchEvent(new Event('input'));
+    </script>
+  </div>
+
+  <div>
+    <label for="hFactor-control">H Factor</label>
+    <input type="range" min="1" max="100" value="0" class="slider" id="hFactor-control">
+    <label id="hFactor-control-text" class="control-percentage">50%</label>
+    <script type="text/javascript">
+      const hFactorControlElement = document.getElementById('hFactor-control');
+      hFactorControlElement.addEventListener('input', () => {
+        hFactor = hFactorControlElement.value / 200;
+        document.getElementById('hFactor-control-text').innerHTML = hFactorControlElement.value + '% (' + parseFloat(hFactor).toFixed(2) + ')';
+      });
+      hFactorControlElement.addEventListener('change', () => {
+        localStorage.setItem("hFactor", hFactor);
+      });
+      hFactorControlElement.value = hFactor * 200;
+      hFactorControlElement.dispatchEvent(new Event('input'));
+    </script>
+  </div>
+  
+  <div>
+    <label for="vFactor-control">V Factor</label>
+    <input type="range" min="1" max="100" value="0" class="slider" id="vFactor-control">
+    <label id="vFactor-control-text" class="control-percentage">50%</label>
+    <script type="text/javascript">
+      const vFactorControlElement = document.getElementById('vFactor-control');
+      vFactorControlElement.addEventListener('input', () => {
+        vFactor = vFactorControlElement.value / 200;
+        document.getElementById('vFactor-control-text').innerHTML = vFactorControlElement.value + '% (' + parseFloat(vFactor).toFixed(2) + ')';
+      });
+      vFactorControlElement.addEventListener('change', () => {
+        localStorage.setItem("vFactor", vFactor);
+      });
+      vFactorControlElement.value = vFactor * 200;
+      vFactorControlElement.dispatchEvent(new Event('input'));
+    </script>
+  </div>
+  
+  <div>
+    <label for="alttd-control">Altitude</label>
+    <input type="range" min="1" max="100" value="0" class="slider" id="alttd-control">
+    <label id="alttd-control-text" class="control-percentage">50%</label>
+    <script type="text/javascript">
+      const alttdControlElement = document.getElementById('alttd-control');
+      alttdControlElement.addEventListener('input', () => {
+        alttd = alttdControlElement.value / 200;
+        document.getElementById('alttd-control-text').innerHTML = alttdControlElement.value + '% (' + parseFloat(alttd).toFixed(2) + ')';
+      });
+      alttdControlElement.addEventListener('change', () => {
+        localStorage.setItem("alttd", alttd);
+      });
+      alttdControlElement.value = alttd * 200;
+      alttdControlElement.dispatchEvent(new Event('input'));
+    </script>
+  </div>
+  
+  <div>
+    <label for="levelHrznRate-control">H Rate</label>
+    <input type="range" min="1" max="100" value="0" class="slider" id="levelHrznRate-control">
+    <label id="levelHrznRate-control-text" class="control-percentage">50%</label>
+    <script type="text/javascript">
+      const levelHrznRateControlElement = document.getElementById('levelHrznRate-control');
+      levelHrznRateControlElement.addEventListener('input', () => {
+        levelHrznRate = levelHrznRateControlElement.value / 100;
+        document.getElementById('levelHrznRate-control-text').innerHTML = levelHrznRateControlElement.value + '% (' + parseFloat(levelHrznRate).toFixed(2) + ')';
+      });
+      levelHrznRateControlElement.addEventListener('change', () => {
+        localStorage.setItem("levelHrznRate", levelHrznRate);
+      });
+      levelHrznRateControlElement.value = levelHrznRate * 100;
+      levelHrznRateControlElement.dispatchEvent(new Event('input'));
+    </script>
+  </div>
+  
+  <div>
+    <input type="button" id="reset-control" value="Reset Position"/>
+    <script type="text/javascript">
+      document.getElementById('reset-control').addEventListener('click', () => {
+        player.object3D.position.set(0, 1.6, 0);
+        player.object3D.rotation.x = 0;
+        player.object3D.rotation.y = 0;
+        player.object3D.rotation.z = 0;
+      });
+    </script>
+  </div>
+
+</div>
 
 <!-- face mesh preview -->
 <canvas style="position: fixed; height: 144px; width: 256px; left: 0; top: 0; transform: scale(-1, 1);" class="output_canvas" width="256px" height="144px"></canvas>

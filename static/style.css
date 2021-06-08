@@ -1,0 +1,38 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+.control-panel {
+    background-color: #0000004D;
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 20px;
+    border-radius: 0 0 0 12px;
+    width: 400px;
+    text-align: center;
+}
+
+.control-panel div {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 10px;
+}
+
+.control-panel div:last-child {
+    padding-bottom: 0px;
+}
+
+label {
+    color: white;
+    padding: 0 10px 0 10px;
+    width: 75px;
+}
+
+input {
+    vertical-align: middle;
+}
+
+.control-percentage {
+    width: 80px
+}

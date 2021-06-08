@@ -1,14 +1,19 @@
 var ctx = null;
 var player = null;
-const speed = 0.01;
-const hFactor = 0.1 ;
-const vFactor = 0.05 ;
-const alttd = 0.1;
-const levelHrznRate = 0.95
+
+let speed = localStorage.getItem("speed") || 0.01;
+let hFactor = localStorage.getItem("hFactor") || 0.1;
+let vFactor = localStorage.getItem("vFactor") || 0.05;
+let alttd = localStorage.getItem("alttd") || 0.1;
+let levelHrznRate = localStorage.getItem("levelHrznRate") || 0.95;
+
 let stop = true;
 
 window.GAZE_ORIENTATION = {x: 0, y: 0};
 
+//window.addEventListener('load', () => {
+  //document.getElementById('speed-control').value = speed * 100;
+//});
 
 // define a custom component
 //AFRAME.registerComponent("foo", {
@@ -31,6 +36,7 @@ AFRAME.registerComponent('move-control', {
         //   break;
         case "Space":
           stop = !stop;
+          document.getElementById('control-panel').style.display = stop ? 'block' : 'none';
           if(!stop){
             window.GAZE_ORIENTATION.zeroX = window.GAZE_ORIENTATION.x;
             window.GAZE_ORIENTATION.zeroY = window.GAZE_ORIENTATION.y;
