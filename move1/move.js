@@ -178,9 +178,7 @@ AFRAME.registerComponent('move-control', {
     //this.levelHrzn();
     if(stop)
       return;
-
     
-
     const hTurn = window.GAZE_ORIENTATION.x - window.GAZE_ORIENTATION.zeroX;
     const vTurn = window.GAZE_ORIENTATION.zeroY - window.GAZE_ORIENTATION.y;
 
@@ -188,7 +186,9 @@ AFRAME.registerComponent('move-control', {
     // player.object3D.rotateY(hTurn * hFactor); - causing horizon lost
     player.object3D.rotateOnWorldAxis(new THREE.Vector3(0.0, 1.0, 0.0), hTurn * hFactor);       
     // vertical    
-    player.object3D.rotateX(vTurn  * vFactor); 
+    player.object3D.rotateX(vTurn  * vFactor);
+
+    window.Game.movePlayers(speed);
 
     //if( player.object3D.rotation.x >= -player.object3D.x && player.object3D.rotation.x <= -player.object3D.x
 

@@ -28,23 +28,23 @@ client.event.subscribe('heartbeat', data => {
 })
 
 
+v3 = new THREE.Vector3 (0,0,0);
 client.event.subscribe('player.move', data => {
     if(data.p == uuid) {
         return;
     }
+    
+    let other = Game.getPlayer(data.p);    
+    other.destPos = new THREE.Vector3(data.x, data.y, data.z);
+    other.destRot = new THREE.Vector3(data.rx, data.ry, data.rz);
 
-    // if(!other){
-    //   other = document.getElementById("player");
-    // }
-    let other = Game.getPlayer(data.p);
 
-    // other.object3D.rotation.x = data.rx;
-    // other.object3D.rotation.y = data.ry;
-    // other.object3D.rotation.z = data.rz;
+    
 
-    other.object3D.position.x = data.x;
-    other.object3D.position.y = data.y;
-    other.object3D.position.z = data.z;
+    // other.object3D.position.x = data.x;
+    // other.object3D.position.y = data.y;
+    // other.object3D.position.z = data.z;
+    
     
     console.log(`${data.p}> player.move |${data.x}|${data.y}|${data.z}|${data.rx}|${data.ry}|${data.rz}`);
     //console.log(data);

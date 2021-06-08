@@ -2,7 +2,8 @@ window.Game ={
   players:{},
   template: document.getElementById('player'),
   scene: document.getElementById('scene'),
-  getPlayer(id){
+  world: new THREE.Vector3(),
+  getPlayer: function(id){
     if (this.players[id]){
       return this.players[id];      
     }
@@ -19,7 +20,27 @@ window.Game ={
     this.players[id] = player;
     this.scene.appendChild(player);
     return player;
+  },
+  movePlayers: function(speed){
+    for(p of player){
+      if(p.destPos){
+        player.object3D.position = p.destPos;
+        p.destPos = null;
+      }
+      if(p.destRot){
+        player.object3D.rotation = p.destRot;
+        p.destRot = null;
+      }
+      // move
+      p.object3D.getWorldDirection(this.world);    
+      const direction = this.world.multiplyScalar(-speed);
+      //direction.z = 0;
+  
+      //player.object3D.position = 
+      p.object3D.position.add(direction);
+    }
   }
+
 }
 
 
