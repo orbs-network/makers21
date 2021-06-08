@@ -4,6 +4,7 @@ const speed = 0.01;
 const hFactor = 0.1 ;
 const vFactor = 0.05 ;
 const alttd = 0.1;
+const vLimit = 20;
 const levelHrznRate = 0.95
 let stop = true;
 
@@ -186,8 +187,10 @@ AFRAME.registerComponent('move-control', {
     // sideways
     // player.object3D.rotateY(hTurn * hFactor); - causing horizon lost
     player.object3D.rotateOnWorldAxis(new THREE.Vector3(0.0, 1.0, 0.0), hTurn * hFactor);       
-    // vertical
+    // vertical    
     player.object3D.rotateX(vTurn  * vFactor); 
+
+    //if( player.object3D.rotation.x >= -player.object3D.x && player.object3D.rotation.x <= -player.object3D.x
 
     //player.object3D.rotateOnWorldAxis(player.object3D.getWorldDirection(), 0);
 
