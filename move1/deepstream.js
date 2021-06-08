@@ -38,9 +38,9 @@ client.event.subscribe('player.move', data => {
     // }
     let other = Game.getPlayer(data.p);
 
-    other.object3D.rotation.x = data.rx;
-    other.object3D.rotation.y = data.ry;
-    other.object3D.rotation.z = data.rz;
+    // other.object3D.rotation.x = data.rx;
+    // other.object3D.rotation.y = data.ry;
+    // other.object3D.rotation.z = data.rz;
 
     other.object3D.position.x = data.x;
     other.object3D.position.y = data.y;
@@ -89,6 +89,6 @@ setInterval(()=> {
 
 
 window.networkLayer = {
-    sendPos: throttle(sendPos,200)
+    sendPos: throttle(sendPos,1000)
 }
 
