@@ -1,43 +1,44 @@
 window.Game ={
-  players:{},
+  players:[],
   template: document.getElementById('player'),
   scene: document.getElementById('scene'),
   world: new THREE.Vector3(),
-  getPlayer: function(id){
-    if (this.players[id]){
-      return this.players[id];      
+  getPlayer: function(name){
+    if (this.players.indexOf(name) > -1){
+      return this.scene.object3D.getObjectByName(name);
     }
-    // create player    
-    let player = document.createElement('a-entity');        
-    player.id = id;
-    player['obj-model']="obj: #airplane";
-    player['position']="10 0 0";
-    player['scale']="10 10 10";
-    player.visible = true;
-    
-    player.setObject3D('clone', this.template.object3D.clone());  
-    //player.setAttribute('visible', true);
-    this.players[id] = player;
-    this.scene.appendChild(player);
-    return player;
+    let newPlayer = this.template.object3D.clone(); 
+    newPlayer.name = name;
+    newPlayer.visible = true;   
+    this.scene.object3D.add(newPlayer);
+    this.players.push(name);    
+    return this.scene.object3D.getObjectByName(name);
   },
   movePlayers: function(speed){
-    for(p of player){
+    for(let name of this.players){
+      let p = this.scene.object3D.getObjectByName(name);
       if(p.destPos){
-        player.object3D.position = p.destPos;
+        //p.position = p.destPos;
+        p.position.x = p.destPos.x;
+        p.position.y = p.destPos.y;
+        p.position.z = p.destPos.z;
+        //p.position.set(p.destPos);
         p.destPos = null;
       }
       if(p.destRot){
-        player.object3D.rotation = p.destRot;
+        p.rotation.x = p.destRot.x;
+        p.rotation.y = p.destRot.y;
+        p.rotation.z = p.destRot.z;
+        //p.rotation = p.destRot;
+        //p.rotateOnWorldAzis(p.destRot, 0.1);
+        //p.setRotationFromEuler(new THREE.Euler( p.destRot.x, p.destRot.y, p.destRot.z, 'XYZ' )); 
         p.destRot = null;
       }
       // move
-      p.object3D.getWorldDirection(this.world);    
+      p.getWorldDirection(this.world);    
       const direction = this.world.multiplyScalar(-speed);
-      //direction.z = 0;
-  
-      //player.object3D.position = 
-      p.object3D.position.add(direction);
+        
+      p.position.add(direction);
     }
   }
 

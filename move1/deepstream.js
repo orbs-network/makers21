@@ -1,5 +1,5 @@
 const { DeepstreamClient } = window.DeepstreamClient
-const client = new DeepstreamClient('10.11.11.66:6020')
+const client = new DeepstreamClient('192.168.1.209:6020')
 client.login()
 var uuid = client.getUid();
 
@@ -16,16 +16,16 @@ client.on('connectionStateChanged', connectionState => {
     // will be called with 'OFFLINE' once the connection is successfully paused.
 })
 
-function sendPos(pos, direction) {
-    let dir = { rx: direction.x, ry: direction.y, rz: direction.z}
+function sendPos(pos, rot) {
+    let dir = { rx: rot.x, ry: rot.y, rz: rot.z}
     let cords = Object.assign({p: uuid, ts: Date.now()}, pos, dir);
     client.event.emit('player.move', cords);
 }
 
 
-client.event.subscribe('heartbeat', data => {
-    console.log(data);
-})
+// client.event.subscribe('heartbeat', data => {
+//     console.log(data);
+// })
 
 
 v3 = new THREE.Vector3 (0,0,0);
@@ -46,7 +46,7 @@ client.event.subscribe('player.move', data => {
     // other.object3D.position.z = data.z;
     
     
-    console.log(`${data.p}> player.move |${data.x}|${data.y}|${data.z}|${data.rx}|${data.ry}|${data.rz}`);
+    //console.log(`${data.p}> player.move |${data.x}|${data.y}|${data.z}|${data.rx}|${data.ry}|${data.rz}`);
     //console.log(data);
 })
 
