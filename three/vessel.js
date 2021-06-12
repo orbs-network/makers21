@@ -1,15 +1,17 @@
 let world = new THREE.Vector3();
+let yVector = new THREE.Vector3(0.0, 1.0, 0.0);
 
 class Vessel{
   constructor(game, obj) {
     this.obj = obj;
     game.addEventListener('tick', ()=>{
       if(game.start){
-        // // rotate
-        // if(this.horiz){      
-        //   //     //game.camera.rotateOnWorldAxis(this.yVector, this.horiz);
-        //   //     game.camera.rotation.y += this.horiz;
-        //   //   }
+        // rotate
+        const horiz = game.steering.horiz;
+        if(horiz){      
+          obj.rotateOnWorldAxis(yVector, horiz);
+          //game.camera.rotation.y += this.horiz;
+        }
 
         // move
         obj.getWorldDirection(world);        

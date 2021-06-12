@@ -14,21 +14,18 @@ class Game extends THREE.EventDispatcher {
     // start
     if(this.start){
       if(this.first){        
-        // this.sound.add('gate.wav', this.redGate);
-        // this.sound.add('gate.wav', this.blueGate);
+        this.sound.add('gate.wav', this.redGate);
+        this.sound.add('gate.wav', this.blueGate);
         this.first = false;
       }
       else{
-        //this.sound.play();
+        this.sound.play();
       }
       
     }
     // stop
-    else{
-      // redGate.audio.pause(); 
-      // blueGate.audio.pause(); 
-      // this.Scene.audio.pause();
-      //this.sound.pause();
+    else{      
+      this.sound.pause();
     }
     
   }

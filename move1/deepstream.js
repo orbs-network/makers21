@@ -1,5 +1,5 @@
 const { DeepstreamClient } = window.DeepstreamClient
-const client = new DeepstreamClient('192.168.1.209:6020')
+const client = new DeepstreamClient('10.11.11.68:6020')
 client.login()
 var uuid = client.getUid();
 
@@ -89,6 +89,6 @@ setInterval(()=> {
 
 
 window.networkLayer = {
-    sendPos: throttle(sendPos,1000)
+    sendPos: throttle(sendPos,100)
 }
 

@@ -3,28 +3,44 @@ class Steering{
     this.horiz = 0;
     this.vert = 0;
     this.releaseH = true;
-    this.releaseV = true;
-    this.yVector = new THREE.Vector3(0.0, 1.0, 0.0)
+    this.releaseV = true;      
   }
   addHoriz(unit){
+    this.clearReleaseInterval();
     this.releaseH = false;
-    this.horiz += unit;
-    this.updateRotation();
+    this.horiz += unit;    
+    // limit
+    if(Math.abs(this.horiz) > config.horizLimit){
+      this.horiz = config.horizLimit * (this.horiz/Math.abs(this.horiz)); // 1 or -1 
+    }
   }
   addVert(unit){
     this.releaseV = false;
     this.vert += unit;    
   }
+  clearReleaseInterval(){
+    if(this.tidRelease){
+      clearInterval(this.tidRelease);
+      this.tidRelease = null;
+    }
+  }
   releaseHoriz(){
     this.releaseH = true;
+    // interval already going
+    if(this.tidRelease){
+      return;
+    }
+    this.tidRelease = setInterval(()=>{
+      if(this.horiz){
+        this.horiz *= config.steerReleaseFactor;
+        if(Math.abs(this.horiz) <= 0.001){
+          this.horiz =0;
+          this.clearReleaseInterval();
+        }
+      }
+    },50);
   }
   releaseVert(){
     this.releaseV = true;
-  }
-  // updateRotation(){
-  //   if(this.horiz){      
-  //     //game.camera.rotateOnWorldAxis(this.yVector, this.horiz);
-  //     game.camera.rotation.y += this.horiz;
-  //   }
-  // }
+  }  
 }

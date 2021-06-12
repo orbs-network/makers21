@@ -1,6 +1,6 @@
 var ctx = null;
 cam = null;
-const speed = 0.01;
+const speed = 0.05;
 const hFactor = 0.1 ;
 const vFactor = 0.05 ;
 const alttd = 0.1;
@@ -58,7 +58,7 @@ AFRAME.registerComponent('move-control', {
       //_cam.getWorldDirection(wRot);
       //console.log(wPos, wRot);
       window.networkLayer.sendPos(wPos, _cam.rotation); // is euler
-    }, 500);
+    }, 50);
     
   },
   levelHrzn:function() {
@@ -100,7 +100,7 @@ AFRAME.registerComponent('move-control', {
   },
   tick: function () {
     //this.levelHrzn();
-    if(stop)
+     if(stop)
       return;
     
     const hTurn = window.GAZE_ORIENTATION.x - window.GAZE_ORIENTATION.zeroX;
