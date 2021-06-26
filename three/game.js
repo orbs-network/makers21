@@ -6,16 +6,17 @@ class Game extends THREE.EventDispatcher {
     this.start = false;
     this.first = true;
     this.sound = new Sound();
-    this.steering = new Steering();    
+    //this.steering = new Steering();    
   }
   //////////////////////////////////////////////////////////
   startStop(){
     this.start = !this.start;
+    this.controls.autoForward = this.start;
     // start
     if(this.start){
       if(this.first){        
-        this.sound.add('gate.wav', this.redGate);
-        this.sound.add('gate.wav', this.blueGate);
+        // this.sound.add('gate.wav', this.redGate);
+        // this.sound.add('gate.wav', this.blueGate);
         this.first = false;
       }
       else{
@@ -37,7 +38,7 @@ class Game extends THREE.EventDispatcher {
     this.camera.position.y += 0.5 ;
     this.camera.position.z += SIZE;
 
-    this.player = new Vessel(this, this.camera);
+    //this.player = new Vessel(this, this.camera);
 
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize( window.innerWidth, window.innerHeight );
@@ -70,6 +71,46 @@ class Game extends THREE.EventDispatcher {
     this.blueGate.position.z += SIZE/2;
     this.blueGate.position.y += GATE_SIZE;    
     this.scene.add( this.blueGate );    
+
+    
+    this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);    
+    //this.controls.activeLook = false;
+    // this.controls.constrainVertical = true;
+    // this.controls.mouseDrageOn = true;
+    // this.controls.movementSpeed = config.speed;
+    // //this.controls.verticalMax = 0.001;
+    // this.controls.verticalMin = 0.1;
+    
+    //this.controls = new THREE.PointerLockControls(this.camera, this.renderer.domElement);    
+    //this.controls.connect();
+
+    // fly controls
+    //var flyControls = new THREE.FlyControls(this.camera, document.body);
+    // this.controls.movementSpeed = 0.001;
+    // //this.controls.domElement = document.querySelector("#WebGL-output");
+    // //this.controls.domElement = document.body;
+    // //this.controls.rollSpeed = Math.PI / 92 ; 0.005
+    // this.controls.rollSpeed = 0.01;
+    
+    // this.controls.autoForward = true;
+    // this.controls.dragToLook = true;
+
+
+    document.body.addEventListener("keydown",this.keydown.bind(this));
+
+    let cam = this.camera;
+    setInterval(()=>{
+      var vector = new THREE.Vector3();
+      cam.getWorldDirection(vector);
+      console.log(vector);
+    }, 2000)
+  }
+  keydown(e){
+    switch(e.code){
+      case "Space":{
+       this.startStop();
+      }
+    }
   }
   createGate(color, GATE_SIZE){    
     const geometry = new THREE.TorusGeometry( GATE_SIZE, GATE_SIZE/3, 32, 16 );
@@ -87,7 +128,15 @@ class Game extends THREE.EventDispatcher {
 
     this.dispatchEvent( { type: 'tick'} );
 
+    // fly controls    
+    //this.controls.update( 1 );    
+    this.controls.update(1);
+    
     this.renderer.render(this.scene, this.camera);
+  }
+  //////////////////////////////////////////////////////////
+  onresize(){
+    this.controls.handleResize();
   } 
 }
 
@@ -106,7 +155,6 @@ window.onload = function(){
 
     // if enough time has elapsed, draw the next frame
     if (elapsed > fpsInterval) {
-
         // Get ready for next frame by setting then=now, but also adjust for your
         // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
         then = now - (elapsed % fpsInterval);
@@ -121,5 +169,6 @@ window.onload = function(){
   startTime = then;
   animate();
 }
+window.onresize = game.onresize.bind(game);
 
 

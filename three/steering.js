@@ -2,12 +2,12 @@ class Steering{
   constructor() {
     this.horiz = 0;
     this.vert = 0;
-    this.releaseH = true;
-    this.releaseV = true;      
+    // this.releaseH = true;
+    // this.releaseV = true;      
   }
   addHoriz(unit){
     this.clearReleaseInterval();
-    this.releaseH = false;
+    //this.releaseH = false;
     this.horiz += unit;    
     // limit
     if(Math.abs(this.horiz) > config.horizLimit){
@@ -15,8 +15,13 @@ class Steering{
     }
   }
   addVert(unit){
-    this.releaseV = false;
-    this.vert += unit;    
+    this.clearReleaseInterval();
+    //this.releaseV = false;
+    this.vert += unit;
+    // limit
+    if(Math.abs(this.vert) > config.vertLimit){
+      this.vert = config.vertLimit * (this.vert/Math.abs(this.vert)); // 1 or -1 
+    }
   }
   clearReleaseInterval(){
     if(this.tidRelease){
@@ -25,7 +30,7 @@ class Steering{
     }
   }
   releaseHoriz(){
-    this.releaseH = true;
+    //this.releaseH = true;
     // interval already going
     if(this.tidRelease){
       return;
@@ -41,6 +46,5 @@ class Steering{
     },50);
   }
   releaseVert(){
-    this.releaseV = true;
   }  
 }

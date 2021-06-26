@@ -1,5 +1,6 @@
 let world = new THREE.Vector3();
-let yVector = new THREE.Vector3(0.0, 1.0, 0.0);
+const yVector = new THREE.Vector3(0.0, 1.0, 0.0);
+const xVector = new THREE.Vector3(1.0, 0.0, 0.0);
 
 class Vessel{
   constructor(game, obj) {
@@ -8,9 +9,14 @@ class Vessel{
       if(game.start){
         // rotate
         const horiz = game.steering.horiz;
-        if(horiz){      
+        if(horiz){ // preceeds vert     
           obj.rotateOnWorldAxis(yVector, horiz);
-          //game.camera.rotation.y += this.horiz;
+          //game.camera.rotation.y += horiz;
+        } 
+        if (game.steering.vert){
+          obj.rotateOnWorldAxis(xVector, game.steering.vert);
+          //obj.rotation.x += game.steering.vert;
+
         }
 
         // move

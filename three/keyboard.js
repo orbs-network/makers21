@@ -5,16 +5,16 @@ const keyDown = function(e){
     }
     break;
     case "ArrowRight":          
-      game.steering.addHoriz(-0.01);    
+      game.steering.addHoriz(-config.rotUnit);    
     break
     case "ArrowLeft":        
-      game.steering.addHoriz( 0.01);
+      game.steering.addHoriz( config.rotUnit);
       break;
     case "ArrowUp":          
-      game.steering.addVert(0.01);
+      game.steering.addVert(config.rotUnit);
       break;
     case "ArrowDown":          
-      game.steering.addVert(-0.01);
+      game.steering.addVert(-config.rotUnit);
       break;        
   }
 }
