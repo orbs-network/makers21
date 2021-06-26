@@ -6,6 +6,7 @@ class Game extends THREE.EventDispatcher {
     this.start = false;
     this.first = true;
     this.sound = new Sound();
+    this.players = new Players(this);
     //this.steering = new Steering();    
   }
   //////////////////////////////////////////////////////////
@@ -35,8 +36,24 @@ class Game extends THREE.EventDispatcher {
     const SIZE = config.size;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    this.camera.position.y += 0.5 ;
+    this.camera.position.y += 3.5 ;
     this.camera.position.z += SIZE;
+
+    // add light ???
+    // const light = new THREE.DirectionalLight( 0xFFFFFF );
+    // const helper = new THREE.DirectionalLightHelper( light, 5 );
+    // this.scene.add( helper );
+
+    // const color = 0xFFFFFF;
+    // const intensity = 1;
+    // const light = new THREE.AmbientLight(color, intensity);
+    // this.scene.add(light);
+    
+    const skyColor = 0xB1E1FF;  // light blue
+    const groundColor = 0xB97A20;  // brownish orange
+    const intensity = 1;    
+    const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
+    this.scene.add(light);
 
     //this.player = new Vessel(this, this.camera);
 
@@ -50,9 +67,10 @@ class Game extends THREE.EventDispatcher {
     // create red grid
     let grid = new THREE.GridHelper( SIZE, divisions, RED,RED );
     this.scene.add( grid );
+    grid.position.z = -SIZE/2;
     // create blue grid
     grid = new THREE.GridHelper( SIZE, divisions, BLUE,BLUE );
-    grid.position.z -= SIZE;
+    grid.position.z -= SIZE/2 + SIZE;
     // offset blue
     this.scene.add( grid );
 
@@ -60,24 +78,26 @@ class Game extends THREE.EventDispatcher {
 
     // red gate
     this.redGate = this.createGate(RED, GATE_SIZE);
+    this.redGate.position.z = 0;
     // move front and up
-    this.redGate.position.z -= 2 * SIZE;
+    this.redGate.position.z -= 2*SIZE;
     this.redGate.position.y += GATE_SIZE;    
     this.scene.add( this.redGate );
 
     // blue gate
     this.blueGate = this.createGate(BLUE, GATE_SIZE);
     // move back and up
-    this.blueGate.position.z += SIZE/2;
+    //this.blueGate.position.z += SIZE/2;
     this.blueGate.position.y += GATE_SIZE;    
     this.scene.add( this.blueGate );    
 
     
-    this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);    
+    //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);    
+    this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);    
     //this.controls.activeLook = false;
     // this.controls.constrainVertical = true;
-    // this.controls.mouseDrageOn = true;
-    // this.controls.movementSpeed = config.speed;
+    this.controls.mouseDrageOn = true;
+    this.controls.movementSpeed = config.speed;
     // //this.controls.verticalMax = 0.001;
     // this.controls.verticalMin = 0.1;
     
@@ -95,15 +115,20 @@ class Game extends THREE.EventDispatcher {
     // this.controls.autoForward = true;
     // this.controls.dragToLook = true;
 
+    // create dummy player
+    this.players.getPlayer("dummy");
 
+    // space bar
     document.body.addEventListener("keydown",this.keydown.bind(this));
 
+    // update server
     let cam = this.camera;
-    setInterval(()=>{
-      var vector = new THREE.Vector3();
-      cam.getWorldDirection(vector);
-      console.log(vector);
-    }, 2000)
+    var direction = new THREE.Vector3();
+    setInterval(()=>{      
+      cam.getWorldDirection(direction);
+      cam.position;
+      deepStream.sendPlayerState(cam.position, direction);
+    }, 200)
   }
   keydown(e){
     switch(e.code){
@@ -116,7 +141,7 @@ class Game extends THREE.EventDispatcher {
     const geometry = new THREE.TorusGeometry( GATE_SIZE, GATE_SIZE/3, 32, 16 );
     // red gate
     let material = new THREE.LineBasicMaterial({ color: color });
-    let gate = new THREE.Line( geometry, material );
+    let gate = new THREE.Line( geometry, material );    
     return gate;
   }
 
@@ -131,6 +156,7 @@ class Game extends THREE.EventDispatcher {
     // fly controls    
     //this.controls.update( 1 );    
     this.controls.update(1);
+    this.players.update();
     
     this.renderer.render(this.scene, this.camera);
   }

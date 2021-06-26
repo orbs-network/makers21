@@ -158,8 +158,7 @@
 
 			this.update = function () {
 
-				const targetPosition = new THREE.Vector3();
-        let worldDir = new THREE.Vector3();
+				const targetPosition = new THREE.Vector3();        
 				return function update( delta ) {
 
 					if ( this.enabled === false ) return;
@@ -179,12 +178,7 @@
 					const actualMoveSpeed = delta * this.movementSpeed;
 					if ( this.moveForward || this.autoForward && ! this.moveBackward ) this.object.translateZ( - ( actualMoveSpeed + this.autoSpeedFactor ) );
 					if ( this.moveBackward ) this.object.translateZ( actualMoveSpeed );
-					//if ( this.turnLeft ) this.object.translateX( - actualMoveSpeed );
-          if ( this.turnLeft ){
-            this.object.getWorldDirection(worldDir);
-            worldDir.x -= 1000;
-            this.object.lookAt(this.object.position);
-          }
+					if ( this.turnLeft ) this.object.translateX( - actualMoveSpeed );          
 					if ( this.moveRight ) this.object.translateX( actualMoveSpeed );
 					if ( this.moveUp ) this.object.translateY( actualMoveSpeed );
 					if ( this.moveDown ) this.object.translateY( - actualMoveSpeed );
