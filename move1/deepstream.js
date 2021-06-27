@@ -88,7 +88,7 @@ setInterval(()=> {
 }, 5000);
 
 
-window.networkLayer = {
-    sendPos: throttle(sendPos,100)
+window.deepStream = {
+    sendPos: throttle(sendPos,100)  
 }
 

@@ -13,6 +13,10 @@ class Game extends THREE.EventDispatcher {
   startStop(){
     this.start = !this.start;
     this.controls.autoForward = this.start;
+    deepStream.sendEvent('player',{
+      type:"start",
+      moving:this.start
+    });
     // start
     if(this.start){
       if(this.first){        
@@ -94,7 +98,7 @@ class Game extends THREE.EventDispatcher {
     
     //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);    
     this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);    
-    //this.controls.activeLook = false;
+    this.controls.activeLook = false;
     // this.controls.constrainVertical = true;
     this.controls.mouseDrageOn = true;
     this.controls.movementSpeed = config.speed;
@@ -126,14 +130,18 @@ class Game extends THREE.EventDispatcher {
     var direction = new THREE.Vector3();
     setInterval(()=>{      
       cam.getWorldDirection(direction);
-      cam.position;
-      deepStream.sendPlayerState(cam.position, direction);
-    }, 200)
+      deepStream.sendEvent('player',{
+        type:"pos",
+        pos:cam.position,
+        dir:direction
+      });
+      //deepStream.sendPlayerState(cam.position, direction);
+    }, 1000)
   }
   keydown(e){
     switch(e.code){
       case "Space":{
-       this.startStop();
+       this.startStop();       
       }
     }
   }
@@ -157,7 +165,7 @@ class Game extends THREE.EventDispatcher {
     //this.controls.update( 1 );    
     this.controls.update(1);
     this.players.update();
-    
+
     this.renderer.render(this.scene, this.camera);
   }
   //////////////////////////////////////////////////////////

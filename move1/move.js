@@ -51,13 +51,12 @@ AFRAME.registerComponent('move-control', {
     });
     // server update position          
     let _cam = this.cam;
-    let wPos = new THREE.Vector3();
-    let wRot = new THREE.Vector3();
+    let wPos = new THREE.Vector3();    
     setInterval(()=>{   
       _cam.getWorldPosition(wPos);
       //_cam.getWorldDirection(wRot);
       //console.log(wPos, wRot);
-      window.networkLayer.sendPos(wPos, _cam.rotation); // is euler
+      window.deepStream.sendPos(wPos, _cam.rotation); // is euler
     }, 50);
     
   },

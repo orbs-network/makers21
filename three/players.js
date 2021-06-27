@@ -1,6 +1,35 @@
+//////////////////////////////////////////////////////////
+class Player{
+  //////////////////////////////////////////////////////////  
+  constructor(obj){
+    this.obj = obj;
+    this.v3 = new THREE.Vector3(0,0,0); 
+    this.start = false;   
+  }
+  //////////////////////////////////////////////////////////
+  moveForward(){
+    this.obj.getWorldDirection(this.v3);
+    const direction = this.v3.multiplyScalar(config.speed);        
+    this.obj.position.add(direction);
+  }
+  //////////////////////////////////////////////////////////
+  onPos(data){           
+    this.obj.position.set(data.x, data.y, data.z);
+    //this.rotation.set(data.rx, data.ry, data.rz);
+    this.obj.lookAt(data.rx *100, data.ry*100, data.rz*100);
+    this.moveForward();
+  }
+  //////////////////////////////////////////////////////////
+  onStart(data){           
+    this.start = false;
+    this.destPos = data.pos;
+  }
+}
+
 class Players{
   //////////////////////////////////////////////////////////
-  constructor(game){    
+  constructor(game){
+    this.dict = {};
     this.game = game;
     this.loader = new THREE.OBJLoader();
     //this.redMatter = new THREE.MeshBasicMaterial({color: 0xFF00FF});         // red
@@ -10,20 +39,36 @@ class Players{
     material.flatShading = true;
     this.matter = material;
     this.createDummy();
-    this.v3 = new THREE.Vector3(0,0,0);
-    this.arr = [];
-    
+    window.deepStream.subscribe("player", this.onEvent.bind(this));
+            
     //super();
     
     // this.start = false;
     // this.first = true;
     // this.sound = new Sound();
-    // //this.steering = new Steering();    
+    // //this.steering = new Steering();      
+  }
+  //////////////////////////////////////////////////////////
+  onEvent(data){
+    const p = this.getPlayer(data.id);
+    if(!p){
+      console.error(`Player ${data.id} not found`);
+      return;
+    }
+    switch(data.type){
+      case "pos":
+        p.onPos(data);
+        break;
+      case "start":
+        p.onStart(data);
+        break;
+    }
+
   }
   //////////////////////////////////////////////////////////
   update(){
-    for ( let p of this.arr){
-      this.moveForward(p);
+    for ( let name in this.dict){
+      this.dict[name].moveForward();
     }
   }
   //////////////////////////////////////////////////////////
@@ -36,8 +81,9 @@ class Players{
     this.game.scene.add(p);
     p.visible = true;
 
-    this.arr.push(p);
-    
+    const newPlayer = new Player(p);
+    this.dict[name] = newPlayer;
+    return newPlayer;
   }
   //////////////////////////////////////////////////////////
   createDummy(){
@@ -92,28 +138,12 @@ class Players{
   } 
   //////////////////////////////////////////////////////////
   getPlayer(name){
-    const p = this.game.scene.getObjectByName(name);
+    const p = this.dict[name];
     if(p){
       return p;
     }
-
     return this.createNew(name);    
-  }
-  moveForward(p){
-    p.getWorldDirection(this.v3);
-    const direction = this.v3.multiplyScalar(config.speed);        
-    p.position.add(direction);
-  }
-  //////////////////////////////////////////////////////////
-  onMove(data){     
-    const p = this.getPlayer(data.p);
-    if(p){
-      p.position.set(data.x, data.y, data.z);
-      //p.rotation.set(data.rx, data.ry, data.rz);
-      p.lookAt(data.rx *100, data.ry*100, data.rz*100);
-      this.moveForward(p);
-    }
-  }
+  }  
 }
 window.Players = Players;
 
