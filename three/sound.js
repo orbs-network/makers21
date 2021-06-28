@@ -24,6 +24,7 @@ class Sound {
       sound.setBuffer( buffer );
       sound.setLoop(true);
       sound.setRefDistance( /*config.size/30*/1  );
+      sound.setVolume( 0.1 );
       //sound.setDistanceModel("orientationX");
       sound.play();
     });

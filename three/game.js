@@ -15,13 +15,14 @@ class Game extends THREE.EventDispatcher {
     this.controls.autoForward = this.start;
     deepStream.sendEvent('player',{
       type:"start",
-      moving:this.start
+      moving:this.start,
+      pos:this.camera.position
     });
     // start
     if(this.start){
       if(this.first){        
-        // this.sound.add('gate.wav', this.redGate);
-        // this.sound.add('gate.wav', this.blueGate);
+        this.sound.add('gate.wav', this.redGate);
+        this.sound.add('gate.wav', this.blueGate);
         this.first = false;
       }
       else{
@@ -98,7 +99,7 @@ class Game extends THREE.EventDispatcher {
     
     //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);    
     this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);    
-    this.controls.activeLook = false;
+    this.controls.activeLook = true;
     // this.controls.constrainVertical = true;
     this.controls.mouseDrageOn = true;
     this.controls.movementSpeed = config.speed;
@@ -127,7 +128,7 @@ class Game extends THREE.EventDispatcher {
 
     // update server
     let cam = this.camera;
-    var direction = new THREE.Vector3();
+    let direction = new THREE.Vector3();
     setInterval(()=>{      
       cam.getWorldDirection(direction);
       deepStream.sendEvent('player',{
@@ -136,7 +137,7 @@ class Game extends THREE.EventDispatcher {
         dir:direction
       });
       //deepStream.sendPlayerState(cam.position, direction);
-    }, 1000)
+    }, 100)
   }
   keydown(e){
     switch(e.code){
@@ -161,9 +162,9 @@ class Game extends THREE.EventDispatcher {
 
     this.dispatchEvent( { type: 'tick'} );
 
-    // fly controls    
-    //this.controls.update( 1 );    
+    // fly controls        
     this.controls.update(1);
+    // players
     this.players.update();
 
     this.renderer.render(this.scene, this.camera);

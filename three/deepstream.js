@@ -15,16 +15,6 @@ client.on('connectionStateChanged', connectionState => {
     // will be called with 'OFFLINE' once the connection is successfully paused.
 })
 
-// function sendPlayerState(pos, rot) {
-//     let dir = { rx: rot.x, ry: rot.y, rz: rot.z }
-//     let event = Object.assign({
-//         type: MOVE,
-//         p: uuid,
-//         ts: Date.now()
-//     },
-//         pos, dir);
-//     client.event.emit('player', cords);
-// }
 /////////////////////////////////////////////////////
 function sendEvent(name, data){
     data.id = uuid;    
@@ -33,19 +23,14 @@ function sendEvent(name, data){
 
 
 /////////////////////////////////////////////////////
-function subscribe(name, handler){
-    client.event.subscribe(name, handler);
+function subscribe(name, handler){    
+    client.event.subscribe(name, (data)=>{
+        if (data.id == uuid) {
+            return;
+        }
+        handler(data);
+    }); 
 }
-// client.event.subscribe('player', data => {
-//     if (data.p == uuid) {
-//         return;
-//     }
-//     const p = game.players.getPlayer(data.p);
-//     if (p) {
-//         p.onEvent(data);
-//     }
-// });
-
 
 function throttle(func, wait, options) {
     var context, args, result;
@@ -85,12 +70,8 @@ setInterval(() => {
 
 
 window.deepStream = {
-    sendThrot : throttle(sendEvent, 1000),
+    sendThrot : throttle(sendEvent, 10),
     sendEvent:sendEvent,
-    subscribe: subscribe
-    // sendPlayerState: throttle(sendPlayerState, 100),
-    // sendPlayerMoving: function (moving) {
-    //     client.event.emit('player.move', { moving: moving });
-    // }
+    subscribe: subscribe    
 }
 
