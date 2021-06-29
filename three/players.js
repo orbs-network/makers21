@@ -5,18 +5,7 @@ class Player{
   constructor(obj, name){
     this.obj = obj;
     this.moving = false;
-
-
-    const foobar = document.createElement( 'div' );
-    foobar.className = 'label';
-    foobar.textContent = name || "who dis?";
-    foobar.style.marginTop = '2em';
-    foobar.style.color = 'white';
-    foobar.style.fontFamily = "monospace";
-    const foobarLabel = new window.CSS2DObject( foobar );
-    foobarLabel.position.set( 0, 0, 0 );
-    this.obj.add( foobarLabel );
-
+    this._initLabel(name);
   }
   //////////////////////////////////////////////////////////
   moveForward(){
@@ -37,6 +26,18 @@ class Player{
   onStart(data){
     this.moving = data.moving;
     this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
+  }
+
+  _initLabel(name) {
+    const playerLabelDiv = document.createElement( 'div' );
+    playerLabelDiv.className = 'label';
+    playerLabelDiv.textContent = name || "who dis?";
+    playerLabelDiv.style.marginTop = '2em';
+    playerLabelDiv.style.color = 'white';
+    playerLabelDiv.style.fontFamily = "monospace";
+    const playerLabelObj = new window.CSS2DObject( playerLabelDiv );
+    playerLabelObj.position.set( 0, 0, 0 );
+    this.obj.add( playerLabelObj );
   }
 }
 
