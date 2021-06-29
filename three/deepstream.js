@@ -1,7 +1,7 @@
 const { DeepstreamClient } = window.DeepstreamClient
 const client = new DeepstreamClient('34.134.236.209:6020')
 client.login()
-const uuid = client.getUid();
+const uuid = (localStorage["username"] || client.getUid()) + "_"+ Date.now() ;
 
 client.event.subscribe('tick', (data) => {
     console.log(`tick ${data}`);
@@ -12,12 +12,13 @@ client.on('error', (error, event, topic) => {
 })
 
 client.on('connectionStateChanged', connectionState => {
-    // will be called with 'OFFLINE' once the connection is successfully paused.
+    console.log('connectionStateChanged')
 })
 
 /////////////////////////////////////////////////////
 function sendEvent(name, data){
-    data.id = uuid;    
+
+    data.id = uuid;
     client.event.emit(name, data);
 } 
 
@@ -69,8 +70,13 @@ setInterval(() => {
 }, 5000);
 
 
+client.presence.subscribe((username, login)=> {
+    console.log('presence changed ');
+});
+
+
 window.deepStream = {
-    sendThrot : throttle(sendEvent, 10),
+    sendThrot : throttle(sendEvent, 1000),
     sendEvent:sendEvent,
     subscribe: subscribe    
 }

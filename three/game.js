@@ -1,13 +1,15 @@
+window.development = true
+
 class Game extends THREE.EventDispatcher {
   //////////////////////////////////////////////////////////
   constructor(){
     super();
-    
+
     this.start = false;
     this.first = true;
     this.sound = new Sound();
     this.players = new Players(this);
-    //this.steering = new Steering();    
+    //this.steering = new Steering();
   }
   //////////////////////////////////////////////////////////
   startStop(){
@@ -16,11 +18,11 @@ class Game extends THREE.EventDispatcher {
     deepStream.sendEvent('player',{
       type:"start",
       moving:this.start,
-      pos:this.camera.position
+      pos:World.player.position
     });
     // start
     if(this.start){
-      if(this.first){        
+      if(this.first){
         this.sound.add('gate.wav', this.redGate);
         this.sound.add('gate.wav', this.blueGate);
         this.first = false;
@@ -28,21 +30,33 @@ class Game extends THREE.EventDispatcher {
       else{
         this.sound.play();
       }
-      
+
     }
     // stop
-    else{      
+    else{
       this.sound.pause();
     }
-    
+
   }
   //////////////////////////////////////////////////////////
   createScene(){
     const SIZE = config.size;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+    World.player =  new THREE.Mesh(
+        new THREE.BoxGeometry(1, 1, 1),
+        new THREE.MeshLambertMaterial({color: 0x0000ff, transparent: true, opacity: 0.5})
+    )
+
+    World.player.camera = this.camera
+
     this.camera.position.y += 3.5 ;
     this.camera.position.z += SIZE;
+
+    this.camera.add(
+        World.player
+    )
 
     // add light ???
     // const light = new THREE.DirectionalLight( 0xFFFFFF );
@@ -53,11 +67,11 @@ class Game extends THREE.EventDispatcher {
     // const intensity = 1;
     // const light = new THREE.AmbientLight(color, intensity);
     // this.scene.add(light);
-    
+
     const skyColor = 0xB1E1FF;  // light blue
     const groundColor = 0xB97A20;  // brownish orange
-    const intensity = 1;    
-    const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
+    const intensity = 1;
+    const light = new THREE.HemisphereLight(skyColor, 0xFFFFFF, intensity);
     this.scene.add(light);
 
     //this.player = new Vessel(this, this.camera);
@@ -69,15 +83,27 @@ class Game extends THREE.EventDispatcher {
     const divisions = 20;
     const BLUE = 0x000088;
     const RED = 0x880000;
+
+    const groundBoundingBox = Factory.physics.generateBoundingBox(
+        SIZE, 0.1, SIZE *2
+    )
+
+    groundBoundingBox.position.z = -SIZE;
+
     // create red grid
     let grid = new THREE.GridHelper( SIZE, divisions, RED,RED );
-    this.scene.add( grid );
-    grid.position.z = -SIZE/2;
+    grid.position.z =  -SIZE/2 + SIZE;
+    groundBoundingBox.add(grid)
+
     // create blue grid
     grid = new THREE.GridHelper( SIZE, divisions, BLUE,BLUE );
-    grid.position.z -= SIZE/2 + SIZE;
+    grid.position.z = -SIZE/2;
     // offset blue
-    this.scene.add( grid );
+    groundBoundingBox.add(grid)
+
+    this.scene.add(groundBoundingBox);
+
+    World.ground = groundBoundingBox
 
     const GATE_SIZE = config.size / 20;
 
@@ -86,27 +112,27 @@ class Game extends THREE.EventDispatcher {
     this.redGate.position.z = 0;
     // move front and up
     this.redGate.position.z -= 2*SIZE;
-    this.redGate.position.y += GATE_SIZE;    
+    this.redGate.position.y += GATE_SIZE;
     this.scene.add( this.redGate );
 
     // blue gate
     this.blueGate = this.createGate(BLUE, GATE_SIZE);
     // move back and up
     //this.blueGate.position.z += SIZE/2;
-    this.blueGate.position.y += GATE_SIZE;    
-    this.scene.add( this.blueGate );    
+    this.blueGate.position.y += GATE_SIZE;
+    this.scene.add( this.blueGate );
 
-    
-    //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);    
-    this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);    
+
+    //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);
+    this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);
     this.controls.activeLook = true;
     // this.controls.constrainVertical = true;
     this.controls.mouseDrageOn = true;
     this.controls.movementSpeed = config.speed;
     // //this.controls.verticalMax = 0.001;
     // this.controls.verticalMin = 0.1;
-    
-    //this.controls = new THREE.PointerLockControls(this.camera, this.renderer.domElement);    
+
+    //this.controls = new THREE.PointerLockControls(this.camera, this.renderer.domElement);
     //this.controls.connect();
 
     // fly controls
@@ -116,7 +142,7 @@ class Game extends THREE.EventDispatcher {
     // //this.controls.domElement = document.body;
     // //this.controls.rollSpeed = Math.PI / 92 ; 0.005
     // this.controls.rollSpeed = 0.01;
-    
+
     // this.controls.autoForward = true;
     // this.controls.dragToLook = true;
 
@@ -127,13 +153,12 @@ class Game extends THREE.EventDispatcher {
     document.body.addEventListener("keydown",this.keydown.bind(this));
 
     // update server
-    let cam = this.camera;
     let direction = new THREE.Vector3();
-    setInterval(()=>{      
-      cam.getWorldDirection(direction);
+    setInterval(()=>{
+      this.camera.getWorldDirection(direction);
       deepStream.sendEvent('player',{
         type:"pos",
-        pos:cam.position,
+        pos:this.camera.position,
         dir:direction
       });
       //deepStream.sendPlayerState(cam.position, direction);
@@ -142,42 +167,65 @@ class Game extends THREE.EventDispatcher {
   keydown(e){
     switch(e.code){
       case "Space":{
-       this.startStop();       
+       this.startStop();
       }
     }
   }
-  createGate(color, GATE_SIZE){    
+  createGate(color, GATE_SIZE){
     const geometry = new THREE.TorusGeometry( GATE_SIZE, GATE_SIZE/3, 32, 16 );
     // red gate
     let material = new THREE.LineBasicMaterial({ color: color });
-    let gate = new THREE.Line( geometry, material );    
+    let gate = new THREE.Line( geometry, material );
     return gate;
   }
 
   //////////////////////////////////////////////////////////
   render(){
+
     // rotate gates
     this.blueGate.rotation.y += config.gateSpeed;
-    this.redGate.rotation.y -= config.gateSpeed;   
+    this.redGate.rotation.y -= config.gateSpeed;
 
     this.dispatchEvent( { type: 'tick'} );
 
-    // fly controls        
+    this.update()
+
+    // fly controls
     this.controls.update(1);
+
     // players
     this.players.update();
 
     this.renderer.render(this.scene, this.camera);
+
   }
   //////////////////////////////////////////////////////////
   onresize(){
     this.controls.handleResize();
-  } 
+  }
+
+  update(){
+
+      const collision = Physics.isIntersecting(
+          World.player,
+          World.ground
+      )
+
+      if (collision) {
+
+          StateManager.crash()
+
+      }
+
+
+  }
+
 }
 
 const game = new Game();
+
 window.onload = function(){
-  game.createScene();   
+  game.createScene();
   var fps = config.fps, fpsInterval, startTime, now, then, elapsed;
 
   function animate() {
