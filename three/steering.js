@@ -10,8 +10,9 @@ class Steering{
     //this.releaseH = false;
     this.horiz += unit;    
     // limit
+    console.log("sdfdsfds")
     if(Math.abs(this.horiz) > config.horizLimit){
-      this.horiz = config.horizLimit * (this.horiz/Math.abs(this.horiz)); // 1 or -1 
+      this.horiz = config.horizLimit * (this.horiz/Math.abs(this.horiz)); // 1 or -1
     }
   }
   addVert(unit){

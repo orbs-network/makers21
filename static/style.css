@@ -1,9 +1,10 @@
 body {
     font-family: Arial, sans-serif;
+    margin: 0;
 }
 
 .control-panel {
-    background-color: #0000004D;
+    background-color: #ffffff4D;
     position: absolute;
     top: 0;
     right: 0;
@@ -35,4 +36,8 @@ input {
 
 .control-percentage {
     width: 80px
+}
+
+#speed-control {
+    direction: rtl;
 }

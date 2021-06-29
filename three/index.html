@@ -1,34 +1,80 @@
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title>Makers 2021</title>
-		<style>
-			body { margin: 0; }
-		</style>
-	</head>
-	<body>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-		<script src="https://cdn.deepstream.io/js/client/latest/ds.min.js"></script>		
-		<script src="https://unpkg.com/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
-		<!-- <script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script> -->
-		<!-- <script src="https://threejs.org/examples/js/loaders/MTLLoader.js"></script>
-		<script src="https://threejs.org/examples/js/loaders/OBJMTLLoader.js"></script> -->
-				
-		<!-- <script src="https://threejs.org/examples/js/controls/FlyControls.js"></script> -->
-		<!-- <script src="https://threejs.org/examples/js/controls/PointerLockControls.js"></script>		 -->
-		<script src="https://threejs.org/examples/js/controls/FirstPersonControls.js"></script>
+<head>
+    <meta charset="utf-8">
+    <title>Makers 2021</title>
+	<link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.deepstream.io/js/client/latest/ds.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+<!-- <script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script> -->
+<!-- <script src="https://threejs.org/examples/js/loaders/MTLLoader.js"></script>
+<script src="https://threejs.org/examples/js/loaders/OBJMTLLoader.js"></script> -->
 
-		<!-- overrides FirstPerson Mouse Behaviour -->
-		<!-- <script src="tmpControls.js"></script> -->
-    <script src="config.js"></script>
-    <script src="sound.js"></script>
-    <!-- <script src="steering.js"></script> -->
-    <!-- <script src="keyboard.js"></script> -->
-    <!-- <script src="vessel.js"></script> -->
-		<script src="deepstream.js"></script>
-		<script src="players.js"></script>
-    <script src="game.js"></script>
-		
-		
-	</body>
+<!-- <script src="https://threejs.org/examples/js/controls/FlyControls.js"></script> -->
+<!-- <script src="https://threejs.org/examples/js/controls/PointerLockControls.js"></script>		 -->
+<script src="https://threejs.org/examples/js/controls/FirstPersonControls.js"></script>
+
+<!-- overrides FirstPerson Mouse Behaviour -->
+<!-- <script src="tmpControls.js"></script> -->
+<script src="config.js"></script>
+<script src="sound.js"></script>
+<!-- <script src="steering.js"></script> -->
+<!-- <script src="keyboard.js"></script> -->
+<!-- <script src="vessel.js"></script> -->
+<script src="deepstream.js"></script>
+<script src="players.js"></script>
+<script src="game.js"></script>
+
+<div id="control-panel" class="control-panel">
+
+	<div>
+		<label for="speed-control">Speed</label>
+		<input type="range" min="10" max="250" value="0" class="slider" id="speed-control">
+		<label id="speed-control-text" class="control-percentage">50%</label>
+		<script type="text/javascript">
+			const speedControlElement = document.getElementById('speed-control');
+			speedControlElement.addEventListener('input', () => {
+				config.speed = BASE_SIZE / speedControlElement.value; // 10 - 250
+				document.getElementById('speed-control-text').innerHTML = parseFloat(config.speed).toFixed(3);
+			});
+			speedControlElement.addEventListener('change', () => {
+				localStorage.setItem("speed", speedControlElement.value);
+			});
+			speedControlElement.value = BASE_SIZE / config.speed;
+			speedControlElement.dispatchEvent(new Event('input'));
+		</script>
+	</div>
+
+	<div>
+		<label for="gatespeed-control">Gate Speed</label>
+		<input type="range" min="0" max="100" value="0" class="slider" id="gatespeed-control">
+		<label id="gatespeed-control-text" class="control-percentage">50%</label>
+		<script type="text/javascript">
+			const gatespeedControlElement = document.getElementById('gatespeed-control');
+			gatespeedControlElement.addEventListener('input', () => {
+				config.gateSpeed = ((0.12 - 0.005) * gatespeedControlElement.value / 100) + 0.005;
+				document.getElementById('gatespeed-control-text').innerHTML = parseFloat(config.gateSpeed).toFixed(3);
+			});
+			gatespeedControlElement.addEventListener('change', () => {
+				localStorage.setItem("gateSpeed", gatespeedControlElement.value);
+			});
+			gatespeedControlElement.value = config.gateSpeed;
+			gatespeedControlElement.dispatchEvent(new Event('input'));
+		</script>
+	</div>
+
+	<div>
+		<input type="button" id="reset-control" value="Reset Position"/>
+		<script type="text/javascript">
+			document.getElementById('reset-control').addEventListener('click', () => {
+				alert('TBD');
+			});
+		</script>
+	</div>
+
+</div>
+
+</body>
 </html>

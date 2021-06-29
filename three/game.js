@@ -12,7 +12,13 @@ class Game extends THREE.EventDispatcher {
   //////////////////////////////////////////////////////////
   startStop(){
     this.start = !this.start;
+
+    document.getElementById('control-panel').style.display = !this.start ? 'block' : 'none';
+
+    this.controls.enabled = this.start;
+    this.controls.movementSpeed = config.speed;
     this.controls.autoForward = this.start;
+
     deepStream.sendEvent('player',{
       type:"start",
       moving:this.start,
@@ -98,11 +104,11 @@ class Game extends THREE.EventDispatcher {
 
     
     //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);    
-    this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);    
+    this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);
+    this.controls.enabled = false;
     this.controls.activeLook = true;
     // this.controls.constrainVertical = true;
     this.controls.mouseDrageOn = true;
-    this.controls.movementSpeed = config.speed;
     // //this.controls.verticalMax = 0.001;
     // this.controls.verticalMin = 0.1;
     
@@ -129,7 +135,7 @@ class Game extends THREE.EventDispatcher {
     // update server
     let cam = this.camera;
     let direction = new THREE.Vector3();
-    setInterval(()=>{      
+    setInterval(()=>{
       cam.getWorldDirection(direction);
       deepStream.sendEvent('player',{
         type:"pos",
@@ -158,7 +164,7 @@ class Game extends THREE.EventDispatcher {
   render(){
     // rotate gates
     this.blueGate.rotation.y += config.gateSpeed;
-    this.redGate.rotation.y -= config.gateSpeed;   
+    this.redGate.rotation.y -= config.gateSpeed;
 
     this.dispatchEvent( { type: 'tick'} );
 
