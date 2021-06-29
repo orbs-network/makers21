@@ -1,7 +1,7 @@
 class Flag  {
   //////////////////////////////////////////////////////////
-  constructor(game, color){
-    
+  constructor(game, dummy, color){
+
 
   }
 }
