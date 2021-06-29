@@ -40,8 +40,9 @@ class Players{
     material.color.setRGB(.3, .8, .5); 
     material.flatShading = false;
     this.matter = material;
-    await this.createDummy();
-    window.deepStream.subscribe("player", this.onEvent.bind(this));
+    this.createDummy(()=> {
+      window.deepStream.subscribe("player", this.onEvent.bind(this));
+    });
     
             
     //super();
@@ -106,9 +107,7 @@ class Players{
     return newPlayer;
   }
   //////////////////////////////////////////////////////////
-  createDummy(callback){
-    return new Promise( (resolve) => {
-      
+  createDummy(callback){  
       let matter = this.matter;
       this.loader.load(
         // resource URL
@@ -136,7 +135,8 @@ class Players{
         object.name = "dummy";        
         object.visible = false;
         this.dummy = object;
-        resolve(object);
+
+        callback(object);
       }.bind(this),
       // called when loading is in progresses
       function ( xhr ) {
@@ -147,7 +147,7 @@ class Players{
         console.log( 'An error happened', error );
       }
       );
-    })
+    
     } 
   //////////////////////////////////////////////////////////
   getPlayer(name){
