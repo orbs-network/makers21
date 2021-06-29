@@ -40,8 +40,9 @@ class Players{
     material.color.setRGB(.3, .8, .5); 
     material.flatShading = false;
     this.matter = material;
-    this.createDummy();
+    await this.createDummy();
     window.deepStream.subscribe("player", this.onEvent.bind(this));
+    
             
     //super();
     
@@ -105,42 +106,37 @@ class Players{
     return newPlayer;
   }
   //////////////////////////////////////////////////////////
-  createDummy(){
-    // let newPlayer = this.template.object3D.clone(); 
-    // newPlayer.name = name;
-    // newPlayer.visible = true;   
-    // this.scene.object3D.add(newPlayer);
-    // this.players.push(name);    
-    // return this.scene.object3D.getObjectByName(name);
-    // load a resource    
-    //let scene = this.game.scene;
-    let matter = this.matter;
-    this.loader.load(
-      // resource URL
-      //'model/old/11804_Airplane_v2_l2.obj',
-      'model/paper/airplane.obj',
-      // called when resource is loaded
-      function ( object ) {
-        object.traverse(function(child) {
-          if(child instanceof THREE.Mesh) {
-            //console.log(child.material);
-            //var m = child.material;
-            //console.log('1', JSON.stringify(m));
-            // child.material = new THREE.MeshPhongMaterial({
-            //   color: 0xFF0000,    // red (can also use a CSS color string here)
-            //   flatShading: true,
-            // });
-            child.material = matter;
-            //console.log(child);
-            //child.material.map = texture;
-            //child.material.normalMap = normal;
-          }
-        });
+  createDummy(callback){
+    return new Promise( (resolve) => {
+      
+      let matter = this.matter;
+      this.loader.load(
+        // resource URL
+        //'model/old/11804_Airplane_v2_l2.obj',
+        'model/paper/airplane.obj',
+        // called when resource is loaded
+        function ( object ) {
+          object.traverse(function(child) {
+            if(child instanceof THREE.Mesh) {
+              //console.log(child.material);
+              //var m = child.material;
+              //console.log('1', JSON.stringify(m));
+              // child.material = new THREE.MeshPhongMaterial({
+                //   color: 0xFF0000,    // red (can also use a CSS color string here)
+                //   flatShading: true,
+                // });
+                child.material = matter;
+                //console.log(child);
+                //child.material.map = texture;
+                //child.material.normalMap = normal;
+              }
+            });
         //object.position.set(6, 1, 0);
         //object.scale.set( new THREE.Vector3( 3, 3, 3 ));        
         object.name = "dummy";        
         object.visible = false;
         this.dummy = object;
+        resolve(object);
       }.bind(this),
       // called when loading is in progresses
       function ( xhr ) {
@@ -150,8 +146,9 @@ class Players{
       function ( error ) {
         console.log( 'An error happened', error );
       }
-    );
-  } 
+      );
+    })
+    } 
   //////////////////////////////////////////////////////////
   getPlayer(name){
     const p = this.dict[name];
