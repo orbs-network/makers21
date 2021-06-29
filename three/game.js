@@ -5,24 +5,26 @@ class Game extends THREE.EventDispatcher {
   //////////////////////////////////////////////////////////
   constructor(){
     super();
-    
+
     this.start = false;
     this.first = true;
     this.sound = new Sound();
     this.players = new Players(this);
-    
-    //this.steering = new Steering();    
+    this.flags = new Flags();
+
+    //this.steering = new Steering();
   }
   //////////////////////////////////////////////////////////
   loadAsync(cb){
     //load flag template
-    this.flagObj = null;
+    // this.flagObj = null;
 
-    this.redFlag = new Flag(this, this.flagObj, RED);
-    this.redFlag = new Flag(this, this.flagObj, BLUE);
+	// this.redFlag = new Flag(this, this.flagObj, RED);
+    // this.blueFlag = new Flag(this, this.flagObj, BLUE);
 
     cb();
   }
+
   //////////////////////////////////////////////////////////
   startStop(){
     this.start = !this.start;
@@ -34,7 +36,7 @@ class Game extends THREE.EventDispatcher {
     });
     // start
     if(this.start){
-      if(this.first){        
+      if(this.first){
         this.sound.add('gate.wav', this.redGate);
         this.sound.add('gate.wav', this.blueGate);
         this.first = false;
@@ -42,13 +44,13 @@ class Game extends THREE.EventDispatcher {
       else{
         this.sound.play();
       }
-      
+
     }
     // stop
-    else{      
+    else{
       this.sound.pause();
     }
-    
+
   }
   //////////////////////////////////////////////////////////
   createScene(){
@@ -67,10 +69,10 @@ class Game extends THREE.EventDispatcher {
     // const intensity = 1;
     // const light = new THREE.AmbientLight(color, intensity);
     // this.scene.add(light);
-    
+
     const skyColor = 0xB1E1FF;  // light blue
     const groundColor = 0xB97A20;  // brownish orange
-    const intensity = 1;    
+    const intensity = 1;
     const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
     this.scene.add(light);
 
@@ -80,7 +82,7 @@ class Game extends THREE.EventDispatcher {
     this.renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( this.renderer.domElement );
 
-    const divisions = 20;    
+    const divisions = 20;
     // create red grid
     let grid = new THREE.GridHelper( SIZE, divisions, RED,RED );
     this.scene.add( grid );
@@ -98,27 +100,30 @@ class Game extends THREE.EventDispatcher {
     this.redGate.position.z = 0;
     // move front and up
     this.redGate.position.z -= 2*SIZE;
-    this.redGate.position.y += GATE_SIZE;    
+    this.redGate.position.y += GATE_SIZE;
     this.scene.add( this.redGate );
 
     // blue gate
     this.blueGate = this.createGate(BLUE, GATE_SIZE);
     // move back and up
     //this.blueGate.position.z += SIZE/2;
-    this.blueGate.position.y += GATE_SIZE;    
-    this.scene.add( this.blueGate );    
+    this.blueGate.position.y += GATE_SIZE;
+    this.scene.add( this.blueGate );
 
-    
-    //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);    
-    this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);    
+    // this.flags.createFlag(this.scene, 'RED-FLAG', .003, {'x': 0, 'y': 0, 'z': -1});
+    this.flags.createFlag(this.scene, 'RED-FLAG', .003, this.redGate.position);
+    this.flags.createFlag(this.scene, 'BLUE-FLAG', .003, this.blueGate.position);
+
+	  //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);
+    this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);
     this.controls.activeLook = true;
     // this.controls.constrainVertical = true;
     this.controls.mouseDrageOn = true;
     this.controls.movementSpeed = config.speed;
     // //this.controls.verticalMax = 0.001;
     // this.controls.verticalMin = 0.1;
-    
-    //this.controls = new THREE.PointerLockControls(this.camera, this.renderer.domElement);    
+
+    //this.controls = new THREE.PointerLockControls(this.camera, this.renderer.domElement);
     //this.controls.connect();
 
     // fly controls
@@ -128,15 +133,12 @@ class Game extends THREE.EventDispatcher {
     // //this.controls.domElement = document.body;
     // //this.controls.rollSpeed = Math.PI / 92 ; 0.005
     // this.controls.rollSpeed = 0.01;
-    
+
     // this.controls.autoForward = true;
     // this.controls.dragToLook = true;
 
     // create dummy player
     this.players.getPlayer("dummy");
-
-    
-
 
     // space bar
     document.body.addEventListener("keydown",this.keydown.bind(this));
@@ -144,7 +146,7 @@ class Game extends THREE.EventDispatcher {
     // update server
     let cam = this.camera;
     let direction = new THREE.Vector3();
-    setInterval(()=>{      
+    setInterval(()=>{
       cam.getWorldDirection(direction);
       deepStream.sendEvent('player',{
         type:"pos",
@@ -157,15 +159,15 @@ class Game extends THREE.EventDispatcher {
   keydown(e){
     switch(e.code){
       case "Space":{
-       this.startStop();       
+       this.startStop();
       }
     }
   }
-  createGate(color, GATE_SIZE){    
+  createGate(color, GATE_SIZE){
     const geometry = new THREE.TorusGeometry( GATE_SIZE, GATE_SIZE/3, 32, 16 );
     // red gate
     let material = new THREE.LineBasicMaterial({ color: color });
-    let gate = new THREE.Line( geometry, material );    
+    let gate = new THREE.Line( geometry, material );
     return gate;
   }
 
@@ -173,11 +175,11 @@ class Game extends THREE.EventDispatcher {
   render(){
     // rotate gates
     this.blueGate.rotation.y += config.gateSpeed;
-    this.redGate.rotation.y -= config.gateSpeed;   
+    this.redGate.rotation.y -= config.gateSpeed;
 
     this.dispatchEvent( { type: 'tick'} );
 
-    // fly controls        
+    // fly controls
     this.controls.update(1);
     // players
     this.players.update();
@@ -187,13 +189,13 @@ class Game extends THREE.EventDispatcher {
   //////////////////////////////////////////////////////////
   onresize(){
     this.controls.handleResize();
-  } 
+  }
 }
 
 const game = new Game();
-window.onload = function(){  
+window.onload = function(){
   game.loadAsync(()=>{
-    game.createScene();   
+    game.createScene();
     var fps = config.fps, fpsInterval, startTime, now, then, elapsed;
 
     function animate() {
@@ -220,7 +222,7 @@ window.onload = function(){
     startTime = then;
     animate();
 
-  });  
+  });
 }
 window.onresize = game.onresize.bind(game);
 
