@@ -1,5 +1,4 @@
 model/
 .idea
 node_modules
-*.wav
 
