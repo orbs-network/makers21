@@ -1,5 +1,5 @@
 const { DeepstreamClient } = window.DeepstreamClient
-const client = new DeepstreamClient('0.0.0.0:6020')
+const client = new DeepstreamClient('34.134.236.209:6020')
 client.login()
 const uuid = client.getUid();
 
