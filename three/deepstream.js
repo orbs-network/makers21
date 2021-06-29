@@ -2,7 +2,7 @@ const { DeepstreamClient } = window.DeepstreamClient
 const client = new DeepstreamClient('34.134.236.209:6020')
 client.login()
 const uuid = (localStorage["username"] || client.getUid()) + "_"+ Date.now() ;
-
+window.myId = uuid;
 client.event.subscribe('tick', (data) => {
     console.log(`tick ${data}`);
 })
@@ -17,9 +17,12 @@ client.on('connectionStateChanged', connectionState => {
 
 /////////////////////////////////////////////////////
 function sendEvent(name, data){
-    data.id = uuid; 
+    if( document.hidden) {
+        return;
+    }
+    data.id = uuid;
     client.event.emit(name, data);
-} 
+}   
 
 
 /////////////////////////////////////////////////////
@@ -69,9 +72,12 @@ setInterval(() => {
 }, 5000);
 
 
-client.presence.subscribe((username, login)=> {
-    console.log('presence changed ');
-});
+setTimeout( ()=> {
+    console.log('view all presc')
+    client.presence.subscribe((username, login)=> {
+        console.log('presence changed ');
+    });
+},5000);
 
 
 window.deepStream = {

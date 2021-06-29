@@ -16,6 +16,13 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   onPos(data){
+    let player = game.players.getPlayer(data.id);
+    if(player.ghost) {
+
+      console.log(`hiding player ${data.id} it is a ghost`);
+      this.obj.visible = false;
+      return;
+    }
     this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
     //this.rotation.set(data.rx, data.ry, data.rz);
     this.obj.lookAt(data.dir.x *100, data.dir.y*100, data.dir.z*100);
@@ -42,6 +49,11 @@ class Players{
     this.matter = material;
     this.createDummy(()=> {
 		window.deepStream.subscribe("player", this.onEvent.bind(this));
+    // mark player as ghost
+      window.deepStream.subscribe("playerGhost", (data)=> {
+        const p = this.getPlayer(data.id);
+        p.ghost = true;    
+      });
     });
 
 
@@ -53,12 +65,22 @@ class Players{
     // //this.steering = new Steering();
   }
   //////////////////////////////////////////////////////////
+  onGhostPlayer(data) {
+    console.log('onGhostPlayer: client data', data);
+  }
+
+  //////////////////////////////////////////////////////////
   onEvent(data){
     const p = this.getPlayer(data.id);
     if(!p){
       console.error(`Player ${data.id} not found`);
       return;
     }
+    if(data.id === window.myId) {
+      console.log('ignoring my id');
+      return
+    }
+
     switch(data.type){
       case "pos":
         p.onPos(data);
