@@ -1,5 +1,6 @@
 const BLUE = 0x000088;
 const RED = 0x880000;
+const SIZE = config.size;
 
 class Game extends THREE.EventDispatcher {
   //////////////////////////////////////////////////////////
@@ -10,6 +11,7 @@ class Game extends THREE.EventDispatcher {
     this.first = true;
     this.sound = new Sound();
     this.players = new Players(this);
+    this.v2 = new THREE.Vector2(0, 2);
     
     //this.steering = new Steering();    
   }
@@ -50,13 +52,65 @@ class Game extends THREE.EventDispatcher {
     }
     
   }
-  //////////////////////////////////////////////////////////
-  createScene(){
-    const SIZE = config.size;
-    this.scene = new THREE.Scene();
+  createCamera(){
     this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    
+    // aim and dashboard
+    // var cubeGeometry = new THREE.CircleGeometry(20, 100);
+    // var cubeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, transparent: false, opacity: 0.5, depthTest: false});
+    // var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);    
+    // this.camera.add(cube);
+    // cube.position.set( 0, 0, -30 );
+    //crosshair
+    // const lineMaterial = new THREE.LineBasicMaterial({
+    //   color: 0xffffff
+    // });
+    // var points = new Array();
+    // points[0] = new THREE.Vector3(-.1, 0, 0);
+    // points[1] = new THREE.Vector3(.1, 0, 0);
+    // let lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+    // const xLine = new THREE.Line(lineGeometry, lineMaterial);
+    // this.camera.add(xLine);
+    // points[0] = new THREE.Vector3(0, -.1, 0);
+    // points[1] = new THREE.Vector3(0, .1, 0);
+    // lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+    // const yLine = new THREE.Line(lineGeometry, lineMaterial);
+    // this.camera.add(yLine);
+    // points[0] = new THREE.Vector3(0, 0, -.1);
+    // points[1] = new THREE.Vector3(0, 0, .1);
+    // lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+    // const zLine = new THREE.Line(lineGeometry, lineMaterial);
+    // this.camera.add(zLine);
+
     this.camera.position.y += 3.5 ;
     this.camera.position.z += SIZE;
+  }
+  checkCollision(){
+    // update the picking ray with the camera and mouse position
+	  this.raycaster.setFromCamera( this.v2, this.camera );
+
+    // calculate objects intersecting the picking ray
+    const intersects = this.raycaster.intersectObjects( [this.redGate, this.blueGate] );
+
+    //for ( let i = 0; i < intersects.length; i ++ ) {
+    if(intersects && intersects.length){
+      console.log(intersects[ 0 ].object.id, intersects[ 0 ].object.name, intersects[ 0 ].distance );
+    }
+      //intersects[ i ].object.material.color.set( 0xffffff );
+    //}
+  }
+  //////////////////////////////////////////////////////////
+  createScene(){    
+    this.scene = new THREE.Scene();
+
+    this.createCamera();
+    // for colision
+    this.raycaster = new THREE.Raycaster();
+
+    // helper for size
+    const axesHelper = new THREE.AxesHelper( SIZE );
+    this.scene.add( axesHelper );
+    
 
     // add light ???
     // const light = new THREE.DirectionalLight( 0xFFFFFF );
@@ -95,6 +149,7 @@ class Game extends THREE.EventDispatcher {
 
     // red gate
     this.redGate = this.createGate(RED, GATE_SIZE);
+    this.redGate.name = "redGate";
     this.redGate.position.z = 0;
     // move front and up
     this.redGate.position.z -= 2*SIZE;
@@ -103,6 +158,7 @@ class Game extends THREE.EventDispatcher {
 
     // blue gate
     this.blueGate = this.createGate(BLUE, GATE_SIZE);
+    this.blueGate.name = "blueGate";
     // move back and up
     //this.blueGate.position.z += SIZE/2;
     this.blueGate.position.y += GATE_SIZE;    
@@ -135,8 +191,6 @@ class Game extends THREE.EventDispatcher {
     // create dummy player
     this.players.getPlayer("dummy");
 
-    
-
 
     // space bar
     document.body.addEventListener("keydown",this.keydown.bind(this));
@@ -144,7 +198,7 @@ class Game extends THREE.EventDispatcher {
     // update server
     let cam = this.camera;
     let direction = new THREE.Vector3();
-    setInterval(()=>{      
+    setInterval(()=>{
       cam.getWorldDirection(direction);
       deepStream.sendEvent('player',{
         type:"pos",
@@ -152,7 +206,10 @@ class Game extends THREE.EventDispatcher {
         dir:direction
       });
       //deepStream.sendPlayerState(cam.position, direction);
-    }, 100)
+    }, 100);
+    setInterval(()=>{
+      this.checkCollision();
+    }, 1000);
   }
   keydown(e){
     switch(e.code){
@@ -174,7 +231,7 @@ class Game extends THREE.EventDispatcher {
     // rotate gates
     this.blueGate.rotation.y += config.gateSpeed;
     this.redGate.rotation.y -= config.gateSpeed;   
-
+    
     this.dispatchEvent( { type: 'tick'} );
 
     // fly controls        
@@ -186,6 +243,13 @@ class Game extends THREE.EventDispatcher {
   }
   //////////////////////////////////////////////////////////
   onresize(){
+    this.midX = window.innerWidth / 2;
+    this.midY = window.innerHeight / 2;
+
+	  this.camera.aspect = window.innerWidth / window.innerHeight
+    this.camera.updateProjectionMatrix()
+    this.renderer.setSize(window.innerWidth, window.innerHeight)
+    
     this.controls.handleResize();
   } 
 }
