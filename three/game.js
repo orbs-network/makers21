@@ -1,5 +1,6 @@
 const BLUE = 0x000088;
 const RED = 0x880000;
+const WHITE = 0xFFFFFF;
 
 class Game extends THREE.EventDispatcher {
   //////////////////////////////////////////////////////////
@@ -114,8 +115,8 @@ class Game extends THREE.EventDispatcher {
 	  console.log(this.redGate.position);
 	  console.log(this.blueGate.position);
 
-    this.flags.createFlag(this.scene, 'RED-FLAG', BLUE, .003, this.redGate.position);
-    this.flags.createFlag(this.scene, 'BLUE-FLAG', RED, .003, this.blueGate.position);
+    this.flags.createFlag(this.scene, 'RED-FLAG', WHITE, .003, this.redGate.position);
+    this.flags.createFlag(this.scene, 'BLUE-FLAG', WHITE, .003, this.blueGate.position);
 
 	  //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);
     this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);

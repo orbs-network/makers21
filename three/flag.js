@@ -14,6 +14,13 @@ class Flags  {
 		  // called when resource is loaded
 		  function ( object ) {
 
+			  object.traverse( function ( child ) {
+				  if ( child instanceof THREE.Mesh ) {
+					  // child.material.ambient.setHex(0x880000);
+					  child.material.color.setHex(color);
+				  }
+			  } );
+
 			  object.name = name;
 			  object.visible = true;
 
@@ -22,8 +29,9 @@ class Flags  {
 			  object.position.y = position['y'] / 2;
 			  object.position.z = position['z'];
 
-			  object.color = color;
-			  // object.color.setRGB(.3, .8, .5);
+			  // object.color = color;
+			  console.log(object);
+			  // object.MeshBasicMaterial.color = color;
 
 			  // object.getWorldDirection(v3);
 			  // object.castShadow = true;
