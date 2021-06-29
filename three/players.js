@@ -151,6 +151,14 @@ class Players{
 
     }
   //////////////////////////////////////////////////////////
+  all(){
+    let all = [];
+    for ( let name in this.dict){
+      all.push(this. dict[name].obj);
+    }
+    return all;
+  }
+  //////////////////////////////////////////////////////////
   getPlayer(name){
     const p = this.dict[name];
     if(p){

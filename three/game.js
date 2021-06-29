@@ -85,12 +85,21 @@ class Game extends THREE.EventDispatcher {
     this.camera.position.y += 3.5 ;
     this.camera.position.z += SIZE;
   }
+  //////////////////////////////////////////////////////////
+  checkGatePass(){
+  }
+  //////////////////////////////////////////////////////////
   checkCollision(){
+    const all = this.players.all()
+    if(!all.length)
+      return false;
+      
     // update the picking ray with the camera and mouse position
 	  this.raycaster.setFromCamera( this.v2, this.camera );
 
     // calculate objects intersecting the picking ray
-    const intersects = this.raycaster.intersectObjects( [this.redGate, this.blueGate] );
+    //const intersects = this.raycaster.intersectObjects( [this.redGate, this.blueGate] );
+    const intersects = this.raycaster.intersectObjects( all );
 
     //for ( let i = 0; i < intersects.length; i ++ ) {
     if(intersects && intersects.length){
@@ -199,17 +208,16 @@ class Game extends THREE.EventDispatcher {
     let cam = this.camera;
     let direction = new THREE.Vector3();
     setInterval(()=>{
+      this.checkCollision();
+      this.checkGatePass();
       cam.getWorldDirection(direction);
       deepStream.sendEvent('player',{
         type:"pos",
         pos:cam.position,
         dir:direction
-      });
+      });      
       //deepStream.sendPlayerState(cam.position, direction);
-    }, 100);
-    setInterval(()=>{
-      this.checkCollision();
-    }, 1000);
+    }, 100);    
   }
   keydown(e){
     switch(e.code){
