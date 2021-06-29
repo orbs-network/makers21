@@ -1,3 +1,4 @@
+
 class Game extends THREE.EventDispatcher {
   //////////////////////////////////////////////////////////
   constructor(){
@@ -7,9 +8,11 @@ class Game extends THREE.EventDispatcher {
     this.first = true;
     this.sound = new Sound();
     this.players = new Players(this);
+
     //this.steering = new Steering();    
   }
   //////////////////////////////////////////////////////////
+
   startStop(){
     this.start = !this.start;
     this.controls.autoForward = this.start;
@@ -36,6 +39,9 @@ class Game extends THREE.EventDispatcher {
     }
     
   }
+
+
+
   //////////////////////////////////////////////////////////
   createScene(){
     const SIZE = config.size;
@@ -43,6 +49,7 @@ class Game extends THREE.EventDispatcher {
     this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
     this.camera.position.y += 3.5 ;
     this.camera.position.z += SIZE;
+
 
     // add light ???
     // const light = new THREE.DirectionalLight( 0xFFFFFF );
@@ -66,6 +73,13 @@ class Game extends THREE.EventDispatcher {
     this.renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( this.renderer.domElement );
 
+    this.labelRenderer = new window.CSS2DRenderer();
+    this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
+    this.labelRenderer.domElement.style.position = 'absolute';
+    this.labelRenderer.domElement.style.top = '0px';
+    document.body.appendChild( this.labelRenderer.domElement );
+    this.labelRenderer.domElement.style.pointerEvents = "none";
+
     const divisions = 20;
     const BLUE = 0x000088;
     const RED = 0x880000;
@@ -83,6 +97,7 @@ class Game extends THREE.EventDispatcher {
 
     // red gate
     this.redGate = this.createGate(RED, GATE_SIZE);
+
     this.redGate.position.z = 0;
     // move front and up
     this.redGate.position.z -= 2*SIZE;
@@ -91,6 +106,7 @@ class Game extends THREE.EventDispatcher {
 
     // blue gate
     this.blueGate = this.createGate(BLUE, GATE_SIZE);
+
     // move back and up
     //this.blueGate.position.z += SIZE/2;
     this.blueGate.position.y += GATE_SIZE;    
@@ -98,7 +114,7 @@ class Game extends THREE.EventDispatcher {
 
     
     //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);    
-    this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);    
+    this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);
     this.controls.activeLook = true;
     // this.controls.constrainVertical = true;
     this.controls.mouseDrageOn = true;
@@ -123,6 +139,7 @@ class Game extends THREE.EventDispatcher {
     // create dummy player
     this.players.getPlayer("dummy");
 
+
     // space bar
     document.body.addEventListener("keydown",this.keydown.bind(this));
 
@@ -138,6 +155,7 @@ class Game extends THREE.EventDispatcher {
       });
       //deepStream.sendPlayerState(cam.position, direction);
     }, 100)
+
   }
   keydown(e){
     switch(e.code){
@@ -158,25 +176,30 @@ class Game extends THREE.EventDispatcher {
   render(){
     // rotate gates
     this.blueGate.rotation.y += config.gateSpeed;
-    this.redGate.rotation.y -= config.gateSpeed;   
+    this.redGate.rotation.y -= config.gateSpeed;
 
     this.dispatchEvent( { type: 'tick'} );
 
-    // fly controls        
+    // fly controls
     this.controls.update(1);
     // players
     this.players.update();
 
     this.renderer.render(this.scene, this.camera);
+    this.labelRenderer.render(this.scene, this.camera);
   }
   //////////////////////////////////////////////////////////
   onresize(){
+
+    this.labelRenderer.setSize(window.innerWidth, window.innerHeight)
+
     this.controls.handleResize();
   } 
 }
 
 const game = new Game();
 window.onload = function(){
+
   game.createScene();   
   var fps = config.fps, fpsInterval, startTime, now, then, elapsed;
 
@@ -203,7 +226,6 @@ window.onload = function(){
   then = Date.now();
   startTime = then;
   animate();
+
 }
 window.onresize = game.onresize.bind(game);
-
-

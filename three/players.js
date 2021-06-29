@@ -2,9 +2,21 @@ let v3 = new THREE.Vector3(0,0,0);
 //////////////////////////////////////////////////////////
 class Player{
   //////////////////////////////////////////////////////////
-  constructor(obj){
+  constructor(obj, name){
     this.obj = obj;
     this.moving = false;
+
+
+    const foobar = document.createElement( 'div' );
+    foobar.className = 'label';
+    foobar.textContent = name || "who dis?";
+    foobar.style.marginTop = '2em';
+    foobar.style.color = 'white';
+    foobar.style.fontFamily = "monospace";
+    const foobarLabel = new window.CSS2DObject( foobar );
+    foobarLabel.position.set( 0, 0, 0 );
+    this.obj.add( foobarLabel );
+
   }
   //////////////////////////////////////////////////////////
   moveForward(){
@@ -100,7 +112,7 @@ class Players{
 
     p.visible = true;
 
-    const newPlayer = new Player(p);
+    const newPlayer = new Player(p, name);
     this.dict[name] = newPlayer;
     console.log('create player',name);
 	this.game.sound.add('syfi.wav', p);
@@ -160,4 +172,3 @@ class Players{
   }
 }
 window.Players = Players;
-
