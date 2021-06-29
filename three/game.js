@@ -1,3 +1,6 @@
+const BLUE = 0x000088;
+const RED = 0x880000;
+
 class Game extends THREE.EventDispatcher {
   //////////////////////////////////////////////////////////
   constructor(){
@@ -7,7 +10,18 @@ class Game extends THREE.EventDispatcher {
     this.first = true;
     this.sound = new Sound();
     this.players = new Players(this);
+    
     //this.steering = new Steering();    
+  }
+  //////////////////////////////////////////////////////////
+  loadAsync(cb){
+    //load flag template
+    this.flagObj = null;
+
+    this.redFlag = new Flag(this, this.flagObj, RED);
+    this.redFlag = new Flag(this, this.flagObj, BLUE);
+
+    cb();
   }
   //////////////////////////////////////////////////////////
   startStop(){
@@ -66,9 +80,7 @@ class Game extends THREE.EventDispatcher {
     this.renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( this.renderer.domElement );
 
-    const divisions = 20;
-    const BLUE = 0x000088;
-    const RED = 0x880000;
+    const divisions = 20;    
     // create red grid
     let grid = new THREE.GridHelper( SIZE, divisions, RED,RED );
     this.scene.add( grid );
@@ -123,6 +135,9 @@ class Game extends THREE.EventDispatcher {
     // create dummy player
     this.players.getPlayer("dummy");
 
+    
+
+
     // space bar
     document.body.addEventListener("keydown",this.keydown.bind(this));
 
@@ -176,33 +191,36 @@ class Game extends THREE.EventDispatcher {
 }
 
 const game = new Game();
-window.onload = function(){
-  game.createScene();   
-  var fps = config.fps, fpsInterval, startTime, now, then, elapsed;
+window.onload = function(){  
+  game.loadAsync(()=>{
+    game.createScene();   
+    var fps = config.fps, fpsInterval, startTime, now, then, elapsed;
 
-  function animate() {
-    // request another frame
-    requestAnimationFrame(animate);
+    function animate() {
+      // request another frame
+      requestAnimationFrame(animate);
 
-    // calc elapsed time since last loop
-    now = Date.now();
-    elapsed = now - then;
+      // calc elapsed time since last loop
+      now = Date.now();
+      elapsed = now - then;
 
-    // if enough time has elapsed, draw the next frame
-    if (elapsed > fpsInterval) {
-        // Get ready for next frame by setting then=now, but also adjust for your
-        // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
-        then = now - (elapsed % fpsInterval);
-        // Put your drawing code here
-        game.render();
+      // if enough time has elapsed, draw the next frame
+      if (elapsed > fpsInterval) {
+          // Get ready for next frame by setting then=now, but also adjust for your
+          // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
+          then = now - (elapsed % fpsInterval);
+          // Put your drawing code here
+          game.render();
+      }
     }
-  }
 
-  // start animating
-  fpsInterval = 1000 / fps;
-  then = Date.now();
-  startTime = then;
-  animate();
+    // start animating
+    fpsInterval = 1000 / fps;
+    then = Date.now();
+    startTime = then;
+    animate();
+
+  });  
 }
 window.onresize = game.onresize.bind(game);
 
