@@ -1,20 +1,21 @@
 <html>
-  <head>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://unpkg.com/aframe-environment-component@1.2.0/dist/aframe-environment-component.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/face_mesh.js" crossorigin="anonymous"></script>
-    <script src="./move.js"></script>
-    <link rel="stylesheet" href="../static/style.css">
-  </head>
+<script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+<script src="https://unpkg.com/aframe-environment-component@1.2.0/dist/aframe-environment-component.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/face_mesh.js" crossorigin="anonymous"></script>
+<script src="https://cdn.deepstream.io/js/client/latest/ds.min.js"></script>
+
 <body>  
 <!-- scene -->
-<a-scene>
+<a-scene id="scene">
   <!-- assets -->
-  <!-- <a-assets>
-    <img id="city" src="https://cdn.aframe.io/360-image-gallery-boilerplate/img/city.jpg" data-position="0 0 0" alt="Table de conférence">
-  </a-assets> -->
+  <a-assets>
+    <a-asset-item id="airplane" src="airplane.obj"></a-asset-item>
+    <!-- <img id="city" src="https://cdn.aframe.io/360-image-gallery-boilerplate/img/city.jpg" data-position="0 0 0" alt="Table de conférence"> -->
+  </a-assets>
+
+  <a-entity id="player" visible=false obj-model="obj: #airplane" position="10 10 0 " scale="10 10 10"></a-entity>
 
   <a-box position="-1 0.5 -3" rotation="0 45 0" foo color="#4CC3D9"></a-box>
   <!-- <a-sphere position="0 4.25 -15" radius="1.25" color="#EF2D5E"></a-sphere> -->
@@ -170,5 +171,8 @@
 <!--scripts-->
 
 <script src="./face.js"></script>
+<script src="./game.js"></script>
+<script src="./move.js"></script>
+<script src="./deepstream.js"></script>
 </body>
 </html>

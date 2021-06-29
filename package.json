@@ -1,0 +1,24 @@
+{
+  "name": "makers21",
+  "version": "1.0.0",
+  "description": "use move1/index.html to see flight poc",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uv-orbs/makers21.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/uv-orbs/makers21/issues"
+  },
+  "homepage": "https://github.com/uv-orbs/makers21#readme",
+  "dependencies": {
+    "@deepstream/client": "^5.2.4",
+    "@deepstream/server": "^5.2.4",
+    "ngrok": "^4.0.1"
+  }
+}
