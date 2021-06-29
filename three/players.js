@@ -116,7 +116,7 @@ class Players{
     const newPlayer = new Player(p, name);
     this.dict[name] = newPlayer;
     console.log('create player',name);
-	this.game.sound.add('syfi.wav', p);
+	this.game.sound.add('airplane-fly-by.wav', p);
 
 	return newPlayer;
   }
