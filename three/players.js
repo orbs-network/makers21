@@ -1,29 +1,29 @@
-let v3 = new THREE.Vector3(0,0,0); 
+let v3 = new THREE.Vector3(0,0,0);
 //////////////////////////////////////////////////////////
 class Player{
-  //////////////////////////////////////////////////////////  
+  //////////////////////////////////////////////////////////
   constructor(obj){
-    this.obj = obj;    
-    this.moving = false;   
+    this.obj = obj;
+    this.moving = false;
   }
   //////////////////////////////////////////////////////////
   moveForward(){
     if(this.moving){
       this.obj.getWorldDirection(v3);
-      const direction = v3.multiplyScalar(config.speed);        
+      const direction = v3.multiplyScalar(config.speed);
       this.obj.position.add(direction);
     }
   }
   //////////////////////////////////////////////////////////
-  onPos(data){           
+  onPos(data){
     this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
     //this.rotation.set(data.rx, data.ry, data.rz);
     this.obj.lookAt(data.dir.x *100, data.dir.y*100, data.dir.z*100);
     //this.moveForward();
   }
   //////////////////////////////////////////////////////////
-  onStart(data){           
-    this.moving = data.moving;    
+  onStart(data){
+    this.moving = data.moving;
     this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
   }
 }
@@ -37,20 +37,20 @@ class Players{
     //this.redMatter = new THREE.MeshBasicMaterial({color: 0xFF00FF});         // red
     const material = new THREE.MeshPhongMaterial();
     //material.color.setHSL(0, 1, .5);  // red
-    material.color.setRGB(.3, .8, .5); 
+    material.color.setRGB(.3, .8, .5);
     material.flatShading = false;
     this.matter = material;
     this.createDummy(()=> {
-      window.deepStream.subscribe("player", this.onEvent.bind(this));
+		window.deepStream.subscribe("player", this.onEvent.bind(this));
     });
-    
-            
+
+
     //super();
-    
+
     // this.moving = false;
     // this.first = true;
     // this.sound = new Sound();
-    // //this.steering = new Steering();      
+    // //this.steering = new Steering();
   }
   //////////////////////////////////////////////////////////
   onEvent(data){
@@ -82,11 +82,10 @@ class Players{
     }
     const p = this.dummy.clone();
     p.name = name;
-    
-    
+
     //p.position.y = 2;
     //p.position.x  = 2;
-    
+
     this.game.scene.add(p);
     const s = 2;
     p.scale.set(s,s,s);
@@ -98,16 +97,18 @@ class Players{
     //p.updateWorldMatrix()
     //p.lookAt(game.redGate.position);
     //p.rotateOnWorldAxis(new THREE.Vector3(1,0,0),  10313.2);
-    
+
     p.visible = true;
 
     const newPlayer = new Player(p);
     this.dict[name] = newPlayer;
     console.log('create player',name);
-    return newPlayer;
+	this.game.sound.add('syfi.wav', p);
+
+	return newPlayer;
   }
   //////////////////////////////////////////////////////////
-  createDummy(callback){  
+  createDummy(callback){
       let matter = this.matter;
       this.loader.load(
         // resource URL
@@ -131,8 +132,8 @@ class Players{
               }
             });
         //object.position.set(6, 1, 0);
-        //object.scale.set( new THREE.Vector3( 3, 3, 3 ));        
-        object.name = "dummy";        
+        //object.scale.set( new THREE.Vector3( 3, 3, 3 ));
+        object.name = "dummy";
         object.visible = false;
         this.dummy = object;
 
@@ -147,16 +148,16 @@ class Players{
         console.log( 'An error happened', error );
       }
       );
-    
-    } 
+
+    }
   //////////////////////////////////////////////////////////
   getPlayer(name){
     const p = this.dict[name];
     if(p){
       return p;
     }
-    return this.createNew(name);    
-  }  
+    return this.createNew(name);
+  }
 }
 window.Players = Players;
 
