@@ -1,8 +1,11 @@
-class Flags  {
+import {LoadingManager} from "three";
+import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader";
+
+export default class Flags  {
   //////////////////////////////////////////////////////////
   constructor(){
-	  this.manager = new THREE.LoadingManager();
-	  this.loader = new THREE.OBJLoader();
+	  this.manager = new LoadingManager();
+	  this.loader = new OBJLoader();
 
   }
 
@@ -10,7 +13,7 @@ class Flags  {
 	  // load a resource
 	  this.loader.load(
 		  // resource URL
-		  'model/paper/flag.obj',
+		  '/static/model/paper/flag.obj',
 		  // called when resource is loaded
 		  function ( object ) {
 

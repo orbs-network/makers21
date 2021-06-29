@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+
+    <style>
+        body {
+            margin: 0;
+        }
+    </style>
+
+    <script type="module">
+
+        import {
+            CSS2DRenderer,
+            CSS2DObject
+        } from 'https://cdn.jsdelivr.net/npm/three@0.126/examples/jsm/renderers/CSS2DRenderer.js';
+
+        window.CSS2DRenderer = CSS2DRenderer;
+        window.CSS2DObject = CSS2DObject;
+    </script>
+
+</head>
+<body>
+
+</body>
+</html>

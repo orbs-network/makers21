@@ -1,4 +1,4 @@
-const FX = {
+export default {
 
     explode: () => {
 

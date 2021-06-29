@@ -1,4 +1,4 @@
-const Physics = {
+export default {
 
     isIntersecting: (object1, object2) => {
 

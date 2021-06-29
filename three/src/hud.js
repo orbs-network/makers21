@@ -1,4 +1,4 @@
-const HUD = {
+export default {
 
     update: () => {
 

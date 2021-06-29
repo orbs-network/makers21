@@ -1,4 +1,4 @@
-class Sound {
+export default class Sound {
 	constructor() {
     this.positionals = [];
     this.listener = null;
