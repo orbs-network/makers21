@@ -3,11 +3,12 @@ let v3 = new THREE.Vector3(0, 0, 0);
 //////////////////////////////////////////////////////////
 class Player {
     //////////////////////////////////////////////////////////
-    constructor(obj) {
-        this.obj = obj;
-        this.moving = false;
-        this.name = obj.name
-    }
+  constructor(obj, name){
+     this.obj = obj;
+     this.moving = false;
+     this.name = name
+     this._initLabel(name);
+   }
 
     //////////////////////////////////////////////////////////
     moveForward() {
@@ -30,6 +31,18 @@ class Player {
     onStart(data) {
         this.moving = data.moving;
         this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
+  }
+
+  _initLabel(name) {
+    const playerLabelDiv = document.createElement( 'div' );
+    playerLabelDiv.className = 'label';
+    playerLabelDiv.textContent = name || "who dis?";
+    playerLabelDiv.style.marginTop = '2em';
+    playerLabelDiv.style.color = 'white';
+    playerLabelDiv.style.fontFamily = "monospace";
+    const playerLabelObj = new window.CSS2DObject( playerLabelDiv );
+    playerLabelObj.position.set( 0, 0, 0 );
+    this.obj.add( playerLabelObj );
     }
 }
 
@@ -127,10 +140,10 @@ class Players {
 
         p.visible = true;
 
-        const newPlayer = new Player(p);
+    const newPlayer = new Player(p, name);
         this.playersDict[name] = newPlayer;
         console.log('create player', name);
-        this.game.sound.add('syfi.wav', p);
+	this.game.sound.add('airplane-fly-by.wav', p);
 
         return newPlayer;
     }
@@ -200,4 +213,3 @@ class Players {
 }
 
 window.Players = Players;
-

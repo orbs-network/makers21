@@ -1,4 +1,7 @@
-window.development = true
+const BLUE = 0x000088;
+const RED = 0x880000;
+const WHITE = 0xFFFFFF;
+
 
 class Game extends THREE.EventDispatcher {
   //////////////////////////////////////////////////////////
@@ -9,9 +12,24 @@ class Game extends THREE.EventDispatcher {
     this.first = true;
     this.sound = new Sound();
     this.players = new Players(this);
+
+    this.flags = new Flags();
+
     //this.steering = new Steering();
   }
   //////////////////////////////////////////////////////////
+  loadAsync(cb){
+    //load flag template
+    // this.flagObj = null;
+
+	// this.redFlag = new Flag(this, this.flagObj, RED);
+    // this.blueFlag = new Flag(this, this.flagObj, BLUE);
+
+    cb();
+  }
+
+  //////////////////////////////////////////////////////////
+
   startStop(){
     this.start = !this.start;
     this.controls.autoForward = this.start;
@@ -38,6 +56,9 @@ class Game extends THREE.EventDispatcher {
     }
 
   }
+
+
+
   //////////////////////////////////////////////////////////
   createScene(){
     const SIZE = config.size;
@@ -80,9 +101,14 @@ class Game extends THREE.EventDispatcher {
     this.renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( this.renderer.domElement );
 
+    this.labelRenderer = new window.CSS2DRenderer();
+    this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
+    this.labelRenderer.domElement.style.position = 'absolute';
+    this.labelRenderer.domElement.style.top = '0px';
+    document.body.appendChild( this.labelRenderer.domElement );
+    this.labelRenderer.domElement.style.pointerEvents = "none";
+
     const divisions = 20;
-    const BLUE = 0x000088;
-    const RED = 0x880000;
 
     const groundBoundingBox = Factory.physics.generateBoundingBox(
         SIZE, 0.1, SIZE *2
@@ -109,6 +135,7 @@ class Game extends THREE.EventDispatcher {
 
     // red gate
     this.redGate = this.createGate(RED, GATE_SIZE);
+
     this.redGate.position.z = 0;
     // move front and up
     this.redGate.position.z -= 2*SIZE;
@@ -117,13 +144,20 @@ class Game extends THREE.EventDispatcher {
 
     // blue gate
     this.blueGate = this.createGate(BLUE, GATE_SIZE);
+
     // move back and up
     //this.blueGate.position.z += SIZE/2;
     this.blueGate.position.y += GATE_SIZE;
     this.scene.add( this.blueGate );
 
+    // this.flags.createFlag(this.scene, 'RED-FLAG', .003, {'x': 0, 'y': 0, 'z': -1});
+	  console.log(this.redGate.position);
+	  console.log(this.blueGate.position);
 
-    //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);
+    this.flags.createFlag(this.scene, 'RED-FLAG', WHITE, .003, this.redGate.position);
+    this.flags.createFlag(this.scene, 'BLUE-FLAG', WHITE, .003, this.blueGate.position);
+
+    //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);    
     this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);
     this.controls.activeLook = true;
     // this.controls.constrainVertical = true;
@@ -149,6 +183,7 @@ class Game extends THREE.EventDispatcher {
     // create dummy player
     this.players.getPlayer("dummy");
 
+
     // space bar
     document.body.addEventListener("keydown",this.keydown.bind(this));
 
@@ -163,6 +198,7 @@ class Game extends THREE.EventDispatcher {
       });
       //deepStream.sendPlayerState(cam.position, direction);
     }, 100)
+
   }
   keydown(e){
     switch(e.code){
@@ -197,10 +233,14 @@ class Game extends THREE.EventDispatcher {
     this.players.update();
 
     this.renderer.render(this.scene, this.camera);
-
+    
+    this.labelRenderer.render(this.scene, this.camera);
   }
   //////////////////////////////////////////////////////////
   onresize(){
+
+    this.labelRenderer.setSize(window.innerWidth, window.innerHeight)
+
     this.controls.handleResize();
   }
 
@@ -225,33 +265,35 @@ class Game extends THREE.EventDispatcher {
 const game = new Game();
 
 window.onload = function(){
-  game.createScene();
-  var fps = config.fps, fpsInterval, startTime, now, then, elapsed;
 
-  function animate() {
-    // request another frame
-    requestAnimationFrame(animate);
+game.loadAsync(()=>{
+  game.createScene();   
+    var fps = config.fps, fpsInterval, startTime, now, then, elapsed;
 
-    // calc elapsed time since last loop
-    now = Date.now();
-    elapsed = now - then;
+    function animate() {
+      // request another frame
+      requestAnimationFrame(animate);
 
-    // if enough time has elapsed, draw the next frame
-    if (elapsed > fpsInterval) {
-        // Get ready for next frame by setting then=now, but also adjust for your
-        // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
-        then = now - (elapsed % fpsInterval);
-        // Put your drawing code here
-        game.render();
+      // calc elapsed time since last loop
+      now = Date.now();
+      elapsed = now - then;
+
+      // if enough time has elapsed, draw the next frame
+      if (elapsed > fpsInterval) {
+          // Get ready for next frame by setting then=now, but also adjust for your
+          // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
+          then = now - (elapsed % fpsInterval);
+          // Put your drawing code here
+          game.render();
+      }
     }
-  }
 
-  // start animating
-  fpsInterval = 1000 / fps;
-  then = Date.now();
-  startTime = then;
-  animate();
+    // start animating
+    fpsInterval = 1000 / fps;
+    then = Date.now();
+    startTime = then;
+    animate();
+
+  });
 }
 window.onresize = game.onresize.bind(game);
-
-

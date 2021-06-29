@@ -1,5 +1,5 @@
 model/
 .idea
 node_modules
-*.wav
 
+.DS_Store
