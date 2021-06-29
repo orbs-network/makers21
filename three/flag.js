@@ -6,7 +6,7 @@ class Flags  {
 
   }
 
-  createFlag(scene, name, scale, position) {
+  createFlag(scene, name, color, scale, position) {
 	  // load a resource
 	  this.loader.load(
 		  // resource URL
@@ -19,8 +19,11 @@ class Flags  {
 
 			  object.scale.set(scale, scale, scale);
 			  object.position.x = position['x'];
-			  object.position.y = position['y'];
+			  object.position.y = position['y'] / 2;
 			  object.position.z = position['z'];
+
+			  object.color = color;
+			  // object.color.setRGB(.3, .8, .5);
 
 			  // object.getWorldDirection(v3);
 			  // object.castShadow = true;

@@ -111,8 +111,11 @@ class Game extends THREE.EventDispatcher {
     this.scene.add( this.blueGate );
 
     // this.flags.createFlag(this.scene, 'RED-FLAG', .003, {'x': 0, 'y': 0, 'z': -1});
-    this.flags.createFlag(this.scene, 'RED-FLAG', .003, this.redGate.position);
-    this.flags.createFlag(this.scene, 'BLUE-FLAG', .003, this.blueGate.position);
+	  console.log(this.redGate.position);
+	  console.log(this.blueGate.position);
+
+    this.flags.createFlag(this.scene, 'RED-FLAG', BLUE, .003, this.redGate.position);
+    this.flags.createFlag(this.scene, 'BLUE-FLAG', RED, .003, this.blueGate.position);
 
 	  //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);
     this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);
