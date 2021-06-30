@@ -20,7 +20,7 @@ export default class Sound {
   
     // load a sound and set it as the PositionalAudio object's buffer
     const audioLoader = new THREE.AudioLoader();
-    audioLoader.load( "./sound/"+name , function( buffer ) {
+    audioLoader.load( "/static/sound/"+name , function( buffer ) {
       sound.setBuffer( buffer );
       sound.setLoop(true);
       sound.setRefDistance( /*config.size/30*/1  );
