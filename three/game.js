@@ -89,36 +89,36 @@ class Game extends THREE.EventDispatcher {
   checkGatePass(){
   }
   //////////////////////////////////////////////////////////
-  checkCollision(){
-    const all = this.players.all()
-    if(!all.length)
-      return false;
+  // checkCollision(){
+  //   const all = this.players.all()
+  //   if(!all.length)
+  //     return false;
       
-    // update the picking ray with the camera and mouse position
-	  this.raycaster.setFromCamera( this.v2, this.camera );
+  //   // update the picking ray with the camera and mouse position
+	//   this.raycaster.setFromCamera( this.v2, this.camera );
 
-    // calculate objects intersecting the picking ray
-    //const intersects = this.raycaster.intersectObjects( [this.redGate, this.blueGate] );
-    const intersects = this.raycaster.intersectObjects( all );
+  //   // calculate objects intersecting the picking ray
+  //   //const intersects = this.raycaster.intersectObjects( [this.redGate, this.blueGate] );
+  //   const intersects = this.raycaster.intersectObjects( all );
 
-    //for ( let i = 0; i < intersects.length; i ++ ) {
-    if(intersects && intersects.length){
-      console.log(intersects[ 0 ].object.id, intersects[ 0 ].object.name, intersects[ 0 ].distance );
-    }
-      //intersects[ i ].object.material.color.set( 0xffffff );
-    //}
-  }
+  //   //for ( let i = 0; i < intersects.length; i ++ ) {
+  //   if(intersects && intersects.length){
+  //     console.log(intersects[ 0 ].object.id, intersects[ 0 ].object.name, intersects[ 0 ].distance );
+  //   }
+  //     //intersects[ i ].object.material.color.set( 0xffffff );
+  //   //}
+  // }
   //////////////////////////////////////////////////////////
   createScene(){    
     this.scene = new THREE.Scene();
 
     this.createCamera();
     // for colision
-    this.raycaster = new THREE.Raycaster();
+    //this.raycaster = new THREE.Raycaster();
 
     // helper for size
-    const axesHelper = new THREE.AxesHelper( SIZE );
-    this.scene.add( axesHelper );
+    // const axesHelper = new THREE.AxesHelper( SIZE );
+    // this.scene.add( axesHelper );
     
 
     // add light ???
@@ -208,8 +208,8 @@ class Game extends THREE.EventDispatcher {
     let cam = this.camera;
     let direction = new THREE.Vector3();
     setInterval(()=>{
-      this.checkCollision();
-      this.checkGatePass();
+      //this.checkCollision();
+      //this.checkGatePass();
       cam.getWorldDirection(direction);
       deepStream.sendEvent('player',{
         type:"pos",
@@ -235,6 +235,16 @@ class Game extends THREE.EventDispatcher {
   }
 
   //////////////////////////////////////////////////////////
+  // render2dOverlay(){
+  //   const c = this.renderer.domElement;
+  //   var ctx = c.getContext("2d");
+  //   if(ctx){
+  //     ctx.beginPath();
+  //     ctx.arc(100, 75, 50, 0, 2 * Math.PI);
+  //     ctx.stroke();
+  //   }
+  // }
+  //////////////////////////////////////////////////////////
   render(){
     // rotate gates
     this.blueGate.rotation.y += config.gateSpeed;
@@ -248,6 +258,7 @@ class Game extends THREE.EventDispatcher {
     this.players.update();
 
     this.renderer.render(this.scene, this.camera);
+    //this.render2dOverlay();
   }
   //////////////////////////////////////////////////////////
   onresize(){
