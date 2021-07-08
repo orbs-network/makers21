@@ -1,5 +1,5 @@
 const { DeepstreamClient } = window.DeepstreamClient
-const client = new DeepstreamClient('0.0.0.0:6020')
+const client = new DeepstreamClient('10.11.11.38:6020')
 client.login()
 const uuid = (localStorage["username"] || client.getUid()) + "_"+ Date.now() ;
 
@@ -17,19 +17,19 @@ client.on('connectionStateChanged', connectionState => {
 
 /////////////////////////////////////////////////////
 function sendEvent(name, data){
-    data.id = uuid; 
+    data.id = uuid;
     client.event.emit(name, data);
-} 
+}
 
 
 /////////////////////////////////////////////////////
-function subscribe(name, handler){    
+function subscribe(name, handler){
     client.event.subscribe(name, (data)=>{
         if (data.id == uuid) {
             return;
         }
         handler(data);
-    }); 
+    });
 }
 
 function throttle(func, wait, options) {
@@ -77,7 +77,7 @@ client.presence.subscribe((username, login)=> {
 window.deepStream = {
     sendThrot : throttle(sendEvent, 1000),
     sendEvent:sendEvent,
-    subscribe: subscribe    
+    subscribe: subscribe
 }
 
 // run server
