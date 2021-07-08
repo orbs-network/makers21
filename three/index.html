@@ -17,6 +17,11 @@
 		<!-- <script src="https://threejs.org/examples/js/controls/FlyControls.js"></script> -->
 		<!-- <script src="https://threejs.org/examples/js/controls/PointerLockControls.js"></script>		 -->
 		<script src="https://threejs.org/examples/js/controls/FirstPersonControls.js"></script>
+		<script type="module">
+			import {CSS2DRenderer, CSS2DObject} from 'https://cdn.jsdelivr.net/npm/three@0.126/examples/jsm/renderers/CSS2DRenderer.js';
+			window.CSS2DRenderer = CSS2DRenderer;
+			window.CSS2DObject = CSS2DObject;
+		</script>
 
 		<!-- overrides FirstPerson Mouse Behaviour -->
 		<!-- <script src="tmpControls.js"></script> -->
