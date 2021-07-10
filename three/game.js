@@ -10,8 +10,8 @@ class Game extends THREE.EventDispatcher {
 
     this.start = false;
     this.first = true;
-    this.players = new Players(this);
     this.flags = new Flags();
+    this.v2 = new THREE.Vector2();
 
     //this.steering = new Steering();
   }
@@ -97,32 +97,44 @@ class Game extends THREE.EventDispatcher {
   checkGatePass(){
   }
   //////////////////////////////////////////////////////////
-  // checkCollision(){
-  //   const all = this.players.all()
-  //   if(!all.length)
-  //     return false;
+  checkColission(){
+    // check colission other players
+    // var camBox = new THREE.Box3().setFromObject( this.camera );
+    // var players = this.players.all();
+    // for(let p of players){
+    //   if (isIntersecting(camBox, p)){
+    //     console.log('collision other player: '+p.name);
+    //     return true;
+    //   }
+    // }
+    //var collision = camBox.containsPoint( camera.position );
+    if(this.checkColissionGate()){
+      console.log('blue Gate Colision!');
+    }
+  }
+  ////////////////////////////////////////////////////////
+  checkColissionGate(){
+    // update the picking ray with the camera and mouse position
+	  this.raycaster.setFromCamera( this.v2, this.camera );
 
-  //   // update the picking ray with the camera and mouse position
-	//   this.raycaster.setFromCamera( this.v2, this.camera );
+    // calculate objects intersecting the picking ray
+    const intersects = this.raycaster.intersectObjects( [this.redGate, this.blueGate] );
+    //const intersects = this.raycaster.intersectObjects( all );
 
-  //   // calculate objects intersecting the picking ray
-  //   //const intersects = this.raycaster.intersectObjects( [this.redGate, this.blueGate] );
-  //   const intersects = this.raycaster.intersectObjects( all );
-
-  //   //for ( let i = 0; i < intersects.length; i ++ ) {
-  //   if(intersects && intersects.length){
-  //     console.log(intersects[ 0 ].object.id, intersects[ 0 ].object.name, intersects[ 0 ].distance );
-  //   }
-  //     //intersects[ i ].object.material.color.set( 0xffffff );
-  //   //}
-  // }
+    //for ( let i = 0; i < intersects.length; i ++ ) {
+    if(intersects && intersects.length){
+      console.log(intersects[ 0 ].object.id, intersects[ 0 ].object.name, intersects[ 0 ].distance );
+    }
+      //intersects[ i ].object.material.color.set( 0xffffff );
+    //}
+  }
   //////////////////////////////////////////////////////////
   createScene(){
     this.scene = new THREE.Scene();
 
     this.createCamera();
     // for colision
-    //this.raycaster = new THREE.Raycaster();
+    this.raycaster = new THREE.Raycaster();
 
     // helper for size
     // const axesHelper = new THREE.AxesHelper( SIZE );
@@ -140,6 +152,14 @@ class Game extends THREE.EventDispatcher {
     // const light = new THREE.AmbientLight(color, intensity);
     // this.scene.add(light);
 
+    this.labelRenderer = new THREE.CSS2DRenderer();
+    this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
+    this.labelRenderer.domElement.style.position = 'absolute';
+    //this.labelRenderer.domElement.style.top = '0px';
+    this.labelRenderer.domElement.style.border = "10px solid white";
+    document.body.appendChild( this.labelRenderer.domElement );
+    this.labelRenderer.domElement.style.pointerEvents = "none";
+
     const skyColor = 0xB1E1FF;  // light blue
     const groundColor = 0xB97A20;  // brownish orange
     const intensity = 1;
@@ -152,12 +172,12 @@ class Game extends THREE.EventDispatcher {
     this.renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( this.renderer.domElement );
 
-    this.labelRenderer = new window.CSS2DRenderer();
-    this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
-    this.labelRenderer.domElement.style.position = 'absolute';
-    this.labelRenderer.domElement.style.top = '0px';
-    document.body.appendChild( this.labelRenderer.domElement );
-    this.labelRenderer.domElement.style.pointerEvents = "none";
+    // this.labelRenderer = new window.CSS2DRenderer();
+    // this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
+    // this.labelRenderer.domElement.style.position = 'absolute';
+    // this.labelRenderer.domElement.style.top = '0px';
+    // document.body.appendChild( this.labelRenderer.domElement );
+    // this.labelRenderer.domElement.style.pointerEvents = "none";
 
     const divisions = 20;
     // create red grid
@@ -192,9 +212,11 @@ class Game extends THREE.EventDispatcher {
 
 	  //this.controls = new THREE.TmpControls(this.camera, this.renderer.domElement);
     this.controls = new THREE.FirstPersonControls(this.camera, this.renderer.domElement);
+    //this.controls = TrackballControls( this.camera, this.renderer.domElement );
     this.controls.activeLook = true;
     // this.controls.constrainVertical = true;
-    this.controls.mouseDrageOn = true;
+    //this.controls.mouseDrageOn = true;
+    this.controls.lookSpeed = 0.002; // def= 0.005
     this.controls.movementSpeed = config.speed;
     // //this.controls.verticalMax = 0.001;
     // this.controls.verticalMin = 0.1;
@@ -214,24 +236,32 @@ class Game extends THREE.EventDispatcher {
     // this.controls.dragToLook = true;
 
     // create dummy player
-    this.players.getPlayer("dummy");
+    //this.players.getPlayer("dummy");
 
 
     // space bar
     document.body.addEventListener("keydown",this.keydown.bind(this));
 
+    // create players
+    this.players = new Players(this);
+
     // update server
     let cam = this.camera;
     let direction = new THREE.Vector3();
     setInterval(()=>{
+      // collision detection
+      if(this.checkColission()){
+        this.startStop();
+      }
+
+      // broadcast position
       cam.getWorldDirection(direction);
       deepStream.sendEvent('player',{
         type:"pos",
         pos:cam.position,
         dir:direction
       });
-      //deepStream.sendPlayerState(cam.position, direction);
-    }, 100);
+    }, 1000);
   }
   keydown(e){
     switch(e.code){
@@ -279,6 +309,9 @@ class Game extends THREE.EventDispatcher {
     this.midX = window.innerWidth / 2;
     this.midY = window.innerHeight / 2;
 
+    this.labelRenderer.domElement.style.width = window.innerWidth;
+    this.labelRenderer.domElement.style.height = window.innerHeight;
+
 	  this.camera.aspect = window.innerWidth / window.innerHeight
     this.camera.updateProjectionMatrix()
     this.renderer.setSize(window.innerWidth, window.innerHeight)
@@ -290,7 +323,7 @@ class Game extends THREE.EventDispatcher {
 const game = new Game();
 window.onload = function(){
 
-game.loadAsync(()=>{
+  game.loadAsync(()=>{
     game.createScene();
     var fps = config.fps, fpsInterval, startTime, now, then, elapsed;
 

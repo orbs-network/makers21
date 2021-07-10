@@ -6,12 +6,14 @@ class Player{
     this.obj = obj;
     this.moving = false;
     this._initLabel(name);
+    //this.prevRot = new THREE.Vector3(0,0,0);
   }
   //////////////////////////////////////////////////////////
   moveForward(){
     if(this.moving){
+
       this.obj.getWorldDirection(v3);
-      const direction = v3.multiplyScalar(config.speed);
+      const direction = v3.multiplyScalar(-config.speed);
       this.obj.position.add(direction);
     }
   }
@@ -19,8 +21,10 @@ class Player{
   onPos(data){
     this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
     //this.rotation.set(data.rx, data.ry, data.rz);
-    this.obj.lookAt(data.dir.x *100, data.dir.y*100, data.dir.z*100);
-    //this.moveForward();
+    // since camera is oposite- we look backward negative sign
+    const factor = -1000;
+    this.obj.lookAt(data.dir.x * factor, data.dir.y*factor, data.dir.z*factor);
+    this.moveForward();
   }
   //////////////////////////////////////////////////////////
   onStart(data){
@@ -30,12 +34,12 @@ class Player{
 
   _initLabel(name) {
     const playerLabelDiv = document.createElement( 'div' );
-    playerLabelDiv.className = 'label';
+    playerLabelDiv.className = 'player-label';
     playerLabelDiv.textContent = name || "who dis?";
     playerLabelDiv.style.marginTop = '2em';
     playerLabelDiv.style.color = 'white';
     playerLabelDiv.style.fontFamily = "monospace";
-    const playerLabelObj = new window.CSS2DObject( playerLabelDiv );
+    const playerLabelObj = new THREE.CSS2DObject( playerLabelDiv );
     playerLabelObj.position.set( 0, 0, 0 );
     this.obj.add( playerLabelObj );
   }
@@ -54,7 +58,7 @@ class Players{
     material.flatShading = false;
     this.matter = material;
     this.createDummy(()=> {
-		window.deepStream.subscribe("player", this.onEvent.bind(this));
+		  window.deepStream.subscribe("player", this.onEvent.bind(this));
     });
 
 
@@ -93,16 +97,28 @@ class Players{
     if(!this.dummy){
       return null;
     }
-    const p = this.dummy.clone();
+    //const p = this.dummy.clone(); //- doesnt copy geometry
+    //const p = this.dummy.copy();
+    let p = new THREE.Object3D();
+    //let p = new THREE.Mesh();
+    p.copy(this.dummy);
     p.name = name;
 
     //p.position.y = 2;
     //p.position.x  = 2;
 
     this.game.scene.add(p);
-    const s = 2;
-    p.scale.set(s,s,s);
-    p.getWorldDirection(v3);
+
+    //p.rotation.x = Math.PI / 3;
+    // ALL THAT WONT ROTATE
+    // p.position.z -= 20;
+    // var axis = new THREE.Vector3(0.5,0.5,0);//tilted a bit on x and y - feel free to plug your different axis here
+    // //in your update/draw function
+    // p.rotateOnAxis(axis,1000);
+    // p.updateMatrix();
+    // p.updateMatrixWorld(true);
+    // p.updateWorldMatrix(true, true);
+    //p.getWorldDirection(v3);
     // p.rotateX( 0.3);
     // p.rotateY( 0.1);
     // p.rotateZ( 0.8);
@@ -111,45 +127,71 @@ class Players{
     //p.lookAt(game.redGate.position);
     //p.rotateOnWorldAxis(new THREE.Vector3(1,0,0),  10313.2);
 
-    p.visible = true;
-
+    //p.visible = true; add to scene creates it
     const newPlayer = new Player(p, name);
     this.dict[name] = newPlayer;
-    console.log('create player',name);    
+    console.log('create player',name);
 	  return newPlayer;
-  }  
+  }
+  //////////////////////////////////////////////////////////
+  //generateBoundingBox (width, height, depth) {
+  generateBoundingBox (obj) {
+
+    const geometry = new THREE.Box3().setFromObject( obj );
+    //const geometry = new THREE.BoxGeometry(width, height, depth)
+
+    const material = new THREE.MeshLambertMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity:  0.1
+    })
+
+    return new THREE.Mesh(geometry, material);
+  }
   //////////////////////////////////////////////////////////
   createDummy(callback){
-      let matter = this.matter;
-      this.loader.load(
-        // resource URL
-        //'model/old/11804_Airplane_v2_l2.obj',
-        'model/paper/airplane.obj',
-        // called when resource is loaded
-        function ( object ) {
-          object.traverse(function(child) {
-            if(child instanceof THREE.Mesh) {
-              //console.log(child.material);
-              //var m = child.material;
-              //console.log('1', JSON.stringify(m));
-              // child.material = new THREE.MeshPhongMaterial({
-                //   color: 0xFF0000,    // red (can also use a CSS color string here)
-                //   flatShading: true,
-                // });
-                child.material = matter;
-                //console.log(child);
-                //child.material.map = texture;
-                //child.material.normalMap = normal;
-              }
-            });
-        //object.position.set(6, 1, 0);
-        //object.scale.set( new THREE.Vector3( 3, 3, 3 ));
-        object.name = "dummy";
-        object.visible = false;
-        this.dummy = object;
+    let matter = this.matter;
+    this.loader.load(
+      // resource URL
+      //'model/old/11804_Airplane_v2_l2.obj',
+      'model/paper/airplane.obj',
+      // called when resource is loaded
+      function ( object ) {
+        object.traverse(function(child) {
+          if(child instanceof THREE.Mesh) {
+            //console.log(child.material);
+            //var m = child.material;
+            //console.log('1', JSON.stringify(m));
+            // child.material = new THREE.MeshPhongMaterial({
+              //   color: 0xFF0000,    // red (can also use a CSS color string here)
+              //   flatShading: true,
+              // });
+              child.material = matter;
+              //console.log(child);
+              //child.material.map = texture;
+              //child.material.normalMap = normal;
+            }
+          });
+      //object.position.set(6, 1, 0);
+      //object.scale.set( new THREE.Vector3( 3, 3, 3 ));
+      //object.name = "airplane";
+      //
+      const s = 2;// was2
+      object.scale.set(s,s,s);
 
-        callback(object);
-      }.bind(this),
+
+      //const bbox = this.generateBoundingBox(0.1,0.1,0.1);
+      //const bbox = this.generateBoundingBox(object);
+      //bbox.add(object);
+      // turn 180 horiz
+      //object.rotateY(3.14159);
+      //this.dummy = bbox;
+
+      this.dummy = object;
+      this.dummy.name = "dummy";
+      callback();
+
+    }.bind(this),
       // called when loading is in progresses
       function ( xhr ) {
         console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
@@ -158,9 +200,8 @@ class Players{
       function ( error ) {
         console.log( 'An error happened', error );
       }
-      );
-
-    }
+    );
+  }
   //////////////////////////////////////////////////////////
   all(){
     let all = [];

@@ -4,13 +4,20 @@
 		<title>Makers 2021</title>
 		<style>
 			body { margin: 0; }
+			.player-label{
+				background-color: black;
+				color: white;
+			}
 		</style>
 	</head>
 	<body>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js"></script>
+		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js"></script> -->
+		<script src="https://unpkg.com/three@0.126.1/build/three.min.js"></script>
 		<script src="https://cdn.deepstream.io/js/client/latest/ds.min.js"></script>
-		<script src="https://unpkg.com/three@0.126.0/examples/js/loaders/OBJLoader.js"></script>
-		<!-- <script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script> -->
+		<!-- <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/OBJLoader.js"></script> -->
+		<script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script>
+		<script src="https://threejs.org/examples/js/renderers/CSS2DRenderer.js"></script>
+		<!-- <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/renderers/CSS2DRenderer.js"></script> -->
 		<!-- <script src="https://threejs.org/examples/js/loaders/MTLLoader.js"></script>
 		<script src="https://threejs.org/examples/js/loaders/OBJMTLLoader.js"></script> -->
 
@@ -18,23 +25,54 @@
 		<!-- <script src="https://threejs.org/examples/js/controls/PointerLockControls.js"></script>		 -->
 		<script src="https://threejs.org/examples/js/controls/FirstPersonControls.js"></script>
 		<script type="module">
-			import {CSS2DRenderer, CSS2DObject} from 'https://cdn.jsdelivr.net/npm/three@0.126/examples/jsm/renderers/CSS2DRenderer.js';
-			window.CSS2DRenderer = CSS2DRenderer;
-			window.CSS2DObject = CSS2DObject;
+			//window.iso
+			// import { FirstPersonControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/FirstPersonControls.js';
+			// import {CSS2DRenderer, CSS2DObject} from 'https://unpkg.com/three@0.126.1/examples/jsm/renderers/CSS2DRenderer.js';
+			// import {OBJLoader} from 'https://unpkg.com/three@0.126.1/examples/jsm/loaders/OBJLoader.js';
+
+			//import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
+			// import { FirstPersonControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/FirstPersonControls.js';
+
+			//window.THREE = THREE;
+
+			// import * as THREE from 'https://cdn.skypack.dev/three@0.126.0';
+			// window.THREE = THREE;
+			// console.log('three', THREE)
+			// import { CSS2DRenderer, CSS2DObject } from 'https://threejs.org/examples/jsm/renderers/CSS2DRenderer.js';
+
+			//import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
+			//THREE.OBJLoader = OBJLoader;
+			//window.THREE = THREE;
+
+
+			//import {} from 'https://threejs.org/examples/js/controls/FirstPersonControls.js';
+			//window.THREE.FirstPersonControls = FirstPersonControls;
+			//import * as THREE from 'https://unpkg.com/three/build/three/module.js';
+			//import { OBJLoader } from 'https://unpkg.com/three@0.126.0/examples/js/loaders/OBJLoader.js'
+			//import { FirstPersonControls } from 'https://unpkg.com/three@0.126.0/examples/js/loaders/FirstPersonControls.js'
+			//https://threejs.org/examples/js/controls/FirstPersonControls.js
+			//import {THREE} from 'https://cdn.jsdelivr.net/npm/three-js@0.126/three.js';
+
+			//import {CSS2DRenderer, CSS2DObject} from 'https://cdn.jsdelivr.net/npm/three@0.126/examples/jsm/renderers/CSS2DRenderer.js';
+			//import {CSS2DRenderer, CSS2DObject} from 'https://cdn.jsdelivr.net/npm/three@0.126/examples/jsm/renderers/CSS2DRenderer.js';
+			//import threeCss2drenderer from 'https://cdn.skypack.dev/three-css2drenderer';
+			//window.CSS2DRenderer = CSS2DRenderer;
+			//window.CSS2DObject = CSS2DObject;
+
 		</script>
 
 		<!-- overrides FirstPerson Mouse Behaviour -->
 		<!-- <script src="tmpControls.js"></script> -->
+		 <!-- <script src="steering.js"></script> -->
+    <!-- <script src="keyboard.js"></script> -->
+    <!-- <script src="vessel.js"></script> -->
+
     <script src="config.js"></script>
     <script src="sound.js"></script>
 		<script src="flag.js"></script>
-    <!-- <script src="steering.js"></script> -->
-    <!-- <script src="keyboard.js"></script> -->
-    <!-- <script src="vessel.js"></script> -->
 		<script src="deepstream.js"></script>
+		<script src="physics.js"></script>
 		<script src="players.js"></script>
     <script src="game.js"></script>
-
-
 	</body>
 </html>
