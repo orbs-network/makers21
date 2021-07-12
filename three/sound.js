@@ -48,14 +48,17 @@ class Sound {
     const sound = new THREE.PositionalAudio( listener );
     this.getBuffer(name, (buffer)=>{
       sound.setBuffer( buffer );
-      sound.setLoop(loop? loop : true);
       sound.setRefDistance( /*config.size/30*/ refDistance? refDistance : 1  );
       sound.setVolume( volume? volume : 0.1 );
+      sound.name = "sound";
       //sound.setDistanceModel("orientationX");
-      //sound.play();
       // finally add the sound to the mesh
       obj.add( sound );
-      this.positionals.push(sound)
+      if(loop)
+        sound.setLoop(true);
+      this.positionals.push(sound);
+
+      // next
       cb();
     });
   }

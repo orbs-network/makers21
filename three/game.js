@@ -45,11 +45,16 @@ class Game extends THREE.EventDispatcher {
   //////////////////////////////////////////////////////////
   initSound(){
     this.sound = new Sound();
-    //this.sound.add('gate.wav', this.redGate).play();
-    this.sound.add('gate.wav', this.blueGate);
+    this.sound.add('gate.wav', this.redGate, true);
+    this.sound.add('gate.wav', this.blueGate, true);
 
-    // this.players.initSound(this.sound);
-    // this.explode.initSound(this.sound);
+     //this.players.initSound(this.sound);
+    //this.explode.initSound(this.sound);
+
+    // add explode sound to camera
+    const loop = false;
+    const vol = 0.3; //loudest
+    this.sound.add('explode.wav', this.camera, loop,  config.size, vol);
   }
   //////////////////////////////////////////////////////////
   startStop(){
@@ -64,7 +69,10 @@ class Game extends THREE.EventDispatcher {
     if(this.start){
       if(this.first){
         this.first = false;
-        this.sound.play();
+        let sound = this.redGate.getObjectByName('sound');
+        if(sound) sound.play();
+        sound = this.blueGate.getObjectByName('sound');
+        if(sound) sound.play();
       }
       else{
         //this.sound.play();
@@ -123,6 +131,10 @@ class Game extends THREE.EventDispatcher {
     // stop
     // this.moveToStart();
     this.explode.create(this.camera.position.x, this.camera.position.y );
+
+    let sound = this.camera.getObjectByName('sound');
+    //sound.setLoop(false);
+    if(sound) sound.play();
 
     // move back to see explosion
     this.returnToStart(()=>{

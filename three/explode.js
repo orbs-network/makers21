@@ -106,22 +106,21 @@ function ExplodeMngr(scene){
     const part = new ExplodeAnimation(x, y);
 
     // sound
-    if(this.sound){
-      const loop = false;
-      const vol = 1; //loudest
-      //let s = this.sound.add('explode.wav', part.object, loop,  config.size, vol);
-    }
+    // if(this.sound){
+    //   const loop = false;
+    //   const vol = 0.8; //loudest
+    // }
+    //this.sound.add('explode.wav', part.object, loop,  config.size, vol);
 
     parts.push(part);
     //parts.push(new ExplodeAnimation((x * sizeRandomness)-(sizeRandomness/2), (y * sizeRandomness)-(sizeRandomness/2)));
   }
   //////////////////////////////////////////////////////////////////////
-  function initSound(sound) {
-    this.sound = sound;
-  }
+  // function initSound(sound) {
+  //   this.sound = sound;
+  // }
   //////////////////////////////////////////////////////////////////////
   return {
-    initSound:initSound,
     beforeRender:beforeRender,
     create:create
   }
