@@ -11,7 +11,6 @@ class Player{
   //////////////////////////////////////////////////////////
   moveForward(){
     if(this.moving){
-
       this.obj.getWorldDirection(v3);
       const direction = v3.multiplyScalar(-config.speed);
       this.obj.position.add(direction);
@@ -128,6 +127,9 @@ class Players{
     //p.rotateOnWorldAxis(new THREE.Vector3(1,0,0),  10313.2);
 
     //p.visible = true; add to scene creates it
+    if(this.sound)
+      this.sound.add('airplane-fly-by.wav', p);
+
     const newPlayer = new Player(p, name);
     this.dict[name] = newPlayer;
     console.log('create player',name);
@@ -209,6 +211,13 @@ class Players{
       all.push(this. dict[name].obj);
     }
     return all;
+  }
+  //////////////////////////////////////////////////////////
+  initSound(sound){
+    this.sound= sound;
+    for ( let p of this.all()){
+      sound.add('airplane-fly-by.wav', p);
+    }
   }
   //////////////////////////////////////////////////////////
   getPlayer(name){

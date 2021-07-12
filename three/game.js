@@ -13,7 +13,24 @@ class Game extends THREE.EventDispatcher {
     this.flags = new Flags();
     this.v2 = new THREE.Vector2();
 
+
     //this.steering = new Steering();
+  }
+  //////////////////////////////////////////////////////////
+  returnToStart(cb){
+    const tid = setInterval(()=>{
+      let diff = this.startLineZ - this.camera.position.z ;
+      console.log('returnToStart diff', diff);
+      if(diff <= 1){
+        console.log('DONE!', diff);
+        this.camera.position.z = this.startLineZ;
+        clearTimeout(tid);
+        return cb();
+      }
+      diff *= 0.05;
+      this.camera.position.z += diff;
+    },30);
+
   }
   //////////////////////////////////////////////////////////
   loadAsync(cb){
@@ -28,11 +45,11 @@ class Game extends THREE.EventDispatcher {
   //////////////////////////////////////////////////////////
   initSound(){
     this.sound = new Sound();
-    this.sound.add('gate.wav', this.redGate);
+    //this.sound.add('gate.wav', this.redGate).play();
     this.sound.add('gate.wav', this.blueGate);
-    for ( let p of this.players.all()){
-      this.sound.add('airplane-fly-by.wav', p);
-    }
+
+    // this.players.initSound(this.sound);
+    // this.explode.initSound(this.sound);
   }
   //////////////////////////////////////////////////////////
   startStop(){
@@ -46,17 +63,17 @@ class Game extends THREE.EventDispatcher {
     // start
     if(this.start){
       if(this.first){
-        this.initSound();
         this.first = false;
+        this.sound.play();
       }
       else{
-        this.sound.play();
+        //this.sound.play();
       }
 
     }
     // stop
     else{
-      this.sound.pause();
+      //this.sound.pause();
     }
 
   }
@@ -90,14 +107,34 @@ class Game extends THREE.EventDispatcher {
     // const zLine = new THREE.Line(lineGeometry, lineMaterial);
     // this.camera.add(zLine);
 
-    this.camera.position.y += 3.5 ;
-    this.camera.position.z += SIZE;
+    this.camera.position.y += 1.5 ;
+    this.camera.position.z += SIZE/2;
+    this.startLineZ = this.camera.position.z;
   }
   //////////////////////////////////////////////////////////
   checkGatePass(){
   }
   //////////////////////////////////////////////////////////
+  doExplode(){
+    console.log("EXPLODE!");
+    this.exploding = true;
+    this.startStop(); // stop
+
+    // stop
+    // this.moveToStart();
+    this.explode.create(this.camera.position.x, this.camera.position.y );
+
+    // move back to see explosion
+    this.returnToStart(()=>{
+      this.exploding = false;
+    });
+  }
+  //////////////////////////////////////////////////////////
   checkColission(){
+    if(this.exploding){
+      return;
+    }
+
     // check colission other players
     // var camBox = new THREE.Box3().setFromObject( this.camera );
     // var players = this.players.all();
@@ -110,6 +147,8 @@ class Game extends THREE.EventDispatcher {
     //var collision = camBox.containsPoint( camera.position );
     if(this.checkColissionGate()){
       console.log('blue Gate Colision!');
+      this.doExplode();
+      return true;
     }
   }
   ////////////////////////////////////////////////////////
@@ -124,6 +163,9 @@ class Game extends THREE.EventDispatcher {
     //for ( let i = 0; i < intersects.length; i ++ ) {
     if(intersects && intersects.length){
       console.log(intersects[ 0 ].object.id, intersects[ 0 ].object.name, intersects[ 0 ].distance );
+      if (intersects[ 0 ].distance < 0.5){
+        return true;
+      }
     }
       //intersects[ i ].object.material.color.set( 0xffffff );
     //}
@@ -131,8 +173,10 @@ class Game extends THREE.EventDispatcher {
   //////////////////////////////////////////////////////////
   createScene(){
     this.scene = new THREE.Scene();
+    this.explode = new ExplodeMngr(this.scene);
 
     this.createCamera();
+
     // for colision
     this.raycaster = new THREE.Raycaster();
 
@@ -245,13 +289,16 @@ class Game extends THREE.EventDispatcher {
     // create players
     this.players = new Players(this);
 
+    // sound after gates and players creation
+    this.initSound();
+
     // update server
     let cam = this.camera;
     let direction = new THREE.Vector3();
     setInterval(()=>{
       // collision detection
       if(this.checkColission()){
-        this.startStop();
+        return;
       }
 
       // broadcast position
@@ -300,7 +347,10 @@ class Game extends THREE.EventDispatcher {
     this.controls.update(1);
     // players
     this.players.update();
+    // explosions
+    this.explode.beforeRender();
 
+    // actual
     this.renderer.render(this.scene, this.camera);
     //this.render2dOverlay();
   }

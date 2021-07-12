@@ -1,10 +1,10 @@
 
-function explodeMngr(){
+function ExplodeMngr(scene){
   //////////////settings/////////
-  var movementSpeed = 80;
+  var movementSpeed = 40;
   var totalObjects = 1000;
   var objectSize = 10;
-  var sizeRandomness = 4000;
+  //var sizeRandomness = 4000;
   var colors = [0xFF0FFF, 0xCCFF00, 0xFF000F, 0x996600, 0xFFFFFF];
   /////////////////////////////////
   var dirs = [];
@@ -15,20 +15,30 @@ function explodeMngr(){
   //////////////////////////////////////////////////////////////////////
   function ExplodeAnimation(x,y)
   {
-    var geometry = new THREE.Geometry();
+    var geometry = new THREE.BufferGeometry();
 
-    for (i = 0; i < totalObjects; i ++)
+    // attributes
+    const positions = new Float32Array( totalObjects * 3 ); // 3 vertices per point
+    geometry.setAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+
+    let index=0;
+    for (let i = 0; i < positions.length; i++)
     {
-      var vertex = new THREE.Vector3();
-      vertex.x = x;
-      vertex.y = y;
-      vertex.z = 0;
+      // var vertex = new THREE.Vector3();
+      // vertex.x = x;
+      // vertex.y = y;
+      // vertex.z = 0;
+      positions[ index ++ ] = x;
+      positions[ index ++ ] = y;
+      positions[ index ++ ] = 0;
 
-      geometry.vertices.push( vertex );
+
+      //geometry.vertices.push( vertex );
       dirs.push({x:(Math.random() * movementSpeed)-(movementSpeed/2),y:(Math.random() * movementSpeed)-(movementSpeed/2),z:(Math.random() * movementSpeed)-(movementSpeed/2)});
+      this.particles = positions;
     }
-    var material = new THREE.ParticleBasicMaterial( { size: objectSize,  color: colors[Math.round(Math.random() * colors.length)] });
-    var particles = new THREE.ParticleSystem( geometry, material );
+    var material = new THREE.PointsMaterial( { size: objectSize,  color: colors[Math.round(Math.random() * colors.length)] });
+    var particles = new THREE.Points( geometry, material );
 
     this.object = particles;
     this.status = true;
@@ -38,17 +48,25 @@ function explodeMngr(){
     this.zDir = (Math.random() * movementSpeed)-(movementSpeed/2);
 
     scene.add( this.object  );
+    this.started = Date.now();
 
+    // animation
     this.update = function(){
       if (this.status == true){
-        var pCount = totalObjects;
-        while(pCount--) {
-          var particle =  this.object.geometry.vertices[pCount]
-          particle.y += dirs[pCount].y;
-          particle.x += dirs[pCount].x;
-          particle.z += dirs[pCount].z;
+        var index = 0;
+        var count = totalObjects;
+        while(--count) {
+          //var particle =  this.object.geometry.vertices[index]
+          this.particles[index++] += dirs[count].y;
+          this.particles[index++] += dirs[count].x;
+          this.particles[index++] += dirs[count].z;
+          // var particle = this.particles[pCount];
+          // particle.y += dirs[pCount].y;
+          // particle.x += dirs[pCount].x;
+          // particle.z += dirs[pCount].z;
         }
-        this.object.geometry.verticesNeedUpdate = true;
+        //this.object.geometry.verticesNeedUpdate = true;
+        this.object.geometry.attributes.position.needsUpdate = true;
       }
     }
 
@@ -61,18 +79,49 @@ function explodeMngr(){
     //requestAnimationFrame( render );
 
     var pCount = parts.length;
+    const now = Date.now();
+    let ended = [];
     while(pCount--) {
-      parts[pCount].update();
+      if ( (now - parts[pCount].started) / 1000 < 3 ){
+        parts[pCount].update();
+      }
+      else{
+        ended.push(pCount);
+      }
+    }
+
+    // cleanup ended
+    for( let i of ended){
+      const inst = parts[i];
+      // remove from scene
+      scene.remove(inst.object);
+      // remove from memory
+      parts.splice(i,1);
     }
 
     //renderer.render( scene, camera );
   }
   //////////////////////////////////////////////////////////////////////
   function create(x, y) {
-    parts.push(new ExplodeAnimation(x, y));
+    const part = new ExplodeAnimation(x, y);
+
+    // sound
+    if(this.sound){
+      const loop = false;
+      const vol = 1; //loudest
+      //let s = this.sound.add('explode.wav', part.object, loop,  config.size, vol);
+    }
+
+    parts.push(part);
+    //parts.push(new ExplodeAnimation((x * sizeRandomness)-(sizeRandomness/2), (y * sizeRandomness)-(sizeRandomness/2)));
   }
+  //////////////////////////////////////////////////////////////////////
+  function initSound(sound) {
+    this.sound = sound;
+  }
+  //////////////////////////////////////////////////////////////////////
   return {
-    ExplodeAnimation:ExplodeAnimation,
+    initSound:initSound,
     beforeRender:beforeRender,
     create:create
   }
