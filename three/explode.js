@@ -1,9 +1,10 @@
 
 function ExplodeMngr(scene){
   //////////////settings/////////
-  var movementSpeed = 40;
+  const SECONDS = 6;
+  var movementSpeed = 0.6;
   var totalObjects = 1000;
-  var objectSize = 10;
+  var objectSize = 0.05;
   //var sizeRandomness = 4000;
   var colors = [0xFF0FFF, 0xCCFF00, 0xFF000F, 0x996600, 0xFFFFFF];
   /////////////////////////////////
@@ -13,7 +14,7 @@ function ExplodeMngr(scene){
   // document.body.appendChild( container );
 
   //////////////////////////////////////////////////////////////////////
-  function ExplodeAnimation(x,y)
+  function ExplodeAnimation(x,y,z)
   {
     var geometry = new THREE.BufferGeometry();
 
@@ -30,14 +31,23 @@ function ExplodeMngr(scene){
       // vertex.z = 0;
       positions[ index ++ ] = x;
       positions[ index ++ ] = y;
-      positions[ index ++ ] = 0;
+      positions[ index ++ ] = z;
 
 
       //geometry.vertices.push( vertex );
       dirs.push({x:(Math.random() * movementSpeed)-(movementSpeed/2),y:(Math.random() * movementSpeed)-(movementSpeed/2),z:(Math.random() * movementSpeed)-(movementSpeed/2)});
       this.particles = positions;
     }
-    var material = new THREE.PointsMaterial( { size: objectSize,  color: colors[Math.round(Math.random() * colors.length)] });
+    var material = new THREE.PointsMaterial( {
+      size: objectSize,
+      color: colors[Math.round(Math.random() * colors.length)]
+      // transparent: true,
+      // opacity:1,
+      // blending: THREE.multiplyBlending,
+      // flatShading: true,
+      // depthTest: true,
+      // sizeAttenuation: true
+    });
     var particles = new THREE.Points( geometry, material );
 
     this.object = particles;
@@ -60,6 +70,7 @@ function ExplodeMngr(scene){
           this.particles[index++] += dirs[count].y;
           this.particles[index++] += dirs[count].x;
           this.particles[index++] += dirs[count].z;
+          this.object.material.opacity = this.object.material.opacity * 0.99;
           // var particle = this.particles[pCount];
           // particle.y += dirs[pCount].y;
           // particle.x += dirs[pCount].x;
@@ -82,7 +93,7 @@ function ExplodeMngr(scene){
     const now = Date.now();
     let ended = [];
     while(pCount--) {
-      if ( (now - parts[pCount].started) / 1000 < 3 ){
+      if ( (now - parts[pCount].started) / 1000 < SECONDS ){
         parts[pCount].update();
       }
       else{
@@ -102,8 +113,8 @@ function ExplodeMngr(scene){
     //renderer.render( scene, camera );
   }
   //////////////////////////////////////////////////////////////////////
-  function create(x, y) {
-    const part = new ExplodeAnimation(x, y);
+  function create(x, y, z) {
+    const part = new ExplodeAnimation(x, y, z);
 
     // sound
     // if(this.sound){

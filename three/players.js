@@ -2,10 +2,16 @@ let v3 = new THREE.Vector3(0,0,0);
 //////////////////////////////////////////////////////////
 class Player{
   //////////////////////////////////////////////////////////
-  constructor(obj, name){
+  constructor(obj, name, explode, sound){
     this.obj = obj;
     this.moving = false;
     this._initLabel(name);
+    this.explode = explode;
+
+    // create sounds
+    sound.add('fly-by.wav', obj);
+    sound.add('explode.wav', this.obj, false, config.size, 1);
+
     //this.prevRot = new THREE.Vector3(0,0,0);
   }
   //////////////////////////////////////////////////////////
@@ -30,7 +36,18 @@ class Player{
     this.moving = data.moving;
     this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
   }
+  //////////////////////////////////////////////////////////
+  onExplode(data){
+    // create explosition attached to player
+    this.explode.create(this.obj.position.x, this.obj.position.y, this.obj.position.z);
 
+    // play already installed sound
+    let sound = this.obj.getObjectByName('sound_explode.wav');
+    if(sound) sound.play();
+
+    this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
+  }
+  //////////////////////////////////////////////////////////
   _initLabel(name) {
     const playerLabelDiv = document.createElement( 'div' );
     playerLabelDiv.className = 'player-label';
@@ -76,12 +93,16 @@ class Players{
       return;
     }
     switch(data.type){
-      case "pos":
-        p.onPos(data);
-        break;
       case "start":
         p.onStart(data);
         break;
+      case "pos":
+        p.onPos(data);
+        break;
+      case "explode":
+        p.onExplode(data, game.explode);
+        break;
+
     }
 
   }
@@ -103,34 +124,10 @@ class Players{
     p.copy(this.dummy);
     p.name = name;
 
-    //p.position.y = 2;
-    //p.position.x  = 2;
-
     this.game.scene.add(p);
+    //p.castShadow = true;
+    let newPlayer = new Player(p, name, game.explode, this.sound);
 
-    //p.rotation.x = Math.PI / 3;
-    // ALL THAT WONT ROTATE
-    // p.position.z -= 20;
-    // var axis = new THREE.Vector3(0.5,0.5,0);//tilted a bit on x and y - feel free to plug your different axis here
-    // //in your update/draw function
-    // p.rotateOnAxis(axis,1000);
-    // p.updateMatrix();
-    // p.updateMatrixWorld(true);
-    // p.updateWorldMatrix(true, true);
-    //p.getWorldDirection(v3);
-    // p.rotateX( 0.3);
-    // p.rotateY( 0.1);
-    // p.rotateZ( 0.8);
-    p.castShadow = true;
-    //p.updateWorldMatrix()
-    //p.lookAt(game.redGate.position);
-    //p.rotateOnWorldAxis(new THREE.Vector3(1,0,0),  10313.2);
-
-    //p.visible = true; add to scene creates it
-    if(this.sound)
-      this.sound.add('airplane-fly-by.wav', p);
-
-    const newPlayer = new Player(p, name);
     this.dict[name] = newPlayer;
     console.log('create player',name);
 	  return newPlayer;
@@ -215,9 +212,10 @@ class Players{
   //////////////////////////////////////////////////////////
   initSound(sound){
     this.sound= sound;
-    for ( let p of this.all()){
-      sound.add('airplane-fly-by.wav', p);
-    }
+    // for ( let p of this.all()){
+    //   sound.add('fly-by.wav', p);
+    //   this.sound.add('explode.wav', this.camera, loop, config.size, vol);
+    // }
   }
   //////////////////////////////////////////////////////////
   getPlayer(name){

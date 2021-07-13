@@ -48,13 +48,13 @@ class Game extends THREE.EventDispatcher {
     this.sound.add('gate.wav', this.redGate, true);
     this.sound.add('gate.wav', this.blueGate, true);
 
-     //this.players.initSound(this.sound);
+     this.players.initSound(this.sound);
     //this.explode.initSound(this.sound);
 
     // add explode sound to camera
     const loop = false;
-    const vol = 0.3; //loudest
-    this.sound.add('explode.wav', this.camera, loop,  config.size, vol);
+    const vol = 0.3; // self not loudest
+    this.sound.add('explode.wav', this.camera, loop, config.size, vol);
   }
   //////////////////////////////////////////////////////////
   startStop(){
@@ -69,9 +69,9 @@ class Game extends THREE.EventDispatcher {
     if(this.start){
       if(this.first){
         this.first = false;
-        let sound = this.redGate.getObjectByName('sound');
+        let sound = this.redGate.getObjectByName('sound_gate.wav');
         if(sound) sound.play();
-        sound = this.blueGate.getObjectByName('sound');
+        sound = this.blueGate.getObjectByName('sound_gate.wav');
         if(sound) sound.play();
       }
       else{
@@ -89,11 +89,13 @@ class Game extends THREE.EventDispatcher {
     this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
     // aim and dashboard
-    // var cubeGeometry = new THREE.CircleGeometry(20, 100);
-    // var cubeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, transparent: false, opacity: 0.5, depthTest: false});
-    // var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-    // this.camera.add(cube);
-    // cube.position.set( 0, 0, -30 );
+    var cubeGeometry = new THREE.CircleGeometry( 0.2, 32);
+    var cubeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, transparent: false, opacity: 0.5, depthTest: false});
+    var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    this.camera.add(cube);
+    cube.position.set( 0, 0, -30 );
+    this.scene.add(this.camera);
+    this.cameraAim = cube;
     //crosshair
     // const lineMaterial = new THREE.LineBasicMaterial({
     //   color: 0xffffff
@@ -117,6 +119,7 @@ class Game extends THREE.EventDispatcher {
 
     this.camera.position.y += 1.5 ;
     this.camera.position.z += SIZE/2;
+    //this.camera.position.z += SIZE;
     this.startLineZ = this.camera.position.z;
   }
   //////////////////////////////////////////////////////////
@@ -125,12 +128,18 @@ class Game extends THREE.EventDispatcher {
   //////////////////////////////////////////////////////////
   doExplode(){
     console.log("EXPLODE!");
-    this.exploding = true;
-    this.startStop(); // stop
+    // notify others
+    deepStream.sendEvent('player',{
+      type:"explode",
+      pos:this.camera.position
+    });
 
+    this.exploding = true;
     // stop
-    // this.moveToStart();
-    this.explode.create(this.camera.position.x, this.camera.position.y );
+    this.startStop();
+
+
+    this.explode.create(this.camera.position.x, this.camera.position.y, this.camera.position.z );
 
     let sound = this.camera.getObjectByName('sound');
     //sound.setLoop(false);
@@ -174,8 +183,9 @@ class Game extends THREE.EventDispatcher {
 
     //for ( let i = 0; i < intersects.length; i ++ ) {
     if(intersects && intersects.length){
-      console.log(intersects[ 0 ].object.id, intersects[ 0 ].object.name, intersects[ 0 ].distance );
-      if (intersects[ 0 ].distance < 0.5){
+      //console.log('raycast', intersects[ 0 ].object.id, intersects[ 0 ].object.name, intersects[ 0 ].distance );
+      if (intersects[ 0 ].distance < 0.001){
+        console.log(intersects[0]);
         return true;
       }
     }
@@ -212,7 +222,7 @@ class Game extends THREE.EventDispatcher {
     this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
     this.labelRenderer.domElement.style.position = 'absolute';
     //this.labelRenderer.domElement.style.top = '0px';
-    this.labelRenderer.domElement.style.border = "10px solid white";
+    //this.labelRenderer.domElement.style.border = "10px solid white";
     document.body.appendChild( this.labelRenderer.domElement );
     this.labelRenderer.domElement.style.pointerEvents = "none";
 
@@ -250,6 +260,7 @@ class Game extends THREE.EventDispatcher {
 
     // red gate
     this.redGate = this.createGate(RED, GATE_SIZE);
+    this.redGate.name = "redGate";
     this.redGate.position.z = 0;
     // move front and up
     this.redGate.position.z -= 2*SIZE;
@@ -258,6 +269,7 @@ class Game extends THREE.EventDispatcher {
 
     // blue gate
     this.blueGate = this.createGate(BLUE, GATE_SIZE);
+    this.blueGate.name = "blueGate";
     // move back and up
     //this.blueGate.position.z += SIZE/2;
     this.blueGate.position.y += GATE_SIZE;
@@ -272,7 +284,7 @@ class Game extends THREE.EventDispatcher {
     this.controls.activeLook = true;
     // this.controls.constrainVertical = true;
     //this.controls.mouseDrageOn = true;
-    this.controls.lookSpeed = 0.002; // def= 0.005
+    //this.controls.lookSpeed = 0.002; // def= 0.005
     this.controls.movementSpeed = config.speed;
     // //this.controls.verticalMax = 0.001;
     // this.controls.verticalMin = 0.1;
@@ -304,10 +316,20 @@ class Game extends THREE.EventDispatcher {
     // sound after gates and players creation
     this.initSound();
 
-    // update server
+    // start broadcast interval
+    this.broadcastState();
+  }
+  //////////////////////////////////////////////////////////
+  broadcastState(){
     let cam = this.camera;
     let direction = new THREE.Vector3();
+
     setInterval(()=>{
+      // conditions
+      if(this.exploding){
+        return;
+      }
+
       // collision detection
       if(this.checkColission()){
         return;
@@ -320,8 +342,10 @@ class Game extends THREE.EventDispatcher {
         pos:cam.position,
         dir:direction
       });
+
     }, 1000);
   }
+  //////////////////////////////////////////////////////////
   keydown(e){
     switch(e.code){
       case "Space":{
@@ -329,6 +353,7 @@ class Game extends THREE.EventDispatcher {
       }
     }
   }
+  //////////////////////////////////////////////////////////
   createGate(color, GATE_SIZE){
     const geometry = new THREE.TorusGeometry( GATE_SIZE, GATE_SIZE/3, 32, 16 );
     // red gate
@@ -367,9 +392,9 @@ class Game extends THREE.EventDispatcher {
     //this.render2dOverlay();
   }
   //////////////////////////////////////////////////////////
-  onresize(){
-    this.midX = window.innerWidth / 2;
-    this.midY = window.innerHeight / 2;
+  onresize(e){
+    // this.midX = window.innerWidth / 2;
+    // this.midY = window.innerHeight / 2;
 
     this.labelRenderer.domElement.style.width = window.innerWidth;
     this.labelRenderer.domElement.style.height = window.innerHeight;
@@ -377,6 +402,10 @@ class Game extends THREE.EventDispatcher {
 	  this.camera.aspect = window.innerWidth / window.innerHeight
     this.camera.updateProjectionMatrix()
     this.renderer.setSize(window.innerWidth, window.innerHeight)
+
+    this.v2.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+	  this.v2.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+
 
     this.controls.handleResize();
   }

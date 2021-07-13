@@ -50,7 +50,7 @@ class Sound {
       sound.setBuffer( buffer );
       sound.setRefDistance( /*config.size/30*/ refDistance? refDistance : 1  );
       sound.setVolume( volume? volume : 0.1 );
-      sound.name = "sound";
+      sound.name = "sound_"+name;
       //sound.setDistanceModel("orientationX");
       // finally add the sound to the mesh
       obj.add( sound );
