@@ -11,8 +11,12 @@ class Game extends THREE.EventDispatcher {
     this.start = false;
     this.first = true;
     this.flags = new Flags();
-    this.v2 = new THREE.Vector2();
-
+    this.v2 = new THREE.Vector2(.5, .5);
+    this.worldPos = new THREE.Vector3();
+    this.worldDir = new THREE.Vector3();
+    // this.v2.x = ( 0.5 ) * 2 - 1;
+	  // this.v2.y = - ( 0.5 ) * 2 + 1;
+    //this.v3 =  new THREE.Vector3(0.5,0.5,0.5);
 
     //this.steering = new Steering();
   }
@@ -89,13 +93,42 @@ class Game extends THREE.EventDispatcher {
     this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
     // aim and dashboard
-    var cubeGeometry = new THREE.CircleGeometry( 0.2, 32);
-    var cubeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, transparent: false, opacity: 0.5, depthTest: false});
-    var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-    this.camera.add(cube);
-    cube.position.set( 0, 0, -30 );
-    this.scene.add(this.camera);
-    this.cameraAim = cube;
+    // var cubeGeometry = new THREE.CircleGeometry( 0.2, 32);
+    // var cubeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, transparent: false, opacity: 0.5, depthTest: false});
+    // var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    // this.camera.add(cube);
+    // cube.position.set( 0, 0, -30 );
+    // this.scene.add(this.camera);
+    // this.cameraAim = cube;
+
+    // /// line for raycasting
+    // // Draw a line from pointA in the given direction at distance 100
+    // var pointA = new THREE.Vector3( 0, 0, 0 );
+    // var direction = new THREE.Vector3( 10, 0, 0 );
+    // direction.normalize();
+
+    // var distance = 100; // at what distance to determine pointB
+
+    // var pointB = new THREE.Vector3();
+    // pointB.addVectors ( pointA, direction.multiplyScalar( distance ) );
+
+    // var geometry = new THREE.BufferGeometry();
+    // const positions = new Float32Array( 2 );
+    // geometry.setAttribute( 'position', new THREE.BufferAttribute( positions, 2 ) );
+    // // geometry.vertices.push( pointA );
+    // let index = 0;
+    // positions[ index++ ] = pointA.x;
+    // positions[ index++ ] = pointA.y;
+    // positions[ index++ ] = pointA.z;
+    // positions[ index++ ] = pointB.x;
+    // positions[ index++ ] = pointB.y;
+    // positions[ index++ ] = pointB.z;
+
+    // // geometry.vertices.push( pointB );
+    // var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
+    // var line = new THREE.Line( geometry, material );
+    // this.scene.add( line );
+
     //crosshair
     // const lineMaterial = new THREE.LineBasicMaterial({
     //   color: 0xffffff
@@ -141,7 +174,7 @@ class Game extends THREE.EventDispatcher {
 
     this.explode.create(this.camera.position.x, this.camera.position.y, this.camera.position.z );
 
-    let sound = this.camera.getObjectByName('sound');
+    let sound = this.camera.getObjectByName('sound_explode.wav');
     //sound.setLoop(false);
     if(sound) sound.play();
 
@@ -174,21 +207,44 @@ class Game extends THREE.EventDispatcher {
   }
   ////////////////////////////////////////////////////////
   checkColissionGate(){
+
     // update the picking ray with the camera and mouse position
-	  this.raycaster.setFromCamera( this.v2, this.camera );
+	  //this.raycaster.setFromCamera( this.v2, this.camera );
+    this.camera.getWorldPosition(this.worldPos);
+    this.camera.getWorldDirection(this.worldDir);
+    this.raycaster.set(this.worldPos, this.worldDir );
+
+    // const dis = this.raycaster.ray.origin.distanceTo( this.blueGate.position );
+    // console.log('distance = ',dis);
+    // return ;
 
     // calculate objects intersecting the picking ray
     const intersects = this.raycaster.intersectObjects( [this.redGate, this.blueGate] );
+    //const intersects = this.raycaster.intersectObject( this.blueGate );
+
+    if(intersects && intersects.length){
+      console.log(intersects.length, intersects[0].distance);
+      // for(let i of intersects){
+      if (intersects[0].distance < 1){
+        return true;
+      }
+
+      //   }
+      // }
+    }
+    // const recursive = false;
+    // const intersects = this.raycaster.intersectObject( this.blueGate, recursive );
     //const intersects = this.raycaster.intersectObjects( all );
 
     //for ( let i = 0; i < intersects.length; i ++ ) {
-    if(intersects && intersects.length){
-      //console.log('raycast', intersects[ 0 ].object.id, intersects[ 0 ].object.name, intersects[ 0 ].distance );
-      if (intersects[ 0 ].distance < 0.001){
-        console.log(intersects[0]);
-        return true;
-      }
-    }
+    // if(intersects && intersects.length){
+    //   if (intersects[ 0 ].distance < 0.001){
+    //     console.log('raycast', intersects[ 0 ].object.id, intersects[ 0 ].object.name, intersects[ 0 ].distance, intersects[ 0 ].face, intersects[ 0 ].faceIndex );
+    //     console.log(intersects[0]);
+    //     return true;
+    //   }
+    // }
+    return false;
       //intersects[ i ].object.material.color.set( 0xffffff );
     //}
   }
@@ -343,7 +399,7 @@ class Game extends THREE.EventDispatcher {
         dir:direction
       });
 
-    }, 1000);
+    }, 500);
   }
   //////////////////////////////////////////////////////////
   keydown(e){
@@ -355,10 +411,14 @@ class Game extends THREE.EventDispatcher {
   }
   //////////////////////////////////////////////////////////
   createGate(color, GATE_SIZE){
-    const geometry = new THREE.TorusGeometry( GATE_SIZE, GATE_SIZE/3, 32, 16 );
+    //const geometry = new THREE.TorusGeometry( GATE_SIZE, GATE_SIZE/3, 32, 16 );
+    const geometry = new THREE.TorusGeometry( GATE_SIZE, GATE_SIZE/3, 32, 8 );
     // red gate
-    let material = new THREE.LineBasicMaterial({ color: color });
-    let gate = new THREE.Line( geometry, material );
+    //let material = new THREE.LineBasicMaterial({color: color /*side: THREE.DoubleSide*/  });
+    let material = new THREE.MeshBasicMaterial({color: color /*side: THREE.DoubleSide*/  });
+
+
+    let gate = new THREE.Mesh( geometry, material );
     return gate;
   }
 
@@ -403,9 +463,8 @@ class Game extends THREE.EventDispatcher {
     this.camera.updateProjectionMatrix()
     this.renderer.setSize(window.innerWidth, window.innerHeight)
 
-    this.v2.x = ( e.clientX / window.innerWidth ) * 2 - 1;
-	  this.v2.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
-
+    // this.v2.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+	  // this.v2.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
 
     this.controls.handleResize();
   }

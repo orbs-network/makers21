@@ -1,10 +1,10 @@
 
 function ExplodeMngr(scene){
   //////////////settings/////////
-  const SECONDS = 6;
-  var movementSpeed = 0.6;
+  const SECONDS = 4;
+  var movementSpeed = 0.05;
   var totalObjects = 1000;
-  var objectSize = 0.05;
+  var objectSize = 0.01;
   //var sizeRandomness = 4000;
   var colors = [0xFF0FFF, 0xCCFF00, 0xFF000F, 0x996600, 0xFFFFFF];
   /////////////////////////////////
