@@ -1,21 +1,16 @@
 ////////////////////////////////////////////////
 class Sound {
   ////////////////////////////////////////////////
-	constructor() {
+	constructor(camera) {
     this.positionals = [];
     this.listener = null;
     this.waves = {};
     this.tasks = [];
     // load a sound and set it as the PositionalAudio object's buffer
     this.audioLoader = new THREE.AudioLoader();
-  }
-  ////////////////////////////////////////////////
-  getListener(){
-    if (!this.listener){
-      this.listener = new THREE.AudioListener();
-      game.camera.add( this.listener );
-    }
-    return this.listener;
+
+    this.listener = new THREE.AudioListener();
+    camera.add( this.listener );
   }
   ////////////////////////////////////////////////
   getBuffer(name, cb){
@@ -41,11 +36,8 @@ class Sound {
   }
   ////////////////////////////////////////////////
   addAsync(name, obj, loop, refDistance, volume, cb){
-    // create an AudioListener and add it to the camera
-    const listener = this.getListener();
-
     // create the PositionalAudio object (passing in the listener)
-    const sound = new THREE.PositionalAudio( listener );
+    const sound = new THREE.PositionalAudio( this.listener );
     this.getBuffer(name, (buffer)=>{
       sound.setBuffer( buffer );
       sound.setRefDistance( /*config.size/30*/ refDistance? refDistance : 1  );

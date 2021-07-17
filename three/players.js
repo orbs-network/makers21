@@ -51,9 +51,10 @@ class Player{
   _initLabel(name) {
     const playerLabelDiv = document.createElement( 'div' );
     playerLabelDiv.className = 'player-label';
-    playerLabelDiv.textContent = name || "who dis?";
+    var prettyName = name?.split('_')[0];
+    playerLabelDiv.textContent = prettyName || "who dis?";
     playerLabelDiv.style.marginTop = '2em';
-    playerLabelDiv.style.color = 'white';
+    playerLabelDiv.style.color = "#77777799";
     playerLabelDiv.style.fontFamily = "monospace";
     const playerLabelObj = new THREE.CSS2DObject( playerLabelDiv );
     playerLabelObj.position.set( 0, 0, 0 );
@@ -171,20 +172,11 @@ class Players{
               //child.material.normalMap = normal;
             }
           });
-      //object.position.set(6, 1, 0);
-      //object.scale.set( new THREE.Vector3( 3, 3, 3 ));
-      //object.name = "airplane";
-      //
+
       const s = 2;// was2
       object.scale.set(s,s,s);
 
 
-      //const bbox = this.generateBoundingBox(0.1,0.1,0.1);
-      //const bbox = this.generateBoundingBox(object);
-      //bbox.add(object);
-      // turn 180 horiz
-      //object.rotateY(3.14159);
-      //this.dummy = bbox;
 
       this.dummy = object;
       this.dummy.name = "dummy";
