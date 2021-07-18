@@ -41,21 +41,28 @@ class World {
     // red gate
     this.redGate = this.createGate(RED2, GATE_SIZE);
     this.redGate.name = "redGate";
+
     // move front and up
     this.redGate.position.z = -SIZE;
-    this.redGate.position.y = SIZE/5;
+    this.redGate.position.y = SIZE/2 - 2*GATE_SIZE;
     this.scene.add( this.redGate );
+    // pass
+    this.redGate.passSphere = new THREE.Sphere(this.redGate.position, GATE_SIZE/1.5);
 
     // blue gate
     this.blueGate = this.createGate(BLUE2, GATE_SIZE);
     this.blueGate.name = "blueGate";
+
     // move back and up
     this.blueGate.position.z = SIZE;
-    this.blueGate.position.y = SIZE/5;
+    this.blueGate.position.y = SIZE/2 - 2*GATE_SIZE;
     this.scene.add( this.blueGate );
+    // pass
+    this.blueGate.passSphere = new THREE.Sphere(this.blueGate.position, GATE_SIZE/1.5);
 
-    this.flags.createFlag(this.scene, 'RED-FLAG', WHITE, .003, this.redGate.position);
-    this.flags.createFlag(this.scene, 'BLUE-FLAG', WHITE, .003, this.blueGate.position);
+    // Flags
+    this.flags.createFlag(this.blueGate, 'RED-FLAG', 0xffffff, .003);
+    this.flags.createFlag(this.redGate, 'BLUE-FLAG', 0xffffff, .003);
 
     // create players
     this.players = new Players(this);
@@ -101,23 +108,35 @@ class World {
   }
   //////////////////////////////////////////////////////////
   createBorders(color, zDir){
-    const divisions = 10;
+    const divisions = 30;
     // create floor
     this.border.floor = 0;
     this.createHoriz(divisions, color, zDir, this.border.floor);
 
     // create ceiling
-    this.border.ceiling = SIZE/2;
+    this.border.ceiling = SIZE;
     this.createHoriz(divisions, color, zDir, this.border.ceiling);
+
+    this.border.north =  -SIZE * 1.5;
+    this.border.south = SIZE * 1.5;
   }
   //////////////////////////////////////////////////////////
   createGate(color, GATE_SIZE){
     //const geometry = new THREE.TorusGeometry( GATE_SIZE, GATE_SIZE/3, 32, 16 );
-    const geometry = new THREE.TorusGeometry( GATE_SIZE, GATE_SIZE/3, 32, 8 );
+    let geometry = new THREE.TorusGeometry( GATE_SIZE, GATE_SIZE/3, 32, 8 );
     // red gate
     // NOT WORKING WITH RAYCAST! let material = new THREE.LineBasicMaterial({color: color /*side: THREE.DoubleSide*/  });
     let material = new THREE.MeshBasicMaterial({color: color /*side: THREE.DoubleSide*/  });
     let gate = new THREE.Mesh( geometry, material );
+
+    // add internal sphere for gate pass calc
+    geometry = new THREE.SphereGeometry( GATE_SIZE/1.5, 16, 16 );
+    const sColor = color === RED2? 0x0000FF : 0xFF0000;
+    material = new THREE.MeshBasicMaterial( {color: sColor, side: THREE.DoubleSide, transparent: true, opacity: 0.2} );
+    const sphere = new THREE.Mesh( geometry, material );
+    sphere.name = 'gatePass';
+    gate.add( sphere );
+
     return gate;
   }
   //////////////////////////////////////////////////////////
@@ -203,10 +222,17 @@ class World {
     // const zLine = new THREE.Line(lineGeometry, lineMaterial);
     // this._camera.add(zLine);
 
-    this._camera.position.y += 1.5 ;
+    this._camera.position.y = SIZE/2 ;
     //this._camera.position.z += SIZE/2;
     //this._camera.position.z += SIZE;
     this.startLineZ = this._camera.position.z;
+    this.startLineY = this._camera.position.y;
+  }
+  //////////////////////////////////////////////////////////
+  checkGatePass(){
+    if(this.redGate.passSphere.containsPoint(this._camera.position))      return this.redGate;
+    if(this.blueGate.passSphere.containsPoint(this._camera.position))     return this.blueGate;
+    return null
   }
   //////////////////////////////////////////////////////////
   checkColission(){
@@ -219,10 +245,17 @@ class World {
     //     return true;
     //   }
     // }
+
+    // Y axis
+    if(this._camera.position.y < this.border.floor) return true;
+    if(this._camera.position.y > this.border.ceiling) return true;
+    // z axis
+    if(this._camera.position.z < this.border.north) return true;
+    if(this._camera.position.z > this.border.south) return true;
+
     //var collision = camBox.containsPoint( camera.position );
     if(this.checkColissionGate()){
       console.log('Gate Colision!');
-      this.doExplode();
       return true;
     }
   }
@@ -277,16 +310,21 @@ class World {
   //////////////////////////////////////////////////////////
   returnToStart(cb){
     const tid = setInterval(()=>{
-      let diff = this.startLineZ - this._camera.position.z ;
-      //console.log('returnToStart diff', diff);
-      if(Math.abs(diff) <= 0.1){
-        console.log('DONE!', diff);
+      let zDiff = this.startLineZ - this._camera.position.z ;
+      let yDiff = this.startLineY - this._camera.position.y ;
+      //console.log('returnToStart zDiff', zDiff);
+      if(Math.abs(zDiff) <= 0.1){
+        console.log('DONE!', zDiff);
         this._camera.position.z = this.startLineZ;
+        this._camera.position.y = this.startLineY;
         clearTimeout(tid);
         return cb();
       }
-      diff *= 0.05;
-      this._camera.position.z += diff;
+      zDiff *= 0.05;
+      yDiff *= 0.05;
+      this._camera.position.z += zDiff;
+      this._camera.position.y += yDiff;
+      //this._camera.lookAt(this.redGate);
     },30);
 
   }

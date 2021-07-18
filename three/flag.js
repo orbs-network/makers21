@@ -6,7 +6,7 @@ class Flags  {
 
   }
 
-  createFlag(scene, name, color, scale, position) {
+  createFlag(parent, name, color, scale) {
 	  // load a resource
 	  this.loader.load(
 		  // resource URL
@@ -25,9 +25,10 @@ class Flags  {
 			  object.visible = true;
 
 			  object.scale.set(scale, scale, scale);
-			  object.position.x = position['x'];
-			  object.position.y = position['y'] / 2;
-			  object.position.z = position['z'];
+				var bbox = new THREE.Box3().setFromObject(object);
+				// object.position.x = position.x;
+				object.position.y -=  bbox.getSize().y /2;
+				// object.position.z = position.z;
 
 			  // object.color = color;
 			  //console.log(object);
@@ -35,7 +36,9 @@ class Flags  {
 
 			  // object.getWorldDirection(v3);
 			  // object.castShadow = true;
-			  scene.add( object );
+			  parent.add( object );
+
+
 
 		  },
 		  // called when loading is in progresses

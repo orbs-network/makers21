@@ -49,9 +49,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
   }
   //////////////////////////////////////////////////////////
-  checkGatePass(){
-  }
-  //////////////////////////////////////////////////////////
   createWorld(){
     this.world = new World();
     this.world.createScene();
@@ -110,13 +107,21 @@ class Game /*extends THREE.EventDispatcher*/ {
         return;
       }
 
+      // gatePass
+      const gatePass = this.world.checkGatePass();
+      if(gatePass){
+        console.log('gatePass!', gatePass.name);
+        this.gatePassing = true;
+        return;
+      }
+
       // collision detection
       if(this.exploding = this.world.checkColission()){
         this.startStop(); // STOP!
+        this.world.doExplode();
         this.world.returnToStart(()=>{
           this.exploding = false;
         })
-
         return;
       }
 
