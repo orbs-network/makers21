@@ -1,11 +1,45 @@
 <html>
 	<head>
-		<meta charset="utf-8">
-		<title>Makers 2021 Manager</title>
-		<style>
-			body { margin: 0; }
-		</style>
+		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+		<script src="https://cdn.deepstream.io/js/client/latest/ds.min.js"></script>
 	</head>
 	<body>
+		<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+		<!-- Include all compiled plugins (below), or include individual files as needed -->
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+		<script>
+			window.deepStreamUUID = "mngr"
+		</script>
+		<script src="deepstream.js"></script>
+		<script src="mngr.js"></script>
+		<!-- UI -->
+		<div class="jumbotron text-center">
+			<h1>Makers 2021 Manager</h1>
+			<p>Resize this responsive page to see the effect!</p>
+		</div>
+
+		<div class="container">
+			<div class="row">
+				<div class="col-sm-4">
+					<h3>State</h3>
+					<p id="status"></p>
+				</div>
+				<div class="col-sm-4">
+					<h3>Column 2</h3>
+					<p>Lorem ipsum dolor..</p>
+				</div>
+				<div class="col-sm-4">
+					<h3>Column 3</h3>
+					<p>Lorem ipsum dolor..</p>
+				</div>
+			</div>
+		</div>
+
   </body>
 </html>

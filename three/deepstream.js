@@ -2,7 +2,7 @@ const { DeepstreamClient } = window.DeepstreamClient
 //const client = new DeepstreamClient('10.11.11.4:6020')
 const client = new DeepstreamClient('127.0.0.1:6020')
 client.login()
-const uuid = (localStorage["username"] || client.getUid()) + "_"+ Date.now() ;
+const uuid = window.deepStreamUUID || client.getUid() + "_"+ Date.now(); // TODO: remove
 
 client.on('error', (error, event, topic) => {
     console.log(error, event, topic);
@@ -22,6 +22,7 @@ function sendEvent(name, data){
 /////////////////////////////////////////////////////
 function subscribe(name, handler){
     client.event.subscribe(name, (data)=>{
+        console.log('deepstram::event data');
         if (data.id == uuid) {
             return;
         }

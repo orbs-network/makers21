@@ -2,13 +2,7 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Makers 2021</title>
-		<style>
-			body { margin: 0; }
-			.player-label{
-				background-color: red;
-				color: white;
-			}
-		</style>
+		<link rel="stylesheet" href="../static/style.css">
 	</head>
 	<body>
 		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js"></script> -->
@@ -76,5 +70,32 @@
 		<script src="explode.js"></script>
 		<script src="players.js"></script>
     <script src="game.js"></script>
+		<!-- welcome -->
+		<div class="welcome">
+			<h1>Makers2021 welcome</h1>
+			<div id="online">please wait...</div>
+			<div id="started"></div>
+			<div id="ready"></div>
+			<!-- chose -->
+			<div id="inputs" style="display:none">
+				<!-- nick -->
+				<label for="fname">nickname:</label>
+				<input type="text" id="nick" name="nick" style="background-color: transparent; color:gray; border: 1px solid purple; padding:0.2em"><br><br>
+				<!-- team -->
+				<div id="choose-team" style="display:none">
+					<div>choose team:</div>
+					<div>
+						<input type="radio" id="red" name="team" value="red"
+									checked>
+						<label for="team" style="color:red">RED</label>
+					</div>
+					<div>
+						<input type="radio" id="blue" name="team" value="blue">
+						<label for="team" style="color:blue">BLUE</label>
+					</div>
+					<input type="button" id="join"  value="join" >
+				</div>
+			</div>
+		</div>
 	</body>
 </html>

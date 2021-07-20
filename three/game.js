@@ -12,6 +12,22 @@ class Game /*extends THREE.EventDispatcher*/ {
     //this.v3 =  new THREE.Vector3(0.5,0.5,0.5);
 
     //this.steering = new Steering();
+    this.loadLocalState()
+  }
+  //////////////////////////////////////////////////////////
+  loadLocalState(){
+    this.localState = {
+      nick: localStorage.getItem("nick"),
+      isRed: localStorage.getItem("isRed") || true
+    }
+  }
+  //////////////////////////////////////////////////////////
+  saveLocalState(){
+    // and update
+    this.localState.isRed = document.getElementById('red').getAttribute('checked') == "checked";
+    for(let p in this.localState){
+      localStorage.setItem(p, this.localState[p]);
+    }
   }
   //////////////////////////////////////////////////////////
   loadAsync(cb){
@@ -22,6 +38,38 @@ class Game /*extends THREE.EventDispatcher*/ {
     // this.blueFlag = new Flag(this, this.flagObj, BLUE);
 
     cb();
+  }
+  //////////////////////////////////////////////////////////
+  checkJoined(){
+    return this.mngrState.red.includes(this.localState.nick) || this.mngrState.blue.includes(this.localState.nick);
+  }
+  //////////////////////////////////////////////////////////
+  onJoinLeave(){
+    // current status
+    console.log('onJoinLeave current isJoined=', this.isJoined);
+    // send join to server
+    const type = this.isJoined? "leave" : "join";
+
+    deepStream.sendEvent('player',{
+      type:type,
+      isRed: this.localState.isRed,
+      nick: this.localState.nick
+    });
+    console.log(`request ${type}`)
+  }
+  //////////////////////////////////////////////////////////
+  uxInit(){
+    // handler for join
+    document.getElementById("join").addEventListener("click",this.onJoinLeave.bind(this));
+    // UI events
+    document.getElementById("nick").addEventListener("input",(e)=>{
+      // show/hide chose team
+      document.getElementById("choose-team").style.display = (e.target.value.length > 2)? 'block':'none';
+      if(e.target.value.length > 2){
+        localState.nick = e.target.value;
+        this.saveLocalState();
+      }
+    });
   }
   //////////////////////////////////////////////////////////
   startStop(){
@@ -49,13 +97,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
   }
   //////////////////////////////////////////////////////////
-  createWorld(){
-    this.world = new World();
-    this.world.createScene();
-
-    // space bar
-    document.body.addEventListener("keydown",this.keydown.bind(this));
-
+  begin(){
     // start broadcast interval
     this.broadcastState();
 
@@ -84,6 +126,98 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     // this.controls.autoForward = true;
     // this.controls.dragToLook = true;
+  }
+  //////////////////////////////////////////////////////////
+  setInputs(){
+    document.getElementById('red').setAttribute('checked', this.localState.isRed);
+    document.getElementById('blue').setAttribute('checked', !this.localState.isRed);
+    document.getElementById('nick').setAttribute('value', this.localState.nick? this.localState.nick:'');
+    // show chose only if text is filled
+    let display = (this.localState.nick.length > 2)? 'block':'none';
+    const choose = document.getElementById("choose-team");
+    choose.style.display = display;
+  }
+  //////////////////////////////////////////////////////////
+  onMngrState(state){
+    // store
+    this.mngrState = state;
+
+    // stop reconnect
+    if(this.tidConnect){
+      clearTimeout(this.tidConnect);
+      this.tidConnect = null;
+    }
+
+    // online status
+    document.getElementById('online').innerText = "connected!";
+    // update status
+    if(state.started){
+      // started
+      document.getElementById('started').innerText = "game has started - please wait for next game to start";
+    }
+    else{
+      //pending
+      document.getElementById('started').innerText = "game is pending";
+      if(state.ready){
+        // ready to start
+        document.getElementById('ready').innerText = "ready to start";
+      }
+      else{
+        // waiting for atleast 2 players
+        document.getElementById('ready').innerText = "waiting for more players to join";
+      }
+    }
+
+    // TODO: check if already joined
+    this.isJoined = this.checkJoined();
+
+    // display inputs
+    const display =  !state.ready && !this.isJoined;
+    document.getElementById('inputs').style.display = display ? "block" : "none";
+    this.setInputs();
+    console.log(state);
+  }
+  //////////////////////////////////////////////////////////
+  onEvent(data){
+    console.log('onEvent manager', data);
+    switch(data.type){
+      case "state":
+        this.onMngrState(data.state);
+        break;
+    }
+  }
+  //////////////////////////////////////////////////////////
+  onOffline(){
+    clearTimeout(this.tidConnect);
+    document.getElementById('online').innerText = "could not connect, please reload to retry";
+    this.tidConnect = null;
+  }
+  //////////////////////////////////////////////////////////
+  connect(){
+    document.getElementById('online').innerText = "connecting...";
+    // send join - receieve state
+    deepStream.subscribe('mngr', this.onEvent.bind(this));
+    // broadcast online for 3 seconds
+    // to get response with state from server
+    let count = 0;
+    let interval = 300;
+    this.tidConnect = setInterval(()=>{
+      if(count++ >= 3*1000/interval ){
+        return this.onOffline();
+      }
+      deepStream.sendEvent('player',{
+        type:"online"
+      });
+    },interval);
+  }
+  //////////////////////////////////////////////////////////
+  createWorld(){
+    this.world = new World();
+    this.world.createScene();
+
+    // space bar
+    document.body.addEventListener("keydown",this.keydown.bind(this));
+
 
     ///////////////////////////
     // 2d
@@ -95,6 +229,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.labelRenderer.domElement.style.pointerEvents = "none";
     document.body.appendChild( this.labelRenderer.domElement );
 
+    this.connect();
   }
   //////////////////////////////////////////////////////////
   broadcastState(){
@@ -158,7 +293,9 @@ class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   render(){
     // fly controls
-    this.controls.update(1);
+    if(this.controls){
+      this.controls.update(1);
+    }
 
     // actual
     //this.renderer.render(this.scene, this.);
@@ -171,21 +308,23 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.labelRenderer.domElement.style.height = window.innerHeight;
 
 	  this.aspect = window.innerWidth / window.innerHeight
-    this.updateProjectionMatrix()
-    this.renderer.setSize(window.innerWidth, window.innerHeight)
+    this.world.camera.updateProjectionMatrix();
+    //this.updateProjectionMatrix()
+    this.world.renderer.setSize(window.innerWidth, window.innerHeight)
 
     // for mouse
     // this.v2.x = ( e.clientX / window.innerWidth ) * 2 - 1;
 	  // this.v2.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
-
-    this.controls.handleResize();
+    if(this.controls){
+      this.controls.handleResize();
+    }
   }
 }
-
+//////////////////////////////////////////////////////////
 const game = new Game();
 window.onload = function(){
-
   game.loadAsync(()=>{
+    game.uxInit();
     game.createWorld();
     var fps = config.fps, fpsInterval, startTime, now, then, elapsed;
 

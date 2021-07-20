@@ -61,8 +61,8 @@ class World {
     this.blueGate.passSphere = new THREE.Sphere(this.blueGate.position, GATE_SIZE/1.5);
 
     // Flags
-    this.flags.createFlag(this.blueGate, 'RED-FLAG', 0xffffff, .003);
-    this.flags.createFlag(this.redGate, 'BLUE-FLAG', 0xffffff, .003);
+    this.flags.createFlag(this.blueGate, 'RED-FLAG', 0xFF0000, .003);
+    this.flags.createFlag(this.redGate, 'BLUE-FLAG', 0x0000FF, .003);
 
     // create players
     this.players = new Players(this);

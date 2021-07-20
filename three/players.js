@@ -75,7 +75,7 @@ class Players{
     material.flatShading = false;
     this.matter = material;
     this.createDummy(()=> {
-		  window.deepStream.subscribe("player", this.onEvent.bind(this));
+		  deepStream.subscribe("player", this.onEvent.bind(this));
     });
 
 
@@ -105,7 +105,6 @@ class Players{
         break;
 
     }
-
   }
   //////////////////////////////////////////////////////////
   update(){

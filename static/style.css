@@ -1,5 +1,21 @@
 body {
     font-family: Arial, sans-serif;
+    margin:0
+}
+
+.player-label{
+    background-color: transparent;
+    color: "#ffffff55";
+}
+
+.welcome {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 20px;
+    width: 100%;
+    text-align: center;
+    color: #CCCCCC;
 }
 
 .control-panel {
