@@ -131,7 +131,7 @@ class World {
 
     // add internal sphere for gate pass calc
     geometry = new THREE.SphereGeometry( GATE_SIZE/1.5, 16, 16 );
-    const sColor = color === RED2? 0x0000FF : 0xFF0000;
+    const sColor = color === RED2? 0xFF0000 : 0x0000FF;
     material = new THREE.MeshBasicMaterial( {color: sColor, side: THREE.DoubleSide, transparent: true, opacity: 0.2} );
     const sphere = new THREE.Mesh( geometry, material );
     sphere.name = 'gatePass';

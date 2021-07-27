@@ -2,14 +2,14 @@ const { DeepstreamClient } = window.DeepstreamClient
 //const client = new DeepstreamClient('10.11.11.4:6020')
 const client = new DeepstreamClient('127.0.0.1:6020')
 client.login()
-const uuid = window.deepStreamUUID || client.getUid() + "_"+ Date.now(); // TODO: remove
+const uuid = window.deepStreamUUID || client.getUid();//+ "_"+ Date.now(); // TODO: remove
 
 client.on('error', (error, event, topic) => {
     console.log(error, event, topic);
 })
 
 client.on('connectionStateChanged', connectionState => {
-    console.log('connectionStateChanged')
+    console.log('connectionStateChanged', connectionState)
 })
 
 /////////////////////////////////////////////////////
@@ -22,10 +22,10 @@ function sendEvent(name, data){
 /////////////////////////////////////////////////////
 function subscribe(name, handler){
     client.event.subscribe(name, (data)=>{
-        console.log('deepstram::event data');
         if (data.id == uuid) {
             return;
         }
+        console.log('deepstram::event data', data);
         handler(data);
     });
 }
@@ -62,6 +62,7 @@ function throttle(func, wait, options) {
     };
 };
 
+// heartbit every 5 min
 setInterval(() => {
     client.event.emit('heartbeat', uuid);
 }, 5000);
@@ -75,7 +76,8 @@ client.presence.subscribe((username, login)=> {
 window.deepStream = {
     sendThrot : throttle(sendEvent, 1000),
     sendEvent:sendEvent,
-    subscribe: subscribe
+    subscribe: subscribe,
+    client:client
 }
 
 // run server

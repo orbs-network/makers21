@@ -18,13 +18,15 @@ class Game /*extends THREE.EventDispatcher*/ {
   loadLocalState(){
     this.localState = {
       nick: localStorage.getItem("nick"),
-      isRed: localStorage.getItem("isRed") || true
+      isRed: localStorage.getItem("isRed") === "true" // fix string
     }
   }
   //////////////////////////////////////////////////////////
   saveLocalState(){
-    // and update
-    this.localState.isRed = document.getElementById('red').getAttribute('checked') == "checked";
+    // update localState
+    this.localState.isRed = document.getElementById('red').checked;
+    // ALREADY SET DURING EVENTS this.localState.nick = document.getElementById('nick').getAttribute('value');
+    // and save to storage
     for(let p in this.localState){
       localStorage.setItem(p, this.localState[p]);
     }
@@ -40,33 +42,58 @@ class Game /*extends THREE.EventDispatcher*/ {
     cb();
   }
   //////////////////////////////////////////////////////////
-  checkJoined(){
+  isJoined(){
     return this.mngrState.red.includes(this.localState.nick) || this.mngrState.blue.includes(this.localState.nick);
   }
+  onError(error){
+    console.error(error);
+    alert(error);
+  }
   //////////////////////////////////////////////////////////
-  onJoinLeave(){
-    // current status
-    console.log('onJoinLeave current isJoined=', this.isJoined);
-    // send join to server
-    const type = this.isJoined? "leave" : "join";
-
-    deepStream.sendEvent('player',{
-      type:type,
+  onJoin(){
+    // save current local state
+    this.saveLocalState();
+    deepStream.client.rpc.make('client',{
+      type:"join",
       isRed: this.localState.isRed,
       nick: this.localState.nick
+    },(error,result) => {
+      if(error){
+        this.OnError(error);
+      }
+      if(result!='ok'){
+        alert('join: '+result);
+      }
     });
-    console.log(`request ${type}`)
+  }
+  //////////////////////////////////////////////////////////
+  onLeave(){
+    // save current local state
+    this.saveLocalState();
+    deepStream.client.rpc.make('client',{
+      type:"leave",
+      isRed: this.localState.isRed,
+      nick: this.localState.nick
+    },(error,result) => {
+      if(error){
+        this.OnError(error);
+      }
+      if(result!='ok'){
+        alert('leave: '+result);
+      }
+    });
   }
   //////////////////////////////////////////////////////////
   uxInit(){
     // handler for join
-    document.getElementById("join").addEventListener("click",this.onJoinLeave.bind(this));
+    document.getElementById("join").addEventListener("click",this.onJoin.bind(this));
+    document.getElementById("leave").addEventListener("click",this.onLeave.bind(this));
     // UI events
     document.getElementById("nick").addEventListener("input",(e)=>{
       // show/hide chose team
       document.getElementById("choose-team").style.display = (e.target.value.length > 2)? 'block':'none';
       if(e.target.value.length > 2){
-        localState.nick = e.target.value;
+        this.localState.nick = e.target.value;
         this.saveLocalState();
       }
     });
@@ -129,11 +156,14 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   setInputs(){
+    // nick
+    const nick = this.localState.nick? this.localState.nick:'';
+    document.getElementById('nick').setAttribute('value', nick);
+    // team radio
     document.getElementById('red').setAttribute('checked', this.localState.isRed);
     document.getElementById('blue').setAttribute('checked', !this.localState.isRed);
-    document.getElementById('nick').setAttribute('value', this.localState.nick? this.localState.nick:'');
-    // show chose only if text is filled
-    let display = (this.localState.nick.length > 2)? 'block':'none';
+    // show chosose-team only if text is filled
+    let display = (nick.length > 2)? 'block':'none';
     const choose = document.getElementById("choose-team");
     choose.style.display = display;
   }
@@ -142,22 +172,27 @@ class Game /*extends THREE.EventDispatcher*/ {
     // store
     this.mngrState = state;
 
-    // stop reconnect
-    if(this.tidConnect){
-      clearTimeout(this.tidConnect);
-      this.tidConnect = null;
-    }
-
     // online status
     document.getElementById('online').innerText = "connected!";
-    // update status
+
+    //////////////////////////////////////////////////////////
+    // game already started
     if(state.started){
-      // started
+      document.getElementById('inputs').style.display = "none";
+      document.getElementById('teams').style.display = "none";
       document.getElementById('started').innerText = "game has started - please wait for next game to start";
+      return;
     }
-    else{
-      //pending
-      document.getElementById('started').innerText = "game is pending";
+    //////////////////////////////////////////////////////////
+    // game pending  - show welcome
+    document.getElementById('started').innerText = "game is pending";
+    const joined = this.isJoined()
+    //////////////////////////////////////////////////////////
+    // not joined - show teams
+    if(joined){
+      document.getElementById('inputs').style.display = "none";
+      document.getElementById('teams').style.display = "block";
+      // ready to start?
       if(state.ready){
         // ready to start
         document.getElementById('ready').innerText = "ready to start";
@@ -166,16 +201,17 @@ class Game /*extends THREE.EventDispatcher*/ {
         // waiting for atleast 2 players
         document.getElementById('ready').innerText = "waiting for more players to join";
       }
+
+      // update teams
+      document.getElementById('red-team').innerHTML = state.red?.join();
+      document.getElementById('blue-team').innerHTML = state.blue?.join();
+      return;
     }
-
-    // TODO: check if already joined
-    this.isJoined = this.checkJoined();
-
-    // display inputs
-    const display =  !state.ready && !this.isJoined;
-    document.getElementById('inputs').style.display = display ? "block" : "none";
+    //////////////////////////////////////////////////////////
+    // chose nick + team
+    document.getElementById('inputs').style.display = "block";
+    document.getElementById('teams').style.display = "none";
     this.setInputs();
-    console.log(state);
   }
   //////////////////////////////////////////////////////////
   onEvent(data){
@@ -188,9 +224,8 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   onOffline(){
-    clearTimeout(this.tidConnect);
     document.getElementById('online').innerText = "could not connect, please reload to retry";
-    this.tidConnect = null;
+    alert('offline!!!');
   }
   //////////////////////////////////////////////////////////
   connect(){
@@ -201,14 +236,16 @@ class Game /*extends THREE.EventDispatcher*/ {
     // to get response with state from server
     let count = 0;
     let interval = 300;
-    this.tidConnect = setInterval(()=>{
-      if(count++ >= 3*1000/interval ){
-        return this.onOffline();
+
+    deepStream.client.rpc.make( 'client', {type:'online'}, (error, result) => {
+      if(error){
+        console.error(error);
+        this.onOffline();
+        return;
       }
-      deepStream.sendEvent('player',{
-        type:"online"
-      });
-    },interval);
+      this.onMngrState(result.state);
+
+    })
   }
   //////////////////////////////////////////////////////////
   createWorld(){

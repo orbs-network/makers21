@@ -81,7 +81,7 @@
 				<!-- nick -->
 				<label for="fname">nickname:</label>
 				<input type="text" id="nick" name="nick" style="background-color: transparent; color:gray; border: 1px solid purple; padding:0.2em"><br><br>
-				<!-- team -->
+				<!-- choose team -->
 				<div id="choose-team" style="display:none">
 					<div>choose team:</div>
 					<div>
@@ -95,6 +95,12 @@
 					</div>
 					<input type="button" id="join"  value="join" >
 				</div>
+			</div>
+			<!-- teams -->
+			<div id="teams" style="display:none;">
+				<div style="color:red"><span>red team: </span><span id="red-team"></span></div>
+				<div style="color:blue"><span>blue team: </span><span id="blue-team"></span></div>
+				<input type="button" id="leave"  value="leave" >
 			</div>
 		</div>
 	</body>
