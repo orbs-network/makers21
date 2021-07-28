@@ -12,7 +12,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     //this.v3 =  new THREE.Vector3(0.5,0.5,0.5);
 
     //this.steering = new Steering();
-    this.loadLocalState()
+    this.loadLocalState();
   }
   //////////////////////////////////////////////////////////
   loadLocalState(){
@@ -97,6 +97,8 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.saveLocalState();
       }
     });
+    // radio buttons and nick
+    this.setInputs();
   }
   //////////////////////////////////////////////////////////
   startStop(){
@@ -206,7 +208,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('joined').style.display = joined? "block":"none";
 
     if(!joined){
-      this.setInputs();
       document.getElementById('inputs').style.display = "block";
       return;
     }
