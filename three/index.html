@@ -75,7 +75,11 @@
 			<h1>Makers2021 welcome</h1>
 			<div id="online">please wait...</div>
 			<div id="started"></div>
-			<div id="ready"></div>
+			<!-- teams -->
+			<div id="teams" style="display:none;">
+				<div style="color:red"><span>red team: </span><span id="red-team"></span></div>
+				<div style="color:blue"><span>blue team: </span><span id="blue-team"></span></div>
+			</div>
 			<!-- chose -->
 			<div id="inputs" style="display:none">
 				<!-- nick -->
@@ -85,8 +89,7 @@
 				<div id="choose-team" style="display:none">
 					<div>choose team:</div>
 					<div>
-						<input type="radio" id="red" name="team" value="red"
-									checked>
+						<input type="radio" id="red" name="team" value="red" checked>
 						<label for="team" style="color:red">RED</label>
 					</div>
 					<div>
@@ -96,12 +99,18 @@
 					<input type="button" id="join"  value="join" >
 				</div>
 			</div>
-			<!-- teams -->
-			<div id="teams" style="display:none;">
-				<div style="color:red"><span>red team: </span><span id="red-team"></span></div>
-				<div style="color:blue"><span>blue team: </span><span id="blue-team"></span></div>
-				<input type="button" id="leave"  value="leave" >
+			<!-- joined -->
+			<div id="joined">
+				<div>You are joined as <span id="nick-join"></span>
+				</div>
+				<input type="button" id="leave"  value="leave">
+			</div>
+			<!-- ready  -->
+			<div id="ready">
+				<div id="ready-text"></div>
+				<input type="button" id="start"  value="start game" >
 			</div>
 		</div>
+		<!-- welcome END -->
 	</body>
 </html>

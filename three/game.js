@@ -160,8 +160,8 @@ class Game /*extends THREE.EventDispatcher*/ {
     const nick = this.localState.nick? this.localState.nick:'';
     document.getElementById('nick').setAttribute('value', nick);
     // team radio
-    document.getElementById('red').setAttribute('checked', this.localState.isRed);
-    document.getElementById('blue').setAttribute('checked', !this.localState.isRed);
+    document.getElementById('red').checked = this.localState.isRed// setAttribute('checked', this.localState.isRed);
+    document.getElementById('blue').checked = !this.localState.isRed;//setAttribute('checked', !this.localState.isRed);
     // show chosose-team only if text is filled
     let display = (nick.length > 2)? 'block':'none';
     const choose = document.getElementById("choose-team");
@@ -175,6 +175,10 @@ class Game /*extends THREE.EventDispatcher*/ {
     // online status
     document.getElementById('online').innerText = "connected!";
 
+    // ready to start
+    document.getElementById('ready-text').innerText = state.ready? "ready to start": "waiting for more players to join";
+    document.getElementById('start').style.display = state.ready? "block":"none";
+
     //////////////////////////////////////////////////////////
     // game already started
     if(state.started){
@@ -183,35 +187,34 @@ class Game /*extends THREE.EventDispatcher*/ {
       document.getElementById('started').innerText = "game has started - please wait for next game to start";
       return;
     }
+    // joined section - show/hide
+    const joined = this.isJoined()
+    document.getElementById('inputs').style.display = "none";
+
     //////////////////////////////////////////////////////////
     // game pending  - show welcome
     document.getElementById('started').innerText = "game is pending";
-    const joined = this.isJoined()
-    //////////////////////////////////////////////////////////
-    // not joined - show teams
-    if(joined){
-      document.getElementById('inputs').style.display = "none";
-      document.getElementById('teams').style.display = "block";
-      // ready to start?
-      if(state.ready){
-        // ready to start
-        document.getElementById('ready').innerText = "ready to start";
-      }
-      else{
-        // waiting for atleast 2 players
-        document.getElementById('ready').innerText = "waiting for more players to join";
-      }
 
-      // update teams
-      document.getElementById('red-team').innerHTML = state.red?.join();
-      document.getElementById('blue-team').innerHTML = state.blue?.join();
+    // update teams
+    document.getElementById('red-team').innerHTML = state.red?.length? state.red?.join() : '0 players';
+    document.getElementById('blue-team').innerHTML = state.blue?.length? state.blue?.join(): '0 players';
+    // show teams
+    document.getElementById('teams').style.display = "block";
+
+    //////////////////////////////////////////////////////////
+    // not joined - show choose
+    document.getElementById('joined').style.display = joined? "block":"none";
+
+    if(!joined){
+      this.setInputs();
+      document.getElementById('inputs').style.display = "block";
       return;
     }
+
     //////////////////////////////////////////////////////////
-    // chose nick + team
-    document.getElementById('inputs').style.display = "block";
-    document.getElementById('teams').style.display = "none";
-    this.setInputs();
+    //joined
+    // set nick "joined as"
+    document.getElementById('nick-join').innerHTML = this.localState.nick;
   }
   //////////////////////////////////////////////////////////
   onEvent(data){

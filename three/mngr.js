@@ -66,32 +66,45 @@ class Mngr /*extends THREE.EventDispatcher*/ {
     this.state = state;
   }
   //////////////////////////////////////////////////////////
+  setReady(){
+    // if team size is equal on both size and > 0
+    this.state.ready = this.state.red.length > 0 && (this.state.red.length == this.state.blue.length);
+  }
+  //////////////////////////////////////////////////////////
   onJoin(data, res){
     console.log("onJoin",data);
+    // game already started
+    if(this.state.started){
+      return res.send('cant join, game already started');
+    }
     // add to team
     let add = data.isRed? this.state.red : this.state.blue;
     let rmv = data.isRed? this.state.blue : this.state.red;
     // add nick
     if(!add.includes(data.nick)){
       add.push(data.nick);
-      res.send('ok');
     }// else reject nickname
     else{
       res.send(`nickname [${data.nick}] is in use, please try another`);
-      //deepStream.se
       return;
     }
-
+    // remove
     const index = rmv.indexOf(data.nick);
     if(index > -1){
       rmv.splice(index, 1);
     }
+    res.send('ok');
+    this.setReady();
     this.tellState();
     this.saveState();
   }
   //////////////////////////////////////////////////////////
   onLeave(data, res){
     console.log("onLeave",data);
+    // game already started
+    if(this.state.started){
+      return res.send('cant leave, game already started');
+    }
     // add to team
     let rmv = data.isRed? this.state.red : this.state.blue;
     // add nick
@@ -100,14 +113,17 @@ class Mngr /*extends THREE.EventDispatcher*/ {
       rmv.splice(index, 1);
     }
     res.send('ok');
+    this.setReady();
     this.tellState();
     this.saveState();
   }
   //////////////////////////////////////////////////////////
   updateUI(){
-    // game started
-    $('#started').text(`status: ${this.state.started? 'true':'pending'}`);
     var state = this.state;
+    // game started
+    $('#started').text(`started: ${state.started? 'true':'pending'}`);
+    $('#ready').text(`ready: ${state.ready? 'yes':'team size not equal or zero'}`);
+
     // red & blue teams
     let $red = $('#red');
     $red.empty();

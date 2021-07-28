@@ -17,6 +17,10 @@ body {
     text-align: center;
     color: #CCCCCC;
 }
+.welcome div{
+    padding: 0.2em;
+}
+
 
 .control-panel {
     background-color: #0000004D;
