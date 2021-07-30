@@ -2,17 +2,36 @@ let v3 = new THREE.Vector3(0,0,0);
 //////////////////////////////////////////////////////////
 class Player{
   //////////////////////////////////////////////////////////
-  constructor(obj, name, explode, sound){
+  constructor(obj, nick, isRed, explode, sound){
     this.obj = obj;
     this.moving = false;
-    this._initLabel(name);
     this.explode = explode;
+    this.isRed = isRed;
+
+    this._initLabel(nick, isRed);
+    this.setColor(isRed);
 
     // create sounds
-    sound.add('fly-by.wav', obj);
-    sound.add('explode.wav', this.obj, false, config.size, 1);
-
+    if(sound){ // might be undefined when players added before user started flying
+      this.addSound(sound);
+    }
     //this.prevRot = new THREE.Vector3(0,0,0);
+  }
+  //////////////////////////////////////////////////////////
+  setColor(isRed){
+    this.obj.traverse(child=> {
+      if(child instanceof THREE.Mesh) {
+        if(isRed){
+          child.material.color.setRGB(1,0,0);
+        }else{
+          child.material.color.setRGB(0,0,1);
+        }
+      }});
+  }
+  //////////////////////////////////////////////////////////
+  addSound(sound){
+    sound.add('fly-by.wav', this.obj);
+    sound.add('explode.wav', this.obj, false, config.size, 1);
   }
   //////////////////////////////////////////////////////////
   moveForward(){
@@ -48,14 +67,11 @@ class Player{
     this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
   }
   //////////////////////////////////////////////////////////
-  _initLabel(name) {
+  _initLabel(nick, isRed) {
     const playerLabelDiv = document.createElement( 'div' );
     playerLabelDiv.className = 'player-label';
-    var prettyName = name?.split('_')[0];
-    playerLabelDiv.textContent = prettyName || "who dis?";
-    playerLabelDiv.style.marginTop = '2em';
-    playerLabelDiv.style.color = "#77777799";
-    playerLabelDiv.style.fontFamily = "monospace";
+    playerLabelDiv.textContent = nick || "WHO DIS?";
+    playerLabelDiv.style.color = isRed ? '#F33':'33F';
     const playerLabelObj = new THREE.CSS2DObject( playerLabelDiv );
     playerLabelObj.position.set( 0, 0, 0 );
     this.obj.add( playerLabelObj );
@@ -87,8 +103,13 @@ class Players{
     // //this.steering = new Steering();
   }
   //////////////////////////////////////////////////////////
+  setTeams(red,blue){
+    this.red = red;
+    this.blue = blue;
+  }
+  //////////////////////////////////////////////////////////
   onEvent(data){
-    const p = this.getPlayer(data.id);
+    const p = this.getPlayer(data.nick);
     if(!p){
       console.error(`Player ${data.id} not found`);
       return;
@@ -108,13 +129,36 @@ class Players{
   }
   //////////////////////////////////////////////////////////
   update(){
-    for ( let name in this.dict){
-      this.dict[name].moveForward();
+    for ( let nick in this.dict){
+      this.dict[nick].moveForward();
     }
   }
   //////////////////////////////////////////////////////////
-  createNew(name){
+  checkIsRed(nick){
+    if(this.red.includes(nick)) return 1;
+    if(this.blue.includes(nick)) return -1;
+    return 0;
+  }
+  //////////////////////////////////////////////////////////
+  setNick(nick){
+    this.myNick = nick;
+  }
+  //////////////////////////////////////////////////////////
+  createNew(nick){
+    if(nick === this.myNick){
+      console.error('must be another tab/player with identical nick', nick);
+      return;
+    }
     if(!this.dummy){
+      console.error('dummy player is not loaded yet')
+      return null;
+    }
+    // return null if not in either team
+    const isRed = this.checkIsRed(nick);
+    if(!isRed){
+      console.error(`${nick} wasnt found in either team`);
+      console.log('blue team:', this.blue.join());
+      console.log('red  team:', this.red.join());
       return null;
     }
     //const p = this.dummy.clone(); //- doesnt copy geometry
@@ -122,14 +166,14 @@ class Players{
     let p = new THREE.Object3D();
     //let p = new THREE.Mesh();
     p.copy(this.dummy);
-    p.name = name;
+    p.name = nick;
 
     this.game.scene.add(p);
     //p.castShadow = true;
-    let newPlayer = new Player(p, name, game.explode, this.sound);
+    let newPlayer = new Player(p, nick, (isRed===1), game.explode, this.sound);
 
-    this.dict[name] = newPlayer;
-    console.log('create player',name);
+    this.dict[nick] = newPlayer;
+    console.log('create player',nick);
 	  return newPlayer;
   }
   //////////////////////////////////////////////////////////
@@ -195,26 +239,25 @@ class Players{
   //////////////////////////////////////////////////////////
   all(){
     let all = [];
-    for ( let name in this.dict){
-      all.push(this. dict[name].obj);
+    for ( let nick in this.dict){
+      all.push(this. dict[nick].obj);
     }
     return all;
   }
   //////////////////////////////////////////////////////////
   initSound(sound){
-    this.sound= sound;
-    // for ( let p of this.all()){
-    //   sound.add('fly-by.wav', p);
-    //   this.sound.add('explode.wav', this.camera, loop, config.size, vol);
-    // }
+    this.sound = sound;
+    for ( let nick in this.dict){
+      this.dict[nick].addSound(sound);
+    }
   }
   //////////////////////////////////////////////////////////
-  getPlayer(name){
-    const p = this.dict[name];
+  getPlayer(nick){
+    const p = this.dict[nick];
     if(p){
       return p;
     }
-    return this.createNew(name);
+    return this.createNew(nick);
   }
 }
 window.Players = Players;

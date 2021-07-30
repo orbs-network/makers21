@@ -7,8 +7,8 @@ class Mngr /*extends THREE.EventDispatcher*/ {
       red:[],
       blue:[],
       clients:new Set(),
-      redFlag:"blueGate",
-      blueFlag:"redGate",
+      redFlag:null,
+      blueFlag:null,
     };
     localStorage.setItem('state', this.state);
   }
@@ -31,6 +31,9 @@ class Mngr /*extends THREE.EventDispatcher*/ {
       case 'leave':
         this.onLeave(data, res);
         break;
+      case 'start':
+        this.onStart(data, res);
+        break;
     }
 
   }
@@ -43,11 +46,35 @@ class Mngr /*extends THREE.EventDispatcher*/ {
     });
   }
   //////////////////////////////////////////////////////////
-  onOnline(data){
-    console.log("onOnline",data);
-    this.state.clients.add(data.id);
+  onStart(data, res){
+    if(this.state.started){
+      res.send('Sorry, game already started!');
+      return;
+    }
+    res.send('ok');
+
+    let dt = new Date();
+    dt.setSeconds( dt.getSeconds() + 5, 0 );
+    console.log('game start time:',dt.toISOString());
+
+    this.state.started = true;
+    this.state.startedBy = data.nick;
+    this.state.startTs = dt.getTime();
     this.tellState();
+    this.saveState();
+
+    // UPDATE VIA STATE
+    // deepStream.sendEvent('mngr',{
+    //   type:"startGame",
+    //   ts:dt.getTime()
+    // });
   }
+  //////////////////////////////////////////////////////////
+  // onOnline(data){
+  //   console.log("onOnline",data);
+  //   this.state.clients.add(data.id);
+  //   this.tellState();
+  // }
   //////////////////////////////////////////////////////////
   saveState(){
     localStorage.setItem("state", JSON.stringify(this.state));

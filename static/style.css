@@ -5,20 +5,37 @@ body {
 
 .player-label{
     background-color: transparent;
-    color: "#ffffff55";
+    font-family: monospace;
+    text-shadow:0 0 7px #000;
+    margin-top: 1em;
 }
 
-.welcome {
+#welcome {
     position: absolute;
     top: 0;
     right: 0;
     padding: 20px;
     width: 100%;
     text-align: center;
-    color: #CCCCCC;
+    color: silver;
 }
-.welcome div{
+div{
     padding: 0.2em;
+}
+#welcome .red{ color: #C03030}
+#welcome .blue{ color: #4040FF}
+
+
+#game-display{
+    display:none;
+    position: absolute;
+    top: 0;
+    right: 25%;
+    width: 50%;
+    background-color:black;
+    color:silver;
+    border: 1px solid silver;
+    text-align: center;
 }
 
 

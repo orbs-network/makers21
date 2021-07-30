@@ -3,7 +3,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   constructor(){
     //super();
 
-    this.start = false;
+    this.moving = false;
     this.first = true;
     this.exploding = false;
 
@@ -45,12 +45,14 @@ class Game /*extends THREE.EventDispatcher*/ {
   isJoined(){
     return this.mngrState.red.includes(this.localState.nick) || this.mngrState.blue.includes(this.localState.nick);
   }
+  //////////////////////////////////////////////////////////
   onError(error){
     console.error(error);
     alert(error);
   }
   //////////////////////////////////////////////////////////
   onJoin(){
+    const _this = this;
     // save current local state
     this.saveLocalState();
     deepStream.client.rpc.make('client',{
@@ -59,16 +61,20 @@ class Game /*extends THREE.EventDispatcher*/ {
       nick: this.localState.nick
     },(error,result) => {
       if(error){
-        this.OnError(error);
+        _this.OnError(error);
       }
       if(result!='ok'){
         alert('join: '+result);
       }
     });
+    // update world
+    this.world.setNick(this.localState.nick);
+    this.world.setTeam(this.localState.isRed);
   }
   //////////////////////////////////////////////////////////
   onLeave(){
     // save current local state
+    const _this = this;
     this.saveLocalState();
     deepStream.client.rpc.make('client',{
       type:"leave",
@@ -76,7 +82,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       nick: this.localState.nick
     },(error,result) => {
       if(error){
-        this.OnError(error);
+        _this.OnError(error);
       }
       if(result!='ok'){
         alert('leave: '+result);
@@ -84,10 +90,23 @@ class Game /*extends THREE.EventDispatcher*/ {
     });
   }
   //////////////////////////////////////////////////////////
+  onStart(){
+    //this.ping.play();
+    document.getElementById("req-start").style.display = 'block';
+    deepStream.client.rpc.make( 'client', {type:'start', nick:this.localState.nick}, (error, result) => {
+      if(error){
+        console.error(error);
+        return;
+      }
+      //this.onMngrState(result.state);
+    })
+  }
+  //////////////////////////////////////////////////////////
   uxInit(){
     // handler for join
     document.getElementById("join").addEventListener("click",this.onJoin.bind(this));
     document.getElementById("leave").addEventListener("click",this.onLeave.bind(this));
+    document.getElementById("start").addEventListener("click",this.onStart.bind(this));
     // UI events
     document.getElementById("nick").addEventListener("input",(e)=>{
       // show/hide chose team
@@ -102,15 +121,18 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   startStop(){
-    this.start = !this.start;
-    this.controls.autoForward = this.start;
+    this.moving = !this.moving;
+    this.controls.autoForward = this.moving;
+    this.controls.enabled = this.moving;
+    let pos = this.world.camera.position;
     deepStream.sendEvent('player',{
       type:"start",
-      moving:this.start,
-      pos:this.position
+      moving:this.moving,
+      pos:pos,
+      nick:this.localState.nick
     });
     // start
-    if(this.start){
+    if(this.moving){
       if(this.first){
         this.first = false;
         this.world.onFirst();
@@ -126,14 +148,18 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
   }
   //////////////////////////////////////////////////////////
-  begin(){
-    // start broadcast interval
-    this.broadcastState();
-
+  onblur(){
+    if(this.moving && !localStorage.getItem('debug')=="true"){
+      this.startStop();
+    }
+  };
+  //////////////////////////////////////////////////////////
+  initControls(){
     //this.controls = new THREE.TmpControls(this., this.renderer.domElement);
     //this.controls = TrackballControls( this., this.renderer.domElement );
     this.controls = new THREE.FirstPersonControls(this.world.camera, this.world.renderer.domElement);
     this.controls.activeLook = true;
+    this.controls.enabled = false;
     this.controls.movementSpeed = config.speed;
 
     // this.controls.constrainVertical = true;
@@ -170,27 +196,97 @@ class Game /*extends THREE.EventDispatcher*/ {
     choose.style.display = display;
   }
   //////////////////////////////////////////////////////////
+  setGameMsg(html){
+    document.getElementById('msg').innerHTML = html;
+  }
+  //////////////////////////////////////////////////////////
+  show321(){
+    if(!this.ping){
+      this.ping = document.getElementById('ping');
+      this.ping.volume = 0.1;
+    }
+
+    let sec = 0;
+    this.ping.play();
+    let tid321 = setInterval(() =>{
+      const diff = this.mngrState.startTs - Date.now();
+      if(diff < 0 ){
+        clearInterval(tid321);
+        // resume
+        this.onGameStarted();
+        return;
+      }
+      var seconds = parseInt(diff / 1000);
+      var mili  = (new Date(diff)).getMilliseconds();
+      this.setGameMsg(`GAME BEGINS IN ${seconds}:${mili}`);
+      // ping
+      sec +=1;
+      if(!(sec % 15)){
+        //this.ping.stop();
+        this.ping.play();
+      }
+    },100);
+  }
+  //////////////////////////////////////////////////////////
+  onGameStarted(){
+    document.getElementById('welcome').style.display = 'none';
+    document.getElementById('game-display').style.display = 'block';
+
+    // either way update whos on ehich team
+    this.world.setPlayerTeams(this.mngrState.red, this.mngrState.blue);
+
+    // 3 2 1
+    if(Date.now() < this.mngrState.startTs){
+      // show countdown
+      this.show321();
+      //this.setGameMsg('game begins in:');
+      return;
+    }else{
+      // update world
+      this.world.setNick(this.localState.nick);
+      this.world.setTeam(this.localState.isRed);
+
+      // [press any key to start]
+      this.world.resetGateRotation();
+      // space bar
+      document.body.addEventListener("keydown",this.keydown.bind(this));
+
+      // init controls
+      this.initControls();
+      // start broadcast interval
+      this.broadcastState();
+      // to enable start stop
+      this.setGameMsg('press any key to start flying!');
+    }
+  }
+  //////////////////////////////////////////////////////////
   onMngrState(state){
     // store
     this.mngrState = state;
+
+    const joined = this.isJoined()
+
+    //////////////////////////////////////////////////////////
+    // game already started
+    if(state.started){
+      if(joined){
+        // return/start game
+        this.onGameStarted()
+      }else{
+        document.getElementById('inputs').style.display = "none";
+        document.getElementById('teams').style.display = "none";
+        document.getElementById('started').innerText = "game has started - please wait for next game to start";
+      }
+      return;
+    }
 
     // online status
     document.getElementById('online').innerText = "connected!";
 
     // ready to start
     document.getElementById('ready-text').innerText = state.ready? "ready to start": "waiting for more players to join";
-    document.getElementById('start').style.display = state.ready? "block":"none";
 
-    //////////////////////////////////////////////////////////
-    // game already started
-    if(state.started){
-      document.getElementById('inputs').style.display = "none";
-      document.getElementById('teams').style.display = "none";
-      document.getElementById('started').innerText = "game has started - please wait for next game to start";
-      return;
-    }
     // joined section - show/hide
-    const joined = this.isJoined()
     document.getElementById('inputs').style.display = "none";
 
     //////////////////////////////////////////////////////////
@@ -204,18 +300,27 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('teams').style.display = "block";
 
     //////////////////////////////////////////////////////////
-    // not joined - show choose
+    // not joined - show joined
     document.getElementById('joined').style.display = joined? "block":"none";
 
     if(!joined){
       document.getElementById('inputs').style.display = "block";
+      // neutral
+      this.world.setTeam(null);
       return;
     }
 
     //////////////////////////////////////////////////////////
     //joined
     // set nick "joined as"
+    const team = this.localState.isRed? 'red':'blue';
     document.getElementById('nick-join').innerHTML = this.localState.nick;
+    document.getElementById('nick-join').setAttribute('class', team);
+    document.getElementById('team-join').innerHTML = team;
+    document.getElementById('team-join').setAttribute('class', team);
+
+    // show start only of ready and joined team
+    document.getElementById('start').style.display = state.ready? "block":"none";
   }
   //////////////////////////////////////////////////////////
   onEvent(data){
@@ -229,7 +334,8 @@ class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   onOffline(){
     document.getElementById('online').innerText = "could not connect, please reload to retry";
-    alert('offline!!!');
+    //alert('offline!!!');
+    console.log('offline!!!');
   }
   //////////////////////////////////////////////////////////
   connect(){
@@ -248,17 +354,12 @@ class Game /*extends THREE.EventDispatcher*/ {
         return;
       }
       this.onMngrState(result.state);
-
     })
   }
   //////////////////////////////////////////////////////////
   createWorld(){
     this.world = new World();
     this.world.createScene();
-
-    // space bar
-    document.body.addEventListener("keydown",this.keydown.bind(this));
-
 
     ///////////////////////////
     // 2d
@@ -282,6 +383,9 @@ class Game /*extends THREE.EventDispatcher*/ {
       if(this.exploding){
         return;
       }
+      if(!this.moving){
+        return;
+      }
 
       // gatePass
       const gatePass = this.world.checkGatePass();
@@ -295,9 +399,13 @@ class Game /*extends THREE.EventDispatcher*/ {
       if(this.exploding = this.world.checkColission()){
         this.startStop(); // STOP!
         this.world.doExplode();
+        // look at oposite gate
+        const gate = this.localState.isRed? this.world.redGate : this.world.blueGate;
+        this.controls.lookAt(gate.position);
+        // return to start
         this.world.returnToStart(()=>{
           this.exploding = false;
-        })
+        });
         return;
       }
 
@@ -306,10 +414,10 @@ class Game /*extends THREE.EventDispatcher*/ {
       deepStream.sendEvent('player',{
         type:"pos",
         pos:cam.position,
-        dir:direction
+        dir:direction,
+        nick: this.localState.nick
       });
-
-    }, 500);
+    }, 1000);
   }
   //////////////////////////////////////////////////////////
   keydown(e){
@@ -357,7 +465,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     // this.v2.x = ( e.clientX / window.innerWidth ) * 2 - 1;
 	  // this.v2.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
     if(this.controls){
-      this.controls.handleResize();
+      this.controls.handleResize(e);
     }
   }
 }
@@ -395,3 +503,5 @@ window.onload = function(){
   });
 }
 window.onresize = game.onresize.bind(game);
+//window.onfocus = game.onfocus.bind(game);
+window.onblur = game.onblur.bind(game);

@@ -68,7 +68,7 @@ class World {
     this.players = new Players(this);
 
     // sound
-    this.initSound();
+    //init from user ket down in game this.initSound();
   }
   //////////////////////////////////////////////////////////
   createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos){
@@ -141,7 +141,7 @@ class World {
   }
   //////////////////////////////////////////////////////////
   initSound(){
-    this.sound = new Sound(this.camera);
+    this.sound = new Sound(this._camera);
     this.sound.add('gate.wav', this.redGate, true);
     this.sound.add('gate.wav', this.blueGate, true);
 
@@ -155,6 +155,7 @@ class World {
   }
   //////////////////////////////////////////////////////////
   onFirst(){
+    this.initSound();
     let sound = this.redGate.getObjectByName('sound_gate.wav');
     if(sound) sound.play();
     sound = this.blueGate.getObjectByName('sound_gate.wav');
@@ -308,6 +309,31 @@ class World {
     if(sound) sound.play();
   }
   //////////////////////////////////////////////////////////
+  // set this player's team
+  setNick(nick){
+    this.players.setNick(nick);
+  }
+  //////////////////////////////////////////////////////////
+  // set this player's team
+  setTeam(isRed){
+    // no team - look from the side
+    if(isRed == null){
+      this._camera.position.z = 0;
+      this._camera.position.x = 0;
+      return;
+    }
+
+    this.startLineZ = SIZE * (isRed? 1.5 : -1.5);
+    this._camera.position.z = this.startLineZ
+    this._camera.rotation.y = isRed? 0 : Math.PI * (360 / 360);
+    //this._camera.lookAt(isRed? this.redGate : this.blueGate);
+  }
+  //////////////////////////////////////////////////////////
+  // set other players teams
+  setPlayerTeams(red, blue){
+    this.players.setTeams(red, blue);
+  }
+  //////////////////////////////////////////////////////////
   returnToStart(cb){
     const tid = setInterval(()=>{
       let zDiff = this.startLineZ - this._camera.position.z ;
@@ -337,10 +363,15 @@ class World {
     return this._renderer;
   }
   //////////////////////////////////////////////////////////
+  resetGateRotation(){
+    this.redGate.rotation.y = 0;
+    this.blueGate.rotation.y = 0;
+  }
+  //////////////////////////////////////////////////////////
   render(labelRenderer){
     // rotate gates
-    this.blueGate.rotation.y += config.gateSpeed;
-    this.redGate.rotation.y -= config.gateSpeed;
+    this.redGate.rotateY(config.gateSpeed);// rotation.y -= config.gateSpeed;
+    this.blueGate.rotateY(-config.gateSpeed);// rotation.y += config.gateSpeed;
 
     // players
     this.players.update();

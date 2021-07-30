@@ -70,15 +70,17 @@
 		<script src="explode.js"></script>
 		<script src="players.js"></script>
     <script src="game.js"></script>
+		<!-- HTML SOUNDS -->
+		<audio id="ping" src="./sound/ping.mp3"></audio>
 		<!-- welcome -->
-		<div class="welcome">
+		<div id="welcome">
 			<h1>Makers2021 welcome</h1>
 			<div id="online">please wait...</div>
 			<div id="started"></div>
 			<!-- teams -->
 			<div id="teams" style="display:none;">
-				<div style="color:red"><span>red team: </span><span id="red-team"></span></div>
-				<div style="color:blue"><span>blue team: </span><span id="blue-team"></span></div>
+				<div class="red"><span>red team: </span><span id="red-team"></span></div>
+				<div class="blue"><span>blue team: </span><span id="blue-team"></span></div>
 			</div>
 			<!-- chose -->
 			<div id="inputs" style="display:none">
@@ -90,27 +92,34 @@
 					<div>choose team:</div>
 					<div>
 						<input type="radio" id="red" name="team" value="red" checked>
-						<label for="team" style="color:red">RED</label>
+						<label for="team" class="red">RED</label>
 					</div>
 					<div>
 						<input type="radio" id="blue" name="team" value="blue">
-						<label for="team" style="color:blue">BLUE</label>
+						<label for="team" class="blue">BLUE</label>
 					</div>
 					<input type="button" id="join"  value="join" >
 				</div>
 			</div>
 			<!-- joined -->
-			<div id="joined">
-				<div>You are joined as <span id="nick-join"></span>
+			<div id="joined" style="display:none">
+				<div>
+					You are joined as <span id="nick-join"></span> to the <span id="team-join"></span> team
 				</div>
 				<input type="button" id="leave"  value="leave">
 			</div>
 			<!-- ready  -->
-			<div id="ready">
+			<div id="ready" >
 				<div id="ready-text"></div>
-				<input type="button" id="start"  value="start game">
+				<input type="button" id="start"  value="start game" style="display:none">
 			</div>
+			<!-- req start -->
+			<div id="req-start" style="display:none">request start from server...</div>
 		</div>
 		<!-- welcome END -->
+		<div id="game-display">
+			<div>game display</div>
+			<div>msg: <span id="msg"></span></div>
+		</div>
 	</body>
 </html>
