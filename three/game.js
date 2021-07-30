@@ -397,11 +397,18 @@ class Game /*extends THREE.EventDispatcher*/ {
 
       // collision detection
       if(this.exploding = this.world.checkColission()){
-        this.startStop(); // STOP!
+        this.startStop(); // STOP FLYING!
         this.world.doExplode();
         // look at oposite gate
         const gate = this.localState.isRed? this.world.redGate : this.world.blueGate;
         this.controls.lookAt(gate.position);
+        // event explosion
+        deepStream.sendEvent('player',{
+          type:"explode",
+          pos:cam.position,
+          dir:direction,
+          nick: this.localState.nick
+        });
         // return to start
         this.world.returnToStart(()=>{
           this.exploding = false;
@@ -417,7 +424,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         dir:direction,
         nick: this.localState.nick
       });
-    }, 1000);
+    }, 250);
   }
   //////////////////////////////////////////////////////////
   keydown(e){

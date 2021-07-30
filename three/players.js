@@ -2,10 +2,9 @@ let v3 = new THREE.Vector3(0,0,0);
 //////////////////////////////////////////////////////////
 class Player{
   //////////////////////////////////////////////////////////
-  constructor(obj, nick, isRed, explode, sound){
+  constructor(obj, nick, isRed, sound){
     this.obj = obj;
     this.moving = false;
-    this.explode = explode;
     this.isRed = isRed;
 
     this._initLabel(nick, isRed);
@@ -56,9 +55,9 @@ class Player{
     this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
   }
   //////////////////////////////////////////////////////////
-  onExplode(data){
+  onExplode(data, explode){
     // create explosition attached to player
-    this.explode.create(this.obj.position.x, this.obj.position.y, this.obj.position.z);
+    explode.create(this.obj.position.x, this.obj.position.y, this.obj.position.z);
 
     // play already installed sound
     let sound = this.obj.getObjectByName('sound_explode.wav');
@@ -122,7 +121,7 @@ class Players{
         p.onPos(data);
         break;
       case "explode":
-        p.onExplode(data, game.explode);
+        p.onExplode(data, this.game.explode);
         break;
 
     }
@@ -170,7 +169,7 @@ class Players{
 
     this.game.scene.add(p);
     //p.castShadow = true;
-    let newPlayer = new Player(p, nick, (isRed===1), game.explode, this.sound);
+    let newPlayer = new Player(p, nick, (isRed===1), this.sound);
 
     this.dict[nick] = newPlayer;
     console.log('create player',nick);

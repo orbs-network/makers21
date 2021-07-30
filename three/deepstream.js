@@ -1,6 +1,8 @@
 const { DeepstreamClient } = window.DeepstreamClient
 //const client = new DeepstreamClient('10.11.11.4:6020')
-const client = new DeepstreamClient('127.0.0.1:6020')
+//const client = new DeepstreamClient('127.0.0.1:6020')
+const client = new DeepstreamClient('192.168.1.113:6020')
+
 client.login()
 const uuid = window.deepStreamUUID || client.getUid();//+ "_"+ Date.now(); // TODO: remove
 
@@ -82,4 +84,3 @@ window.deepStream = {
 
 // run server
 // DEEPSTREAM_CONFIG_DIRECTORY=./config/config.yaml node index.js
-
