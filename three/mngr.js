@@ -34,6 +34,9 @@ class Mngr /*extends THREE.EventDispatcher*/ {
       case 'start':
         this.onStart(data, res);
         break;
+      case 'start':
+        this.onGatePass(data, res);
+        break;
     }
 
   }
@@ -143,6 +146,18 @@ class Mngr /*extends THREE.EventDispatcher*/ {
     this.setReady();
     this.tellState();
     this.saveState();
+  }
+  //////////////////////////////////////////////////////////
+  onGatePass(data, res){
+    //const team = data.isRed? this.state.red:;
+    const flagHolder = data.isRed? this.state.redFlag : this.state.redFlag;
+    // flag is captured
+    if(!flagHolder){
+      flagHolder = data.nick;
+      res.send('ok');
+    }else{
+      res.send(`${flagHolder} has already captured the flag`);
+    }
   }
   //////////////////////////////////////////////////////////
   updateUI(){

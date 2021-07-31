@@ -62,6 +62,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     },(error,result) => {
       if(error){
         _this.OnError(error);
+        return;
       }
       if(result!='ok'){
         alert('join: '+result);
@@ -83,6 +84,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     },(error,result) => {
       if(error){
         _this.OnError(error);
+        return;
       }
       if(result!='ok'){
         alert('leave: '+result);
@@ -201,13 +203,8 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   show321(){
-    if(!this.ping){
-      this.ping = document.getElementById('ping');
-      this.ping.volume = 0.1;
-    }
-
     let sec = 0;
-    this.ping.play();
+    this.playAudio('ping');
     let tid321 = setInterval(() =>{
       const diff = this.mngrState.startTs - Date.now();
       if(diff < 0 ){
@@ -223,7 +220,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       sec +=1;
       if(!(sec % 15)){
         //this.ping.stop();
-        this.ping.play();
+        this.playAudio('ping');
       }
     },100);
   }
@@ -374,6 +371,51 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.connect();
   }
   //////////////////////////////////////////////////////////
+  playAudio(id){
+    if(!this.audio){
+      this.audio = {};
+    }
+    if(!(id in this.audio )){
+      this.audio[id] = document.getElementById(id);
+    }
+    if(this.audio[id]){
+      this.audio[id].play()
+    }
+    else{
+      console.error(`${id} is missing in audio`);
+    }
+  }
+  //////////////////////////////////////////////////////////
+  passInGate(gate){
+    // team gate
+    let _this = this;
+    if(this.localState.isRed == (gate.name == "redGate")){
+      console.log('correct gatePass!', gate.name);
+      // tell mngr
+      deepStream.client.rpc.make('client',{
+        type:"gatePass",
+        isRed: this.localState.isRed,
+        nick: this.localState.nick
+      },(error,result) => {
+        if(error){
+          _this.OnError(error);
+          return;
+        }
+        if(result!='ok'){
+          this.setGameMsg('gatePass: '+result );
+          alert('gatePass: '+result);
+        }
+      });
+
+    }else{
+      // oponnent gate
+      console.log('wrong gatePass!', gate.name);
+      this.setGameMsg(`capture the <span class="${this.localState.isRed?'red':'blue'}">flag</span> before passing in <span class="${this.localState.isRed?'red':'blue'}>gate</span> `);
+
+      this.playAudio('wrong');
+    }
+  }
+  //////////////////////////////////////////////////////////
   broadcastState(){
     let cam = this.world.camera;
     let direction = new THREE.Vector3();
@@ -387,11 +429,9 @@ class Game /*extends THREE.EventDispatcher*/ {
         return;
       }
 
-      // gatePass
-      const gatePass = this.world.checkGatePass();
-      if(gatePass){
-        console.log('gatePass!', gatePass.name);
-        this.gatePassing = true;
+      const gate = this.world.checkGatePass();
+      if(gate){
+        this.passInGate(gate);
         return;
       }
 

@@ -7,6 +7,7 @@
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
 		<script src="https://cdn.deepstream.io/js/client/latest/ds.min.js"></script>
+		<link rel="stylesheet" href="../static/style.css">
 	</head>
 	<body>
 		<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -26,11 +27,13 @@
 
 		<div class="container">
 			<div class="row">
+				<!-- state  -->
 				<div class="col-sm-4">
 					<h3>State</h3>
 					<p id="started"></p>
 					<p id="ready"></p>
 				</div>
+				<!-- teams -->
 				<div class="col-sm-4">
 					<h3>Teams</h3>
 					<div class="row">
@@ -44,6 +47,14 @@
 						</div>
 					</div>
 				</div>
+				<!-- clients -->
+				<div class="col-sm-4">
+					<h3>Flag Holders</h3>
+					<div>Red: [<span class="red"></span>]</div>
+					<div>Blue: [<span class="blue"></span>]</div>
+					</ul>
+				</div>
+				<!-- clients -->
 				<div class="col-sm-4">
 					<h3>clients</h3>
 					<ul id="clients">

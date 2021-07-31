@@ -22,8 +22,8 @@ body {
 div{
     padding: 0.2em;
 }
-#welcome .red{ color: #C03030}
-#welcome .blue{ color: #4040FF}
+.red{ color: #C03030}
+.blue{ color: #4040FF}
 
 
 #game-display{
