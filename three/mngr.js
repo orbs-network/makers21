@@ -7,8 +7,8 @@ class Mngr /*extends THREE.EventDispatcher*/ {
       red:[],
       blue:[],
       clients:new Set(),
-      redFlag:null,
-      blueFlag:null,
+      redHolder:null,
+      blueHolder:null,
     };
     localStorage.setItem('state', this.state);
   }
@@ -34,7 +34,7 @@ class Mngr /*extends THREE.EventDispatcher*/ {
       case 'start':
         this.onStart(data, res);
         break;
-      case 'start':
+      case 'gatePass':
         this.onGatePass(data, res);
         break;
     }
@@ -57,7 +57,7 @@ class Mngr /*extends THREE.EventDispatcher*/ {
     res.send('ok');
 
     let dt = new Date();
-    dt.setSeconds( dt.getSeconds() + 5, 0 );
+    dt.setSeconds( dt.getSeconds() + 3, 0 );
     console.log('game start time:',dt.toISOString());
 
     this.state.started = true;
@@ -150,13 +150,17 @@ class Mngr /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   onGatePass(data, res){
     //const team = data.isRed? this.state.red:;
-    const flagHolder = data.isRed? this.state.redFlag : this.state.redFlag;
+    const flagHolder = data.isRed? 'redHolder' : 'blueHolder';
     // flag is captured
-    if(!flagHolder){
-      flagHolder = data.nick;
+    if(!this.state[flagHolder]){
+      this.state[flagHolder] = data.nick;
+      this.updateUI();
       res.send('ok');
+      // update everyone via state
+      this.tellState();
+      this.saveState();
     }else{
-      res.send(`${flagHolder} has already captured the flag`);
+      res.send(`${this.state[flagHolder]} has already captured the flag`);
     }
   }
   //////////////////////////////////////////////////////////
@@ -180,6 +184,10 @@ class Mngr /*extends THREE.EventDispatcher*/ {
       var li = $('<li/>').appendTo($blue);
       li.text(state.blue[i]);
     });
+
+    //flags
+    $('#redHolder').text(this.state.redHolder || 'NONE');
+    $('#blueHolder').text(this.state.blueHolder || 'NONE');
 
     // clients
     // clients connected

@@ -3,58 +3,56 @@ class Flags  {
   constructor(){
 	  this.manager = new THREE.LoadingManager();
 	  this.loader = new THREE.OBJLoader();
-
+		this.dict ={};
+		this.gates ={};
   }
+	//////////////////////////////////////////////////////////
+  createFlag(model, scene, gate, name, color, scale) {
+		let object = new THREE.Object3D();
+    object.copy(model);
 
-  createFlag(parent, name, color, scale) {
-	  // load a resource
-	  this.loader.load(
-		  // resource URL
-		  'model/flag.obj',
-		  // called when resource is loaded
-		  function ( object ) {
+		// set material and color
+		object.traverse( function ( child ) {
+			if ( child instanceof THREE.Mesh ) {
+				child.material.color.setHex(color);
+			}
+		});
 
-			  object.traverse( function ( child ) {
-				  if ( child instanceof THREE.Mesh ) {
-					  // child.material.ambient.setHex(0x880000);
-					  child.material.color.setHex(color);
-				  }
-			  } );
+		object.name = name;
+		object.visible = true;
+		object.scale.set(scale, scale, scale);
 
-			  object.name = name;
-			  object.visible = true;
+		// insert to dict
+		this.dict[name] = object;
+		this.gates[name] = gate;
 
-			  object.scale.set(scale, scale, scale);
-				var bbox = new THREE.Box3().setFromObject(object);
-				// object.position.x = position.x;
-				object.position.y -=  bbox.getSize().y /2;
-				// object.position.z = position.z;
-
-			  // object.color = color;
-			  //console.log(object);
-			  // object.MeshBasicMaterial.color = color;
-
-			  // object.getWorldDirection(v3);
-			  // object.castShadow = true;
-			  parent.add( object );
-
-
-
-		  },
-		  // called when loading is in progresses
-		  function ( xhr ) {
-
-			  console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-		  },
-		  // called when loading has errors
-		  function ( error ) {
-
-			  console.log( 'An error happened: ', error);
-
-		  }
-	  );
-
+		// center down
+		this.moveToGate(name);
+		scene.add( object );
   }
+	//////////////////////////////////////////////////////////
+	moveToGate(name) {
+		const obj = this.dict[name];
+		const gate = this.gates[name];
 
+		var bbox = new THREE.Box3().setFromObject(obj);
+		obj.position.z = gate.position.z;
+		obj.position.y = gate.position.y - bbox.getSize().y /2;
+	}
+	//////////////////////////////////////////////////////////
+	attachTo(name, parent) {
+		const obj = this.dict[name];
+
+		// detach first
+		//obj.remove();
+		// attach
+		parent.add(obj);
+	}
+	//////////////////////////////////////////////////////////
+	setPosCamera(name) {
+		const obj = this.dict[name];
+		obj.position.z = -SIZE/1.8;
+		obj.position.y = 3;
+		obj.position.x = 0;
+	}
 }

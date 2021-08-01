@@ -33,13 +33,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   loadAsync(cb){
-    //load flag template
-    // this.flagObj = null;
-
-	  // this.redFlag = new Flag(this, this.flagObj, RED);
-    // this.blueFlag = new Flag(this, this.flagObj, BLUE);
-
-    cb();
+    this.world.loadModels(cb);
   }
   //////////////////////////////////////////////////////////
   isJoined(){
@@ -61,7 +55,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       nick: this.localState.nick
     },(error,result) => {
       if(error){
-        _this.OnError(error);
+        _this.onError(error);
         return;
       }
       if(result!='ok'){
@@ -83,7 +77,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       nick: this.localState.nick
     },(error,result) => {
       if(error){
-        _this.OnError(error);
+        _this.onError(error);
         return;
       }
       if(result!='ok'){
@@ -245,6 +239,10 @@ class Game /*extends THREE.EventDispatcher*/ {
 
       // [press any key to start]
       this.world.resetGateRotation();
+
+      // handle Flags
+      this.world.setFlagHolders(this.localState, this.mngrState);
+
       // space bar
       document.body.addEventListener("keydown",this.keydown.bind(this));
 
@@ -268,7 +266,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(state.started){
       if(joined){
         // return/start game
-        this.onGameStarted()
+        this.onGameStarted();
       }else{
         document.getElementById('inputs').style.display = "none";
         document.getElementById('teams').style.display = "none";
@@ -356,7 +354,6 @@ class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   createWorld(){
     this.world = new World();
-    this.world.createScene();
 
     ///////////////////////////
     // 2d
@@ -367,8 +364,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     // this.labelRenderer.domElement.style.border = "10px solid white";
     this.labelRenderer.domElement.style.pointerEvents = "none";
     document.body.appendChild( this.labelRenderer.domElement );
-
-    this.connect();
   }
   //////////////////////////////////////////////////////////
   playAudio(id){
@@ -398,13 +393,16 @@ class Game /*extends THREE.EventDispatcher*/ {
         nick: this.localState.nick
       },(error,result) => {
         if(error){
-          _this.OnError(error);
+          _this.onError(error);
           return;
         }
-        if(result!='ok'){
+        if(result != 'ok'){
           this.setGameMsg('gatePass: '+result );
-          alert('gatePass: '+result);
+          this.playAudio('wrong');
+          return;
         }
+        // SUCCESS - you are the holder of the flag
+        this.playAudio('success');
       });
 
     }else{
@@ -519,9 +517,13 @@ class Game /*extends THREE.EventDispatcher*/ {
 //////////////////////////////////////////////////////////
 const game = new Game();
 window.onload = function(){
+  game.createWorld();
   game.loadAsync(()=>{
+    console.log('All models have been loaded');
     game.uxInit();
-    game.createWorld();
+    //game.createWorld();
+    game.world.createScene();
+    game.connect();
     var fps = config.fps, fpsInterval, startTime, now, then, elapsed;
 
     function animate() {

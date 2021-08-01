@@ -79,27 +79,16 @@ class Player{
 
 class Players{
   //////////////////////////////////////////////////////////
-  constructor(game){
+  constructor(world){
     this.dict = {};
-    this.game = game;
-    this.loader = new THREE.OBJLoader();
-    //this.redMatter = new THREE.MeshBasicMaterial({color: 0xFF00FF});         // red
+    this.world= world;
+    this.model = world.models['airplane'];
+
     const material = new THREE.MeshPhongMaterial();
-    //material.color.setHSL(0, 1, .5);  // red
-    material.color.setRGB(.3, .8, .5);
     material.flatShading = false;
     this.matter = material;
-    this.createDummy(()=> {
-		  deepStream.subscribe("player", this.onEvent.bind(this));
-    });
 
-
-    //super();
-
-    // this.moving = false;
-    // this.first = true;
-    // this.sound = new Sound();
-    // //this.steering = new Steering();
+		deepStream.subscribe("player", this.onEvent.bind(this));
   }
   //////////////////////////////////////////////////////////
   setTeams(red,blue){
@@ -121,7 +110,7 @@ class Players{
         p.onPos(data);
         break;
       case "explode":
-        p.onExplode(data, this.game.explode);
+        p.onExplode(data, this.world.explode);
         break;
 
     }
@@ -148,10 +137,6 @@ class Players{
       console.error('must be another tab/player with identical nick', nick);
       return;
     }
-    if(!this.dummy){
-      console.error('dummy player is not loaded yet')
-      return null;
-    }
     // return null if not in either team
     const isRed = this.checkIsRed(nick);
     if(!isRed){
@@ -160,14 +145,16 @@ class Players{
       console.log('red  team:', this.red.join());
       return null;
     }
-    //const p = this.dummy.clone(); //- doesnt copy geometry
-    //const p = this.dummy.copy();
     let p = new THREE.Object3D();
     //let p = new THREE.Mesh();
-    p.copy(this.dummy);
+    p.copy(this.model);
+    // scale
+    const s = 2;// was2
+    p.scale.set(s,s,s);
+
     p.name = nick;
 
-    this.game.scene.add(p);
+    this.world.scene.add(p);
     //p.castShadow = true;
     let newPlayer = new Player(p, nick, (isRed===1), this.sound);
 
@@ -178,7 +165,6 @@ class Players{
   //////////////////////////////////////////////////////////
   //generateBoundingBox (width, height, depth) {
   generateBoundingBox (obj) {
-
     const geometry = new THREE.Box3().setFromObject( obj );
     //const geometry = new THREE.BoxGeometry(width, height, depth)
 
@@ -190,51 +176,7 @@ class Players{
 
     return new THREE.Mesh(geometry, material);
   }
-  //////////////////////////////////////////////////////////
-  createDummy(callback){
-    let matter = this.matter;
-    this.loader.load(
-      // resource URL
-      //'model/old/11804_Airplane_v2_l2.obj',
-      'model/paper/airplane.obj',
-      // called when resource is loaded
-      function ( object ) {
-        object.traverse(function(child) {
-          if(child instanceof THREE.Mesh) {
-            //console.log(child.material);
-            //var m = child.material;
-            //console.log('1', JSON.stringify(m));
-            // child.material = new THREE.MeshPhongMaterial({
-              //   color: 0xFF0000,    // red (can also use a CSS color string here)
-              //   flatShading: true,
-              // });
-              child.material = matter;
-              //console.log(child);
-              //child.material.map = texture;
-              //child.material.normalMap = normal;
-            }
-          });
 
-      const s = 2;// was2
-      object.scale.set(s,s,s);
-
-
-
-      this.dummy = object;
-      this.dummy.name = "dummy";
-      callback();
-
-    }.bind(this),
-      // called when loading is in progresses
-      function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-      },
-      // called when loading has errors
-      function ( error ) {
-        console.log( 'An error happened', error );
-      }
-    );
-  }
   //////////////////////////////////////////////////////////
   all(){
     let all = [];

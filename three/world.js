@@ -5,6 +5,42 @@ class World {
     this.flags = new Flags();
     this.worldPos = new THREE.Vector3();
     this.worldDir = new THREE.Vector3();
+
+    this.loader = new THREE.OBJLoader();
+    this.models = {};
+  }
+  //////////////////////////////////////////////////////////
+  loadModel(name){
+    return new Promise((resolve, reject) => {
+      // load a resource
+      this.loader.load(
+        // resource URL
+        'model/'+name+'.obj',
+        // called when resource is loaded
+        ( object ) =>{
+          console.log( '100% loaded' );
+          this.models[name] = object;
+          resolve();
+        },
+        // called when loading is in progresses
+        function ( xhr ) {
+          console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        },
+        // called when loading has errors
+        function ( error ) {
+          console.log( 'An error happened: ', error);
+          reject();
+        }
+      );
+
+    });
+  }
+  //////////////////////////////////////////////////////////
+  loadModels(cb){
+    let arr = [];
+    arr.push(this.loadModel('airplane'));
+    arr.push(this.loadModel('flag'));
+    Promise.all(arr).then(cb);
   }
   //////////////////////////////////////////////////////////
   createScene(){
@@ -61,8 +97,8 @@ class World {
     this.blueGate.passSphere = new THREE.Sphere(this.blueGate.position, GATE_SIZE/1.5);
 
     // Flags
-    this.flags.createFlag(this.blueGate, 'RED-FLAG', 0xFF0000, .003);
-    this.flags.createFlag(this.redGate, 'BLUE-FLAG', 0x0000FF, .003);
+    this.flags.createFlag(this.models['flag'], this.scene, this.blueGate, 'red', 0xFF0000, .003);
+    this.flags.createFlag(this.models['flag'], this.scene, this.redGate, 'blue', 0x0000FF, .003);
 
     // create players
     this.players = new Players(this);
@@ -316,13 +352,12 @@ class World {
   //////////////////////////////////////////////////////////
   // set this player's team
   setTeam(isRed){
-    // no team - look from the side
+    // no team - set center
     if(isRed == null){
       this._camera.position.z = 0;
       this._camera.position.x = 0;
       return;
     }
-
     this.startLineZ = SIZE * (isRed? 1.5 : -1.5);
     this._camera.position.z = this.startLineZ
     this._camera.rotation.y = isRed? 0 : Math.PI * (360 / 360);
@@ -332,6 +367,25 @@ class World {
   // set other players teams
   setPlayerTeams(red, blue){
     this.players.setTeams(red, blue);
+  }
+  //////////////////////////////////////////////////////////
+  setFlagHolders(localState, mngrState){
+    // TODO: move to gates
+    // Im the Holder
+    if (localState.nick === mngrState.redHolder || localState.nick === mngrState.blueHolder){
+      // attach correct flag to self/camera
+      const name = localState.isRed?"blue":"red";
+      this.flags.attachTo(name, this._camera);
+      this.flags.setPosCamera(name);
+    }else{
+      // TODO: Impel
+      // if(mngrState.redHolder){
+      //   this.flags.attachTo(isRed? "red":"blue", players.get(mngrState.redHolder));
+      // }
+      // if(mngrState.blueHolder){
+      //   this.flags.attachTo(!isRed?"red":"blue", players.get(mngrState.blueHolder));
+      // }
+    }
   }
   //////////////////////////////////////////////////////////
   returnToStart(cb){
