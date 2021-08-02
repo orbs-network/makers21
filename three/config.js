@@ -8,8 +8,8 @@ const GREY = 0x111111;
 const WHITE = 0xFFFFFF;
 
 window.config = {
-  size:BASE_SIZE ,
-  speed: BASE_SIZE/200,
+  size:SIZE ,
+  speed: SIZE/80,
   //speed: BASE_SIZE/100,
   //speed: 0,
   fps:30,
@@ -19,3 +19,5 @@ window.config = {
   vertLimit:0.005,
   rotUnit:0.001,
 };
+
+window.config.collisionDistance= window.config.speed * 5;

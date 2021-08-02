@@ -328,9 +328,9 @@ class World {
     //const intersects = this.raycaster.intersectObject( this.blueGate );
 
     if(intersects && intersects.length){
-      //console.log(intersects.length, intersects[0].distance);
+      console.log(intersects.length, intersects[0].distance, `thresh: ${config.collisionDistance}`);
       // for(let i of intersects){
-      if (intersects[0].distance < 0.1){
+      if (intersects[0].distance < config.collisionDistance){
         return true;
       }
 
@@ -385,24 +385,31 @@ class World {
   }
   //////////////////////////////////////////////////////////
   setFlagHolders(holdingFlag, localState, mngrState){
-    // TODO: move to gates
+    const name = localState.isRed? "blue":"red";
     // Im the Holder
     if (holdingFlag){
       // attach correct flag to self/camera
-      const name = localState.isRed? "blue":"red";
       this.flags.attachTo(name, this._camera);
       this.flags.setPosCamera(name);
-    }else if(mngrState.redHolder || mngrState.blueHolder){ // someone is the holder
-      // TODO: Impel
-      // if(mngrState.redHolder){
-      //   this.flags.attachTo(isRed? "red":"blue", players.get(mngrState.redHolder));
-      // }
-      // if(mngrState.blueHolder){
-      //   this.flags.attachTo(!isRed?"red":"blue", players.get(mngrState.blueHolder));
-      // }
-    }else{ // no holders, return to gates
-
+    }else {
+      const flag = this.flags.detach(name);
+      // attach to blue player
+      if(mngrState.redHolder){
+        this.flags.attachTo(isRed? "red":"blue", players.get(mngrState.redHolder));
+      }
+      else{
+        this.flags.moveToGate("blue");
+        this.scene.add(flag);
+      }
+      // attach to red player
+      if(mngrState.blueHolder){
+        this.flags.attachTo(!isRed?"red":"blue", players.get(mngrState.blueHolder));
+      }else{
+        this.flags.moveToGate("red");
+        this.scene.add(flag);
+      }
     }
+
   }
   //////////////////////////////////////////////////////////
   returnToStart(cb){

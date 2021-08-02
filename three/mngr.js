@@ -37,6 +37,9 @@ class Mngr /*extends THREE.EventDispatcher*/ {
       case 'gatePass':
         this.onGatePass(data, res);
         break;
+      case 'flagDrop':
+        this.onFlagDrop(data, res);
+        break;
     }
 
   }
@@ -148,19 +151,32 @@ class Mngr /*extends THREE.EventDispatcher*/ {
     this.saveState();
   }
   //////////////////////////////////////////////////////////
+  setFlagHolder(flagHolder, nick, res){
+    this.state[flagHolder] = nick;
+    this.updateUI();
+    res.send('ok');
+    // update everyone via state
+    this.tellState();
+    this.saveState()
+  }
+  //////////////////////////////////////////////////////////
   onGatePass(data, res){
-    //const team = data.isRed? this.state.red:;
     const flagHolder = data.isRed? 'blueHolder':'redHolder';
     // flag is captured
     if(!this.state[flagHolder]){
-      this.state[flagHolder] = data.nick;
-      this.updateUI();
-      res.send('ok');
-      // update everyone via state
-      this.tellState();
-      this.saveState();
+      this.setFlagHolder(flagHolder, data.nick, res);
     }else{
       res.send(`${this.state[flagHolder]} has already captured the flag`);
+    }
+  }
+  //////////////////////////////////////////////////////////
+  onFlagDrop(data, res){
+    const flagHolder = data.isRed? 'blueHolder':'redHolder';
+    // flag is dropped - assset dropper is indeed the holder
+    if(this.state[flagHolder] == data.nick){
+      this.setFlagHolder(flagHolder, null, res);
+    }else{
+      res.send(`${this.state[flagHolder]} the flag is not held by [${data.nick}] to drop`);
     }
   }
   //////////////////////////////////////////////////////////

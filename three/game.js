@@ -61,7 +61,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         return;
       }
       if(result!='ok'){
-        alert('join: '+result);
+        this.setGameMsg('join: '+result);
       }
     });
     // update world
@@ -237,7 +237,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     }else{
       // update world
       this.world.setNick(this.localState.nick);
-      //this.world.setTeamPos(this.localState.isRed); NEEDED?
+      this.world.setTeamPos(this.localState.isRed);
 
       this.world.resetGateRotation();
 
@@ -427,6 +427,26 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.playAudio('wrong');
     }
   }
+  checkFlagDrop(){
+    if(!this.holdingFlag){
+      return;
+    }
+    //this.world.setFlagHolders(); - let mngr state take care of this
+
+    deepStream.client.rpc.make('client',{
+      type:"flagDrop",
+      isRed: this.localState.isRed,
+      nick: this.localState.nick
+    },(error,result) => {
+      if(error){
+        _this.onError(error);
+        return;
+      }
+      if(result!='ok'){
+        this.setGameMsg('flagDrop: '+result);
+      }
+    });
+  }
   //////////////////////////////////////////////////////////
   broadcastState(){
     let cam = this.world.camera;
@@ -447,13 +467,14 @@ class Game /*extends THREE.EventDispatcher*/ {
       if(!this.passingGate && gate){
         console.log(`enter ${gate.name}`);
         this.passingGate = gate;
+        return; // avoid collision check
       }
       // exit of gate pass
-      else if(this.passingGate && !gate){
+      if(this.passingGate && !gate){
         console.log(`exit ${this.passingGate.name}`);
         this.passInGate(this.passingGate);
         this.passingGate = null;
-        return;
+        return; // avoid collision check
       }
 
       // collision detection
@@ -470,6 +491,8 @@ class Game /*extends THREE.EventDispatcher*/ {
           dir:direction,
           nick: this.localState.nick
         });
+        // return flag if holders
+        this.checkFlagDrop()
         // return to start
         this.world.returnToStart(()=>{
           this.exploding = false;

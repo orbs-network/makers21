@@ -2,6 +2,7 @@ class Flags  {
   //////////////////////////////////////////////////////////
   constructor(){
 		this.dict ={};
+		this.parent ={};
 		this.gates ={};
   }
 	//////////////////////////////////////////////////////////
@@ -35,13 +36,21 @@ class Flags  {
 		obj.position.y = gate.position.y - bbox.getSize().y /2;
 	}
 	//////////////////////////////////////////////////////////
+	detach(name) {
+		const flag = this.dict[name];
+		if(this.parent[name]){
+			this.parent[name].remove(flag);
+			this.parent[name] = null;
+		}
+		return flag;
+	}
+	//////////////////////////////////////////////////////////
 	attachTo(name, parent) {
 		const obj = this.dict[name];
-
-		// detach first
-		//obj.remove();
 		// attach
 		parent.add(obj);
+		// keep for detach
+		this.parent[name] = parent;
 	}
 	//////////////////////////////////////////////////////////
 	setPosCamera(name) {
