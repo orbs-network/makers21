@@ -66,7 +66,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     });
     // update world
     this.world.setNick(this.localState.nick);
-    this.world.setTeam(this.localState.isRed);
+    this.world.setTeamPos(this.localState.isRed);
   }
   //////////////////////////////////////////////////////////
   onLeave(){
@@ -102,13 +102,13 @@ class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   uxInit(){
     // handler for join
-    document.getElementById("join").addEventListener("click",this.onJoin.bind(this));
-    document.getElementById("leave").addEventListener("click",this.onLeave.bind(this));
-    document.getElementById("start").addEventListener("click",this.onStart.bind(this));
+    document.getElementById('join').addEventListener('click',this.onJoin.bind(this));
+    document.getElementById('leave').addEventListener('click',this.onLeave.bind(this));
+    document.getElementById('start').addEventListener('click',this.onStart.bind(this));
     // UI events
-    document.getElementById("nick").addEventListener("input",(e)=>{
+    document.getElementById('nick').addEventListener('input',(e)=>{
       // show/hide chose team
-      document.getElementById("choose-team").style.display = (e.target.value.length > 2)? 'block':'none';
+      document.getElementById('choose-team').style.display = (e.target.value.length > 2)? 'block':'none';
       if(e.target.value.length > 2){
         this.localState.nick = e.target.value;
         this.saveLocalState();
@@ -237,7 +237,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     }else{
       // update world
       this.world.setNick(this.localState.nick);
-      this.world.setTeam(this.localState.isRed);
+      //this.world.setTeamPos(this.localState.isRed); NEEDED?
 
       this.world.resetGateRotation();
 
@@ -307,24 +307,27 @@ class Game /*extends THREE.EventDispatcher*/ {
     // not joined - show joined
     document.getElementById('joined').style.display = joined? "block":"none";
 
+    // show [start] only of ready and joined team
+    document.getElementById('start').style.display = (state.ready && joined)? 'block':'none';
+
     if(!joined){
       document.getElementById('inputs').style.display = "block";
       // neutral
-      this.world.setTeam(null);
+      this.world.setTeamPos(null);
       return;
     }
+    // world team (on load after joined)
+    this.world.setTeamPos(this.localState.isRed);
 
     //////////////////////////////////////////////////////////
     //joined
     // set nick "joined as"
     const team = this.localState.isRed? 'red':'blue';
+
     document.getElementById('nick-join').innerHTML = this.localState.nick;
     document.getElementById('nick-join').setAttribute('class', team);
     document.getElementById('team-join').innerHTML = team;
     document.getElementById('team-join').setAttribute('class', team);
-
-    // show start only of ready and joined team
-    document.getElementById('start').style.display = state.ready? "block":"none";
   }
   //////////////////////////////////////////////////////////
   onEvent(data){

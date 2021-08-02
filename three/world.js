@@ -366,7 +366,7 @@ class World {
   }
   //////////////////////////////////////////////////////////
   // set this player's team
-  setTeam(isRed){
+  setTeamPos(isRed){
     // no team - set center
     if(isRed == null){
       this._camera.position.z = 0;
