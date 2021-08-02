@@ -1,20 +1,15 @@
 class Flags  {
   //////////////////////////////////////////////////////////
   constructor(){
-	  this.manager = new THREE.LoadingManager();
-	  this.loader = new THREE.OBJLoader();
 		this.dict ={};
 		this.gates ={};
   }
 	//////////////////////////////////////////////////////////
-  createFlag(model, scene, gate, name, color, scale) {
-		let object = new THREE.Object3D();
-    object.copy(model);
-
+  createFlag(object, scene, gate, name, color, scale) {
 		// set material and color
 		object.traverse( function ( child ) {
 			if ( child instanceof THREE.Mesh ) {
-				child.material.color.setHex(color);
+				child.material.color.set(color);
 			}
 		});
 
@@ -51,8 +46,8 @@ class Flags  {
 	//////////////////////////////////////////////////////////
 	setPosCamera(name) {
 		const obj = this.dict[name];
-		obj.position.z = -SIZE/1.8;
-		obj.position.y = 3;
+		obj.position.z = -SIZE/3;
+		obj.position.y = 1.5;
 		obj.position.x = 0;
 	}
 }

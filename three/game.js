@@ -6,6 +6,8 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.moving = false;
     this.first = true;
     this.exploding = false;
+    this.holdingFlag = false;
+    this.passingGate = null;
 
     // this.v2.x = ( 0.5 ) * 2 - 1;
 	  // this.v2.y = - ( 0.5 ) * 2 + 1;
@@ -237,13 +239,13 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.world.setNick(this.localState.nick);
       this.world.setTeam(this.localState.isRed);
 
-      // [press any key to start]
       this.world.resetGateRotation();
 
       // handle Flags
-      this.world.setFlagHolders(this.localState, this.mngrState);
+      this.holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
+      this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
 
-      // space bar
+      // [press any key to start]
       document.body.addEventListener("keydown",this.keydown.bind(this));
 
       // init controls
@@ -264,10 +266,17 @@ class Game /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     // game already started
     if(state.started){
-      if(joined){
+      // first means hasnt moved, after reload
+      if(joined && this.first){
         // return/start game
         this.onGameStarted();
       }else{
+        // Ongoing game update (not first since reload)
+
+        // Handle Flags
+        this.holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
+        this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
+
         document.getElementById('inputs').style.display = "none";
         document.getElementById('teams').style.display = "none";
         document.getElementById('started').innerText = "game has started - please wait for next game to start";
@@ -400,9 +409,11 @@ class Game /*extends THREE.EventDispatcher*/ {
           this.setGameMsg('gatePass: '+result );
           this.playAudio('wrong');
           return;
+        }else{
+          this.holdingFlag = true;
+          // SUCCESS - you are the holder of the flag
+          this.playAudio('success');
         }
-        // SUCCESS - you are the holder of the flag
-        this.playAudio('success');
       });
 
     }else{
@@ -427,9 +438,18 @@ class Game /*extends THREE.EventDispatcher*/ {
         return;
       }
 
+      // always check (even when passing to know if exited)
       const gate = this.world.checkGatePass();
-      if(gate){
-        this.passInGate(gate);
+      // enter gate pass
+      if(!this.passingGate && gate){
+        console.log(`enter ${gate.name}`);
+        this.passingGate = gate;
+      }
+      // exit of gate pass
+      else if(this.passingGate && !gate){
+        console.log(`exit ${this.passingGate.name}`);
+        this.passInGate(this.passingGate);
+        this.passingGate = null;
         return;
       }
 

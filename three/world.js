@@ -19,6 +19,11 @@ class World {
         // called when resource is loaded
         ( object ) =>{
           console.log( '100% loaded' );
+          // default white
+          object.traverse( function ( child ){
+            if ( child instanceof THREE.Mesh )
+              child.material.color.setRGB (1, 1, 1);
+          });
           this.models[name] = object;
           resolve();
         },
@@ -32,8 +37,18 @@ class World {
           reject();
         }
       );
-
     });
+  }
+  createModelClone(name){
+    //let object = new THREE.Object3D();
+    //object.copy(model);
+    let clone = this.models[name].clone();
+    clone.traverse((node) => {
+      if (node.isMesh) {
+        node.material = node.material.clone();
+      }
+    });
+    return clone;
   }
   //////////////////////////////////////////////////////////
   loadModels(cb){
@@ -97,8 +112,8 @@ class World {
     this.blueGate.passSphere = new THREE.Sphere(this.blueGate.position, GATE_SIZE/1.5);
 
     // Flags
-    this.flags.createFlag(this.models['flag'], this.scene, this.blueGate, 'red', 0xFF0000, .003);
-    this.flags.createFlag(this.models['flag'], this.scene, this.redGate, 'blue', 0x0000FF, .003);
+    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.blueGate, 'red', 0xFF0000, .002);
+    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.redGate, 'blue', 0x0000FF, .002);
 
     // create players
     this.players = new Players(this);
@@ -168,7 +183,7 @@ class World {
     // add internal sphere for gate pass calc
     geometry = new THREE.SphereGeometry( GATE_SIZE/1.5, 16, 16 );
     const sColor = color === RED2? 0xFF0000 : 0x0000FF;
-    material = new THREE.MeshBasicMaterial( {color: sColor, side: THREE.DoubleSide, transparent: true, opacity: 0.2} );
+    material = new THREE.MeshBasicMaterial( {color: 0xFFFFFF, side: THREE.DoubleSide, transparent: true, opacity: 0.1} );
     const sphere = new THREE.Mesh( geometry, material );
     sphere.name = 'gatePass';
     gate.add( sphere );
@@ -313,9 +328,9 @@ class World {
     //const intersects = this.raycaster.intersectObject( this.blueGate );
 
     if(intersects && intersects.length){
-      console.log(intersects.length, intersects[0].distance);
+      //console.log(intersects.length, intersects[0].distance);
       // for(let i of intersects){
-      if (intersects[0].distance < 1){
+      if (intersects[0].distance < 0.1){
         return true;
       }
 
@@ -369,15 +384,15 @@ class World {
     this.players.setTeams(red, blue);
   }
   //////////////////////////////////////////////////////////
-  setFlagHolders(localState, mngrState){
+  setFlagHolders(holdingFlag, localState, mngrState){
     // TODO: move to gates
     // Im the Holder
-    if (localState.nick === mngrState.redHolder || localState.nick === mngrState.blueHolder){
+    if (holdingFlag){
       // attach correct flag to self/camera
-      const name = localState.isRed?"blue":"red";
+      const name = localState.isRed? "blue":"red";
       this.flags.attachTo(name, this._camera);
       this.flags.setPosCamera(name);
-    }else{
+    }else if(mngrState.redHolder || mngrState.blueHolder){ // someone is the holder
       // TODO: Impel
       // if(mngrState.redHolder){
       //   this.flags.attachTo(isRed? "red":"blue", players.get(mngrState.redHolder));
@@ -385,6 +400,8 @@ class World {
       // if(mngrState.blueHolder){
       //   this.flags.attachTo(!isRed?"red":"blue", players.get(mngrState.blueHolder));
       // }
+    }else{ // no holders, return to gates
+
     }
   }
   //////////////////////////////////////////////////////////

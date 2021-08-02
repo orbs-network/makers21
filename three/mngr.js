@@ -150,7 +150,7 @@ class Mngr /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   onGatePass(data, res){
     //const team = data.isRed? this.state.red:;
-    const flagHolder = data.isRed? 'redHolder' : 'blueHolder';
+    const flagHolder = data.isRed? 'blueHolder':'redHolder';
     // flag is captured
     if(!this.state[flagHolder]){
       this.state[flagHolder] = data.nick;
