@@ -181,16 +181,13 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(this.moving){
       if(this.first){
         this.first = false;
-        this.world.onFirst();
+        //this.world.onFirst();
       }
-      else{
-        //this.sound.play();
-      }
-
+      this.world.sound.play();
     }
     // stop
     else{
-      //this.sound.pause();
+      this.world.sound.pause();
     }
   }
   //////////////////////////////////////////////////////////

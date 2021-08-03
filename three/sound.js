@@ -30,18 +30,26 @@ class Sound {
     this.addAsync.apply(this, params);
   }
   ////////////////////////////////////////////////
-  add(name, obj, loop, refDistance, volume){
-    this.tasks.push([name, obj, loop, refDistance, volume, this.next.bind(this)]);
+  add(name, obj, loop, refDistance, volume, duration){
+    this.tasks.push([name, obj, loop, refDistance, volume, duration, this.next.bind(this)]);
     this.next();
   }
   ////////////////////////////////////////////////
-  addAsync(name, obj, loop, refDistance, volume, cb){
+  addAsync(name, obj, loop, refDistance, volume, duration, cb){
     // create the PositionalAudio object (passing in the listener)
     const sound = new THREE.PositionalAudio( this.listener );
     this.getBuffer(name, (buffer)=>{
       sound.setBuffer( buffer );
       sound.setRefDistance( /*config.size/30*/ refDistance? refDistance : 1  );
       sound.setVolume( volume? volume : 0.1 );
+      if(duration){
+        if(loop){
+          sound.setLoopEnd(duration);
+        }else{
+          sound.duration = duration;
+        }
+
+      }
       sound.name = "sound_"+name;
       //sound.setDistanceModel("orientationX");
       // finally add the sound to the mesh
@@ -56,8 +64,11 @@ class Sound {
   }
   ////////////////////////////////////////////////
   play(){
+    // play all exclude explosions - by demand
     for(let s of this.positionals){
-      s.play();
+      if(s.name.indexOf('explode') == -1){
+        s.play();
+      }
     }
   }
   ////////////////////////////////////////////////

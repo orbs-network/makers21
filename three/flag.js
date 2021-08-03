@@ -7,7 +7,7 @@ class Flags  {
 		this.airplanePos = new THREE.Vector3(0,0,0);
   }
 	//////////////////////////////////////////////////////////
-  createFlag(object, scene, gate, name, color, scale) {
+  createFlag(object, scene, gate, name, color, scale, sound) {
 		// set material and color
 		object.traverse( function ( child ) {
 			if ( child instanceof THREE.Mesh ) {
@@ -26,6 +26,13 @@ class Flags  {
 		// center down
 		this.moveToGate(name);
 		scene.add( object );
+
+		// add sound
+		// const distance= config.size * 1.5;
+		// const volume= 0.5;
+		// const duration= 0.3;
+		// //add(name, obj, loop, refDistance, volume, duration){
+		// sound.add('flag.wav', object, true, volume, distance, volume, 1.5);
   }
 	//////////////////////////////////////////////////////////
 	moveToGate(name) {
@@ -60,26 +67,28 @@ class Flags  {
 	setPosCamera(name) {
 		let obj = this.dict[name];
 		obj.position.set(0, 1.5, -SIZE/3);
+		// let sound = obj.getObjectByName('sound_flag');
+		// if(sound){
+		// 	sound.pause();
+		// }
 	}
 	//////////////////////////////////////////////////////////
 	setAirplanePosition(name) {
 		console.log("setAirplanePosition", name);
 		let obj = this.dict[name];
 
-		obj.position.set(0,SIZE/100,0);
-		//obj.updateMatrixWorld(true);
-		//obj.parent.updateMatrixWorld(true);
+		obj.position.set(0, SIZE/500, 0);
 
-		// obj.position.z = 0;
-		// //obj.position.y = SIZE/20;
-		// obj.position.y = 0;
-		// obj.position.x = 0;
+		// let sound = obj.getObjectByName('sound_flag');
+		// if(sound){
+		// 	sound.play();
+		// }
 	}
 	//////////////////////////////////////////////////////////
-	rotate(speed) {
+	rotate() {
 		if(Object.keys(this.dict).length == 2){
-			this.dict['red'].rotateY(config.gateSpeed/3);// rotation.y -= speed;
-			this.dict['blue'].rotateY(-config.gateSpeed/3);// rotation.y += config.gateSpeed;
+			this.dict['red'].rotateY(config.gateSpeed*2);// rotation.y -= speed;
+			this.dict['blue'].rotateY(-config.gateSpeed*2);// rotation.y += config.gateSpeed;
 		}
 	}
 }

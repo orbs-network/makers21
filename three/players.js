@@ -29,7 +29,7 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   addSound(sound){
-    sound.add('fly-by.wav', this.obj);
+    sound.add('fly-by.wav', this.obj, true);
     sound.add('explode.wav', this.obj, false, config.size, 1);
   }
   //////////////////////////////////////////////////////////
@@ -162,7 +162,7 @@ class Players{
     //let p = new THREE.Mesh();
     p.copy(this.model);
     // scale
-    const s = 2;// was2
+    const s = SIZE/3;// was2
     p.scale.set(s,s,s);
 
     p.name = nick;

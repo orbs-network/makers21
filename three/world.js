@@ -119,15 +119,18 @@ class World {
     // pass
     this.blueGate.passSphere = new THREE.Sphere(this.blueGate.position, GATE_SIZE/1.5);
 
+     // sound
+    //init from user ket down in game this.initSound();
+    // or is it ok to init here, and only play when user action?
+    this.initSound();
+
     // Flags
-    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.blueGate, 'red', 0xFF0000, .002);
-    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.redGate, 'blue', 0x0000FF, .002);
+    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.blueGate, 'red', 0xFF0000, .002, this.sound);
+    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.redGate, 'blue', 0x0000FF, .002, this.sound);
 
     // create players
     this.players = new Players(this);
-
-    // sound
-    //init from user ket down in game this.initSound();
+    this.players.initSound(this.sound);
   }
   //////////////////////////////////////////////////////////
   createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos){
@@ -204,7 +207,7 @@ class World {
     this.sound.add('gate.wav', this.redGate, true);
     this.sound.add('gate.wav', this.blueGate, true);
 
-    this.players.initSound(this.sound);
+
     //this.explode.initSound(this.sound);
 
     // add explode sound to camera
@@ -213,13 +216,13 @@ class World {
     this.sound.add('explode.wav', this._camera, loop, config.size, vol);
   }
   //////////////////////////////////////////////////////////
-  onFirst(){
-    this.initSound();
-    let sound = this.redGate.getObjectByName('sound_gate.wav');
-    if(sound) sound.play();
-    sound = this.blueGate.getObjectByName('sound_gate.wav');
-    if(sound) sound.play();
-  }
+  // onFirst(){
+  //   this.initSound();
+  //   let sound = this.redGate.getObjectByName('sound_gate.wav');
+  //   if(sound) sound.play();
+  //   sound = this.blueGate.getObjectByName('sound_gate.wav');
+  //   if(sound) sound.play();
+  // }
   //////////////////////////////////////////////////////////
   createCamera(){
     this._camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
