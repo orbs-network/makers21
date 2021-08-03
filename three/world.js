@@ -10,6 +10,13 @@ class World {
     this.models = {};
   }
   //////////////////////////////////////////////////////////
+  reset(){
+    if(this.tidReturn){
+      clearInterval(this.tidReturn);
+    }
+    this.players.reset();
+  }
+  //////////////////////////////////////////////////////////
   loadModel(name){
     return new Promise((resolve, reject) => {
       // load a resource
@@ -328,7 +335,7 @@ class World {
     //const intersects = this.raycaster.intersectObject( this.blueGate );
 
     if(intersects && intersects.length){
-      console.log(intersects.length, intersects[0].distance, `thresh: ${config.collisionDistance}`);
+      //console.log(intersects.length, intersects[0].distance, `thresh: ${config.collisionDistance}`);
       // for(let i of intersects){
       if (intersects[0].distance < config.collisionDistance){
         return true;
@@ -371,11 +378,17 @@ class World {
     if(isRed == null){
       this._camera.position.z = 0;
       this._camera.position.x = 0;
+      this._camera.position.y = SIZE/2 ;
       return;
     }
     this.startLineZ = SIZE * (isRed? 1.5 : -1.5);
+    this.startLineY = SIZE/2 ;
+    this.startLineX = 0;
+
     this._camera.position.z = this.startLineZ
     this._camera.rotation.y = isRed? 0 : Math.PI * (360 / 360);
+
+    //this.startLineRot = this._camera.rotation;
     //this._camera.lookAt(isRed? this.redGate : this.blueGate);
   }
   //////////////////////////////////////////////////////////
@@ -384,51 +397,61 @@ class World {
     this.players.setTeams(red, blue);
   }
   //////////////////////////////////////////////////////////
+  attachFlagToHolderOrGate(holderNick, flagIsRed){
+    // detach
+    const flagName = flagIsRed? 'red':'blue';
+    const flag = this.flags.detach(flagName);
+    if(holderNick){ // Add to holder
+      console.log('attachFlagToHolder', flagName, holderNick);
+      const holder = this.players.getPlayer(holderNick).obj;
+      this.flags.attachTo(flagName, holder);
+      this.flags.setAirplanePosition(flagName);
+    }
+    else{ // return to gate
+      const gateName = flagIsRed? 'blue':'red';
+      console.log('attachFlagToGate', flagName, 'gate='+gateName);
+      this.flags.moveToGate(flagName);
+      this.scene.add(flag);
+    }
+  }
+  //////////////////////////////////////////////////////////
   setFlagHolders(holdingFlag, localState, mngrState){
-    const name = localState.isRed? "blue":"red";
+    console.log('setFlagHolders');
     // Im the Holder
     if (holdingFlag){
+      let name = localState.isRed? "blue":"red";
       // attach correct flag to self/camera
       this.flags.attachTo(name, this._camera);
       this.flags.setPosCamera(name);
     }else {
-      const flag = this.flags.detach(name);
-      // attach to blue player
-      if(mngrState.redHolder){
-        this.flags.attachTo(isRed? "red":"blue", players.get(mngrState.redHolder));
-      }
-      else{
-        this.flags.moveToGate("blue");
-        this.scene.add(flag);
-      }
-      // attach to red player
-      if(mngrState.blueHolder){
-        this.flags.attachTo(!isRed?"red":"blue", players.get(mngrState.blueHolder));
-      }else{
-        this.flags.moveToGate("red");
-        this.scene.add(flag);
-      }
+      this.attachFlagToHolderOrGate(mngrState.redHolder, true);
+      this.attachFlagToHolderOrGate(mngrState.blueHolder, false);
     }
-
   }
   //////////////////////////////////////////////////////////
-  returnToStart(cb){
-    const tid = setInterval(()=>{
+  returnToStart(cb, controls, targetGate){
+    this.tidReturn = setInterval(()=>{
       let zDiff = this.startLineZ - this._camera.position.z ;
       let yDiff = this.startLineY - this._camera.position.y ;
+      let xDiff = this.startLineX - this._camera.position.x ;
       //console.log('returnToStart zDiff', zDiff);
-      if(Math.abs(zDiff) <= 0.1){
+      if(Math.abs(zDiff) <= 0.5){
         console.log('DONE!', zDiff);
         this._camera.position.z = this.startLineZ;
         this._camera.position.y = this.startLineY;
-        clearTimeout(tid);
+        this._camera.position.x = this.startLineX;
+        clearInterval(this.tidReturn);
+        this.tidReturn = null;
         return cb();
       }
-      zDiff *= 0.05;
-      yDiff *= 0.05;
+      zDiff *= 0.08;
+      yDiff *= 0.08;
+      xDiff *= 0.08;
       this._camera.position.z += zDiff;
       this._camera.position.y += yDiff;
+      this._camera.position.x += xDiff;
       //this._camera.lookAt(this.redGate);
+      controls.lookAt(targetGate.position);
     },30);
 
   }
@@ -450,6 +473,7 @@ class World {
     // rotate gates
     this.redGate.rotateY(config.gateSpeed);// rotation.y -= config.gateSpeed;
     this.blueGate.rotateY(-config.gateSpeed);// rotation.y += config.gateSpeed;
+    this.flags.rotate();
 
     // players
     this.players.update();

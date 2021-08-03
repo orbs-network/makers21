@@ -38,6 +38,17 @@ div{
     text-align: center;
 }
 
+#game-over{
+    display:none;
+    position: absolute;
+    top: 130px;
+    right: 25%;
+    width: 50%;
+    border: 1px solid silver;
+    text-align: center;
+    font-size: xx-large;
+}
+
 
 .control-panel {
     background-color: #0000004D;

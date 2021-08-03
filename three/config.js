@@ -9,7 +9,7 @@ const WHITE = 0xFFFFFF;
 
 window.config = {
   size:SIZE ,
-  speed: SIZE/80,
+  speed: SIZE/150,
   //speed: BASE_SIZE/100,
   //speed: 0,
   fps:30,

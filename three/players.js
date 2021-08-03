@@ -91,6 +91,16 @@ class Players{
 		deepStream.subscribe("player", this.onEvent.bind(this));
   }
   //////////////////////////////////////////////////////////
+  reset(){
+    // remove objects from scene
+    for(const p of this.all()){
+      this.world.scene.remove(p);
+    }
+    // remove all wrapping players
+    this.dict = {};
+
+  }
+  //////////////////////////////////////////////////////////
   setTeams(red,blue){
     this.red = red;
     this.blue = blue;
@@ -176,7 +186,6 @@ class Players{
 
     return new THREE.Mesh(geometry, material);
   }
-
   //////////////////////////////////////////////////////////
   all(){
     let all = [];

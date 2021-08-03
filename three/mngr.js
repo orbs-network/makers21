@@ -1,6 +1,11 @@
 class Mngr /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   constructor(){
+    this.resetState();
+    localStorage.setItem('state', this.state);
+  }
+  //////////////////////////////////////////////////////////
+  resetState(){
     this.state = {
       started:false, // playing now
       ready:false, // enough players are connected
@@ -9,11 +14,21 @@ class Mngr /*extends THREE.EventDispatcher*/ {
       clients:new Set(),
       redHolder:null,
       blueHolder:null,
+      winnerNick:null,
+      winnerIsRed:false
     };
-    localStorage.setItem('state', this.state);
   }
   //////////////////////////////////////////////////////////
-  start(){
+  reset(){
+    this.resetState();
+    this.state.needReset = true;
+    this.tellState();
+    this.state.needReset = false;
+    this.saveState();
+  }
+  //////////////////////////////////////////////////////////
+  init(){
+    $('#reset').click(this.reset.bind(this));
     //setFields
     this.updateUI();
     // rpcServer.
@@ -39,6 +54,10 @@ class Mngr /*extends THREE.EventDispatcher*/ {
         break;
       case 'flagDrop':
         this.onFlagDrop(data, res);
+        break;
+      case 'reset':
+        this.reset();
+        res.send('ok');
         break;
     }
 
@@ -66,6 +85,8 @@ class Mngr /*extends THREE.EventDispatcher*/ {
     this.state.started = true;
     this.state.startedBy = data.nick;
     this.state.startTs = dt.getTime();
+    this.state.winnerNick = null;
+    this.state.winnerIsRed =false;
     this.tellState();
     this.saveState();
 
@@ -157,10 +178,22 @@ class Mngr /*extends THREE.EventDispatcher*/ {
     res.send('ok');
     // update everyone via state
     this.tellState();
-    this.saveState()
+    this.saveState();
   }
   //////////////////////////////////////////////////////////
   onGatePass(data, res){
+    // win
+    if(data.winGate){
+      this.state.winnerNick = data.nick;
+      this.state.winnerIsRed = (data.isRed == true);
+      console.log('winnerNick!',this.state.winnerNick);
+      console.log('winnerIsRed!',this.state.winnerIsRed);
+      res.send('ok');
+      this.tellState();
+      this.saveState();
+      return;
+    }
+
     const flagHolder = data.isRed? 'blueHolder':'redHolder';
     // flag is captured
     if(!this.state[flagHolder]){
@@ -185,6 +218,8 @@ class Mngr /*extends THREE.EventDispatcher*/ {
     // game started
     $('#started').text(`started: ${state.started? 'true':'pending'}`);
     $('#ready').text(`ready: ${state.ready? 'yes':'team size not equal or zero'}`);
+    $('#winnerNick').text(this.state.winnerNick);
+    $('#winnerIsRed').text(this.state.winnerIsRed);
 
     // red & blue teams
     let $red = $('#red');
@@ -205,7 +240,6 @@ class Mngr /*extends THREE.EventDispatcher*/ {
     $('#redHolder').text(this.state.redHolder || 'NONE');
     $('#blueHolder').text(this.state.blueHolder || 'NONE');
 
-    // clients
     // clients connected
     const $clients = $('#clients');
     const arr = Array.from(this.state.clients);
@@ -214,10 +248,18 @@ class Mngr /*extends THREE.EventDispatcher*/ {
         var li = $('<li/>').appendTo($clients);
         li.text(arr[i]);
     });
+
+    // reset
+    if(this.state.started){
+      $('#reset').show();
+    }else{
+      $('#reset').hide();
+    }
+
   }
 }
 
 $(document).ready(function(){
   let mngr = new Mngr();
-  mngr.start();
+  mngr.init();
 })

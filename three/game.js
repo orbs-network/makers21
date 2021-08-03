@@ -1,20 +1,18 @@
 class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   constructor(){
-    //super();
-
+    this.resetMembers();
+    this.loadLocalState();
+  }
+  //////////////////////////////////////////////////////////
+  resetMembers(){
     this.moving = false;
     this.first = true;
     this.exploding = false;
     this.holdingFlag = false;
     this.passingGate = null;
-
-    // this.v2.x = ( 0.5 ) * 2 - 1;
-	  // this.v2.y = - ( 0.5 ) * 2 + 1;
-    //this.v3 =  new THREE.Vector3(0.5,0.5,0.5);
-
-    //this.steering = new Steering();
-    this.loadLocalState();
+    this.gameOver = false;
+    // NEED THIS! this.mngrState = null;
   }
   //////////////////////////////////////////////////////////
   loadLocalState(){
@@ -45,6 +43,37 @@ class Game /*extends THREE.EventDispatcher*/ {
   onError(error){
     console.error(error);
     alert(error);
+  }
+  //////////////////////////////////////////////////////////
+  // oposite to on game start
+  resetAll(){
+    console.log('reset ALL');
+    this.resetMembers();
+
+    // update world
+    this.world.setNick(this.localState.nick);
+    this.world.setTeamPos(null);
+    this.world.resetGateRotation();
+
+    // 321 stop if in middle
+    if(this.tid321){
+      clearInterval(this.tid321);
+      this.tid321 = null;
+    }
+
+    // handle Flags
+    this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
+    this.world.reset();
+
+    // [press any key to start]
+    document.body.removeEventListener('keydown',this.keydown);
+
+    // init controls
+    this.initControls(false);
+    // start broadcast interval
+    this.startUpdateLoop(false);
+    // to enable start stop
+    this.setGameMsg('game has been reset!');
   }
   //////////////////////////////////////////////////////////
   onJoin(){
@@ -97,7 +126,16 @@ class Game /*extends THREE.EventDispatcher*/ {
         return;
       }
       //this.onMngrState(result.state);
-    })
+    });
+  }
+  //////////////////////////////////////////////////////////
+  onReset(){
+    deepStream.client.rpc.make( 'client', {type:'reset', nick:this.localState.nick}, (error, result) => {
+      if(error){
+        console.error('reset',error);
+        return;
+      }
+    });
   }
   //////////////////////////////////////////////////////////
   uxInit(){
@@ -105,6 +143,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('join').addEventListener('click',this.onJoin.bind(this));
     document.getElementById('leave').addEventListener('click',this.onLeave.bind(this));
     document.getElementById('start').addEventListener('click',this.onStart.bind(this));
+    document.getElementById('reset').addEventListener('click',this.onReset.bind(this));
     // UI events
     document.getElementById('nick').addEventListener('input',(e)=>{
       // show/hide chose team
@@ -119,6 +158,11 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   startStop(){
+    if(!this.moving && this.exploding){
+      this.playAudio('wrong');
+      console.log('cant start while exploding')
+      return;
+    }
     this.moving = !this.moving;
     this.controls.autoForward = this.moving;
     this.controls.enabled = this.moving;
@@ -152,13 +196,16 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
   };
   //////////////////////////////////////////////////////////
-  initControls(){
+  initControls(init){
+    if(!this.controls){
+      this.controls = new THREE.FirstPersonControls(this.world.camera, this.world.renderer.domElement);
+      this.controls.activeLook = true;
+      this.controls.movementSpeed = config.speed;
+    }
+    this.controls.enabled = init;
     //this.controls = new THREE.TmpControls(this., this.renderer.domElement);
     //this.controls = TrackballControls( this., this.renderer.domElement );
-    this.controls = new THREE.FirstPersonControls(this.world.camera, this.world.renderer.domElement);
-    this.controls.activeLook = true;
-    this.controls.enabled = false;
-    this.controls.movementSpeed = config.speed;
+
 
     // this.controls.constrainVertical = true;
     //this.controls.mouseDrageOn = true;
@@ -201,10 +248,13 @@ class Game /*extends THREE.EventDispatcher*/ {
   show321(){
     let sec = 0;
     this.playAudio('ping');
-    let tid321 = setInterval(() =>{
+    this.tid321 = setInterval(() =>{
       const diff = this.mngrState.startTs - Date.now();
       if(diff < 0 ){
-        clearInterval(tid321);
+        if(this.tid321){
+          clearInterval(this.tid321);
+          this.tid321 = null;
+        }
         // resume
         this.onGameStarted();
         return;
@@ -249,19 +299,45 @@ class Game /*extends THREE.EventDispatcher*/ {
       document.body.addEventListener("keydown",this.keydown.bind(this));
 
       // init controls
-      this.initControls();
+      this.initControls(false);
       // start broadcast interval
-      this.broadcastState();
+      this.startUpdateLoop(true);
       // to enable start stop
       this.setGameMsg('press any key to start flying!');
     }
+  }
+  //////////////////////////////////////////////////////////
+  onGameOver(){
+    document.getElementById('game-over').style.display = 'block';
+    const winnerTeam = this.mngrState.winnerIsRed? 'red':'blue';
+    document.getElementById('game-over').className = winnerTeam;
+    document.getElementById('winnerNick').innerHTML = `${this.mngrState.winnerNick} has captured the flag!`;
+    document.getElementById('winnerIsRed').innerHTML =`${winnerTeam} TEAM IS THE WINNER`;
   }
   //////////////////////////////////////////////////////////
   onMngrState(state){
     // store
     this.mngrState = state;
 
+    // reset from mngr
+    if(state.needReset){
+      this.resetAll();
+      document.getElementById('game-display').style.display = 'none';
+      document.getElementById('welcome').style.display = 'block';
+    }
+
     const joined = this.isJoined()
+
+    // online status
+    document.getElementById('online').innerText = "connected!";
+
+    //////////////////////////////////////////////////////////
+    // game you have joined - is WON
+    if(joined && state.winnerNick){
+      this.onGameOver();
+      return;
+    }
+    document.getElementById('game-over').style.display = 'none';
 
     //////////////////////////////////////////////////////////
     // game already started
@@ -283,9 +359,6 @@ class Game /*extends THREE.EventDispatcher*/ {
       }
       return;
     }
-
-    // online status
-    document.getElementById('online').innerText = "connected!";
 
     // ready to start
     document.getElementById('ready-text').innerText = state.ready? "ready to start": "waiting for more players to join";
@@ -393,38 +466,52 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
   }
   //////////////////////////////////////////////////////////
+  tellGatePass(winGate){
+    deepStream.client.rpc.make('client',{
+      type:"gatePass",
+      isRed: this.localState.isRed,
+      winGate:winGate,
+      nick: this.localState.nick
+    },(error,result) => {
+      if(error){
+        _this.onError(error);
+        return;
+      }
+      if(result != 'ok'){
+        this.setGameMsg('gatePass: '+result );
+        this.playAudio('wrong');
+        return;
+      }else{
+        this.holdingFlag = true;
+        // SUCCESS - you are the holder of the flag
+        this.playAudio('success');
+      }
+    });
+  }
+  //////////////////////////////////////////////////////////
   passInGate(gate){
     // team gate
     let _this = this;
     if(this.localState.isRed == (gate.name == "redGate")){
-      console.log('correct gatePass!', gate.name);
+      console.log('collect gatePass!', gate.name);
       // tell mngr
-      deepStream.client.rpc.make('client',{
-        type:"gatePass",
-        isRed: this.localState.isRed,
-        nick: this.localState.nick
-      },(error,result) => {
-        if(error){
-          _this.onError(error);
-          return;
-        }
-        if(result != 'ok'){
-          this.setGameMsg('gatePass: '+result );
-          this.playAudio('wrong');
-          return;
-        }else{
-          this.holdingFlag = true;
-          // SUCCESS - you are the holder of the flag
-          this.playAudio('success');
-        }
-      });
-
+      this.tellGatePass(false);
     }else{
-      // oponnent gate
-      console.log('wrong gatePass!', gate.name);
-      this.setGameMsg(`capture the <span class="${this.localState.isRed?'red':'blue'}">flag</span> before passing in <span class="${this.localState.isRed?'red':'blue'}>gate</span> `);
-
-      this.playAudio('wrong');
+      const team = this.localState.isRed?'red':'blue';
+      // Game Won?
+      if(this.holdingFlag){
+        console.log('WIN - tell manager!!!!!!!!!!!!!!!!!')
+        this.setGameMsg(`<span class="${team}">${team} TEAM</span> WINS thanks to you!`);
+        this.playAudio('success');
+        this.tellGatePass(true);
+        this.gameWon = true;
+      }
+      else{
+        // My team's gate
+        console.log('wrong gatePass!', gate.name);
+        this.setGameMsg(`capture the <span class="${this.localState.isRed?'red':'blue'}">flag</span> before passing in <span class="${this.localState.isRed?'red':'blue'}> this gate</span> `);
+        this.playAudio('wrong');
+      }
     }
   }
   checkFlagDrop(){
@@ -448,16 +535,37 @@ class Game /*extends THREE.EventDispatcher*/ {
     });
   }
   //////////////////////////////////////////////////////////
-  broadcastState(){
+  startUpdateLoop(start){
+    // stop
+    if(!start){
+      if(this.updateLoopTID){
+        clearInterval(this.updateLoopTID);
+        this.updateLoopTID = 0;
+      }
+      return;
+    }
+    // start
     let cam = this.world.camera;
     let direction = new THREE.Vector3();
 
-    setInterval(()=>{
+    this.updateLoopTID = setInterval(()=>{
       // conditions
       if(this.exploding){
         return;
       }
       if(!this.moving){
+        return;
+      }
+      // broadcast position
+      cam.getWorldDirection(direction);
+      deepStream.sendEvent('player',{
+        type:"pos",
+        pos:cam.position,
+        dir:direction,
+        nick: this.localState.nick
+      });
+
+      if(this.gameOver){
         return;
       }
 
@@ -495,23 +603,20 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.checkFlagDrop()
         // return to start
         this.world.returnToStart(()=>{
+          this.controls.lookAt(gate.position);
           this.exploding = false;
-        });
+        }, this.controls, gate);
         return;
       }
-
-      // broadcast position
-      cam.getWorldDirection(direction);
-      deepStream.sendEvent('player',{
-        type:"pos",
-        pos:cam.position,
-        dir:direction,
-        nick: this.localState.nick
-      });
     }, 250);
   }
   //////////////////////////////////////////////////////////
   keydown(e){
+    // not started
+    if(!this.mngrState){
+      return;
+    }
+
     //e.preventDefault = true;
     switch(e.code){
       case "Space":{
@@ -548,9 +653,10 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.labelRenderer.domElement.style.height = window.innerHeight;
 
 	  this.aspect = window.innerWidth / window.innerHeight
-    this.world.camera.updateProjectionMatrix();
+
     //this.updateProjectionMatrix()
     this.world.renderer.setSize(window.innerWidth, window.innerHeight)
+    this.world.camera.updateProjectionMatrix();
 
     // for mouse
     // this.v2.x = ( e.clientX / window.innerWidth ) * 2 - 1;

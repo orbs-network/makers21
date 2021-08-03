@@ -1,7 +1,7 @@
 const { DeepstreamClient } = window.DeepstreamClient
 //const client = new DeepstreamClient('10.11.11.4:6020')
-//const client = new DeepstreamClient('127.0.0.1:6020')
-const client = new DeepstreamClient('192.168.1.113:6020')
+const client = new DeepstreamClient('127.0.0.1:6020')
+//const client = new DeepstreamClient('192.168.1.113:6020')
 
 client.login()
 const uuid = window.deepStreamUUID || client.getUid();//+ "_"+ Date.now(); // TODO: remove
@@ -27,7 +27,7 @@ function subscribe(name, handler){
         if (data.id == uuid) {
             return;
         }
-        console.log('deepstram::event data', data);
+        //console.log('deepstram::event data', data);
         handler(data);
     });
 }

@@ -4,6 +4,7 @@ class Flags  {
 		this.dict ={};
 		this.parent ={};
 		this.gates ={};
+		this.airplanePos = new THREE.Vector3(0,0,0);
   }
 	//////////////////////////////////////////////////////////
   createFlag(object, scene, gate, name, color, scale) {
@@ -39,7 +40,7 @@ class Flags  {
 	detach(name) {
 		const flag = this.dict[name];
 		if(this.parent[name]){
-			this.parent[name].remove(flag);
+			//this.parent[name].remove(flag);
 			this.parent[name] = null;
 		}
 		return flag;
@@ -48,15 +49,37 @@ class Flags  {
 	attachTo(name, parent) {
 		const obj = this.dict[name];
 		// attach
-		parent.add(obj);
+		//parent.add(obj);
+		//parent.updateMatrixWorld(true);
+		//obj.updateMatrix();
+		parent.attach(obj);
 		// keep for detach
 		this.parent[name] = parent;
 	}
 	//////////////////////////////////////////////////////////
 	setPosCamera(name) {
-		const obj = this.dict[name];
-		obj.position.z = -SIZE/3;
-		obj.position.y = 1.5;
-		obj.position.x = 0;
+		let obj = this.dict[name];
+		obj.position.set(0, 1.5, -SIZE/3);
+	}
+	//////////////////////////////////////////////////////////
+	setAirplanePosition(name) {
+		console.log("setAirplanePosition", name);
+		let obj = this.dict[name];
+
+		obj.position.set(0,SIZE/100,0);
+		//obj.updateMatrixWorld(true);
+		//obj.parent.updateMatrixWorld(true);
+
+		// obj.position.z = 0;
+		// //obj.position.y = SIZE/20;
+		// obj.position.y = 0;
+		// obj.position.x = 0;
+	}
+	//////////////////////////////////////////////////////////
+	rotate(speed) {
+		if(Object.keys(this.dict).length == 2){
+			this.dict['red'].rotateY(config.gateSpeed/3);// rotation.y -= speed;
+			this.dict['blue'].rotateY(-config.gateSpeed/3);// rotation.y += config.gateSpeed;
+		}
 	}
 }
