@@ -218,8 +218,12 @@ class Mngr /*extends THREE.EventDispatcher*/ {
     // game started
     $('#started').text(`started: ${state.started? 'true':'pending'}`);
     $('#ready').text(`ready: ${state.ready? 'yes':'team size not equal or zero'}`);
-    $('#winnerNick').text(this.state.winnerNick);
-    $('#winnerIsRed').text(this.state.winnerIsRed);
+    $('#winnerNick').text('Winner is:' +this.state.winnerNick);
+    $('#winnerIsRed').text('Winning Team is:' +this.state.winnerIsRed);
+    if(this.state.winnerNick){
+      $('#winnerIsRed').removeClass(this.state.winnerIsRed? 'blue':'red');
+      $('#winnerIsRed').addClass(this.state.winnerIsRed? 'red':'blue');
+    }
 
     // red & blue teams
     let $red = $('#red');

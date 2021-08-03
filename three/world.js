@@ -13,6 +13,7 @@ class World {
   reset(){
     if(this.tidReturn){
       clearInterval(this.tidReturn);
+      this.tidReturn = null;
     }
     this.players.reset();
   }

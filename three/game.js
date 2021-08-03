@@ -53,6 +53,9 @@ class Game /*extends THREE.EventDispatcher*/ {
     // update world
     this.world.setNick(this.localState.nick);
     this.world.setTeamPos(null);
+    this.world._camera.rotation.set(0,0,0);
+    this.controls.lookAt(this.world.redGate.position);
+
     this.world.resetGateRotation();
 
     // 321 stop if in middle
@@ -64,9 +67,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     // handle Flags
     this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
     this.world.reset();
-
-    // [press any key to start]
-    document.body.removeEventListener('keydown',this.keydown);
 
     // init controls
     this.initControls(false);
@@ -144,6 +144,10 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('leave').addEventListener('click',this.onLeave.bind(this));
     document.getElementById('start').addEventListener('click',this.onStart.bind(this));
     document.getElementById('reset').addEventListener('click',this.onReset.bind(this));
+
+    // [press any key to start]
+    document.body.addEventListener("keydown",this.keydown.bind(this));
+
     // UI events
     document.getElementById('nick').addEventListener('input',(e)=>{
       // show/hide chose team
@@ -295,9 +299,6 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
       this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
 
-      // [press any key to start]
-      document.body.addEventListener("keydown",this.keydown.bind(this));
-
       // init controls
       this.initControls(false);
       // start broadcast interval
@@ -313,6 +314,8 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('game-over').className = winnerTeam;
     document.getElementById('winnerNick').innerHTML = `${this.mngrState.winnerNick} has captured the flag!`;
     document.getElementById('winnerIsRed').innerHTML =`${winnerTeam} TEAM IS THE WINNER`;
+    this.moving = false;
+    startUpdateLoop(false);
   }
   //////////////////////////////////////////////////////////
   onMngrState(state){
@@ -323,6 +326,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(state.needReset){
       this.resetAll();
       document.getElementById('game-display').style.display = 'none';
+      document.getElementById('req-start').style.display = 'none';
       document.getElementById('welcome').style.display = 'block';
     }
 
@@ -504,7 +508,6 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.setGameMsg(`<span class="${team}">${team} TEAM</span> WINS thanks to you!`);
         this.playAudio('success');
         this.tellGatePass(true);
-        this.gameWon = true;
       }
       else{
         // My team's gate
@@ -613,7 +616,8 @@ class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   keydown(e){
     // not started
-    if(!this.mngrState){
+    if(!this.mngrState.started){
+      console.log("cant fly before game started");
       return;
     }
 

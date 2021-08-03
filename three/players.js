@@ -93,11 +93,14 @@ class Players{
   //////////////////////////////////////////////////////////
   reset(){
     // remove objects from scene
-    for(const p of this.all()){
-      this.world.scene.remove(p);
+    for(let p of this.all()){
+      p.visible = false;
+      // THREE.SceneUtils.detach(p, this.world.scene, this.world.scene);
+      // this.world.scene.remove(p);
+      // p.clear();
     }
     // remove all wrapping players
-    this.dict = {};
+    // this.dict = {};
 
   }
   //////////////////////////////////////////////////////////
