@@ -5,8 +5,11 @@ class Mngr /*extends THREE.EventDispatcher*/ {
 
     deepStream.subscribe('mngr',(data)=> {
       console.log('mngr', data);
-      this.updateUI(data);
+      this.updateUI(data.state);
     })
+    setTimeout(()=> {
+      deepStream.sendEvent('mngr-ui', {init:true});
+    }, 500);
 
   }
   //////////////////////////////////////////////////////////
