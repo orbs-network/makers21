@@ -66,7 +66,7 @@ class Sound {
   play(){
     // play all exclude explosions - by demand
     for(let s of this.positionals){
-      if(s.name.indexOf('explode') == -1){
+      if((s.name.indexOf('explode') == -1)){
         s.play();
       }
     }

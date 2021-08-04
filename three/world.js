@@ -3,6 +3,7 @@ class World {
   constructor(){
     this.border = {};
     this.flags = new Flags();
+	this.obstacles = new Obstacles(this);
     this.worldPos = new THREE.Vector3();
     this.worldDir = new THREE.Vector3();
 
@@ -58,6 +59,13 @@ class World {
     });
     return clone;
   }
+
+  createModelGeometry(){
+	const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+	const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+	return new THREE.Mesh( geometry, material );
+  }
+
   //////////////////////////////////////////////////////////
   loadModels(cb){
     let arr = [];
@@ -138,7 +146,11 @@ class World {
     this.flags.createFlag(this.createModelClone('flag'), this.scene, this.blueGate, 'red', 0xFF0000, .002, this.sound);
     this.flags.createFlag(this.createModelClone('flag'), this.scene, this.redGate, 'blue', 0x0000FF, .002, this.sound);
 
-    // create players
+    // Obstacles
+    this.obstacles.generateRandomObstacles(this, 0xFF0000, .002);
+	  // this.createModelGeometry()
+
+	  // create players
     this.players = new Players(this);
     this.players.initSound(this.sound);
 
@@ -223,7 +235,6 @@ class World {
     this.sound = new Sound(this._camera);
     this.sound.add('gate.wav', this.redGate, true);
     this.sound.add('gate.wav', this.blueGate, true);
-
 
     //this.explode.initSound(this.sound);
 
@@ -325,7 +336,6 @@ class World {
     //     return true;
     //   }
     // }
-    // AMI BUFFER CLOSE TO BORDERS
 
     // Y axis
     if(this._camera.position.y < this.border.floor) return true;
@@ -340,9 +350,26 @@ class World {
       console.log('Gate Colision!');
       return true;
     }
+
+    if(this.checkCollisionObstacles()) {
+		console.log('Obstacle Collision!');
+		return true;
+	}
+
   }
+
+  bordersAlarm(){
+
+	const bordersAlarmTh = config.bordersAlarmFactor * config.speed
+
+	return ((this._camera.position.y < this.border.floor + bordersAlarmTh) ||
+	(this._camera.position.y > this.border.ceiling - bordersAlarmTh) ||
+	(this._camera.position.z < this.border.north  + bordersAlarmTh) ||
+	(this._camera.position.z > this.border.south  - bordersAlarmTh))
+
+  }
+
   ////////////////////////////////////////////////////////
-  // AMI rename to also obstacles
   checkColissionGate(){
     // update the picking ray with the camera and mouse position
 	  //this.raycaster.setFromCamera( this.v2, this._camera );
@@ -384,6 +411,30 @@ class World {
       //intersects[ i ].object.material.color.set( 0xffffff );
     //}
   }
+
+	////////////////////////////////////////////////////////
+  checkCollisionObstacles() {
+
+		this._camera.getWorldPosition(this.worldPos);
+		this._camera.getWorldDirection(this.worldDir);
+		this.raycaster.set(this.worldPos, this.worldDir);
+
+		// calculate objects intersecting the picking ray
+		const intersects = this.raycaster.intersectObjects(Object.values(this.obstacles.dict));
+		//const intersects = this.raycaster.intersectObject( this.blueGate );
+
+		if(intersects && intersects.length){
+			//console.log(intersects.length, intersects[0].distance, `thresh: ${config.collisionDistance}`);
+			// for(let i of intersects){
+			if (intersects[0].distance < config.collisionDistance) {
+				return true;
+			}
+
+		}
+
+		return false;
+	}
+
   //////////////////////////////////////////////////////////
   doExplode(){
     this.explode.create(this._camera.position.x, this._camera.position.y, this._camera.position.z );
@@ -405,7 +456,7 @@ class World {
       this._camera.position.y = SIZE/2 ;
       return;
     }
-    this.startLineZ = SIZE * (isRed? 1.5 : -1.5);
+    this.startLineZ = SIZE * (isRed? 1.25 : -1.25);
     this.startLineY = SIZE/2 ;
     this.startLineX = 0;
 

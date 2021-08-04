@@ -67,6 +67,7 @@ class Player{
 
     this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
   }
+
   //////////////////////////////////////////////////////////
   _initLabel(nick, isRed) {
     const playerLabelDiv = document.createElement( 'div' );
@@ -127,9 +128,9 @@ class Players{
       case "explode":
         p.onExplode(data, this.world.explode);
         break;
-
     }
   }
+
   //////////////////////////////////////////////////////////
   update(){
     for ( let nick in this.dict){
