@@ -8,6 +8,8 @@ class Player{
     this.isRed = isRed;
 
     this._initLabel(nick, isRed);
+    this.boundingBox = window.factory.firstPerson.createPlayerBoundingBox(this.obj);
+    this.obj.add(this.boundingBox)
     this.setColor(isRed);
 
     // create sounds
@@ -136,8 +138,8 @@ class Players{
   }
   //////////////////////////////////////////////////////////
   checkIsRed(nick){
-    if(this.red.includes(nick)) return 1;
-    if(this.blue.includes(nick)) return -1;
+    if(this.red?.includes(nick)) return 1;
+    if(this.blue?.includes(nick)) return -1;
     return 0;
   }
   //////////////////////////////////////////////////////////
@@ -194,6 +196,13 @@ class Players{
     let all = [];
     for ( let nick in this.dict){
       all.push(this. dict[nick].obj);
+    }
+    return all;
+  }
+  boundingBoxes() {
+    let all = [];
+    for ( let nick in this.dict){
+      all.push(this. dict[nick].boundingBox);
     }
     return all;
   }

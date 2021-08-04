@@ -87,9 +87,19 @@ class World {
     const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
     this.scene.add(light);
 
+    // renderer
     this._renderer = new THREE.WebGLRenderer();
     this._renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( this._renderer.domElement );
+
+    // 2d renderer
+    this.renderer2d = new THREE.CSS2DRenderer();
+    this.renderer2d.setSize( window.innerWidth, window.innerHeight );
+    this.renderer2d.domElement.style.position = 'absolute';
+    this.renderer2d.domElement.style.top = 0; // IMPORTANT FOR SCROLL
+    // this.labelRenderer.domElement.style.border = "10px solid white";
+    this.renderer2d.domElement.style.pointerEvents = "none";
+    document.body.appendChild( this.renderer2d.domElement );
 
     // create red+blue borders & ceeling
     this.createBorders(RED, 1);
@@ -131,6 +141,13 @@ class World {
     // create players
     this.players = new Players(this);
     this.players.initSound(this.sound);
+
+    // HUD
+    this.hud = window.factory.firstPerson.createHUD()
+    this._camera.add(this.hud)
+
+    // aiming & shooting
+    this.shooting = new Shooting();
   }
   //////////////////////////////////////////////////////////
   createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos){
@@ -475,7 +492,13 @@ class World {
     this.blueGate.rotation.y = 0;
   }
   //////////////////////////////////////////////////////////
-  render(labelRenderer){
+  onresize(e) {
+    this.renderer.setSize(window.innerWidth, window.innerHeight)
+    this.camera.updateProjectionMatrix();
+    this.renderer2d.domElement.style.width = window.innerWidth;
+    this.renderer2d.domElement.style.height = window.innerHeight;
+  }
+  render(){
     // rotate gates
     this.redGate.rotateY(config.gateSpeed);// rotation.y -= config.gateSpeed;
     this.blueGate.rotateY(-config.gateSpeed);// rotation.y += config.gateSpeed;
@@ -485,8 +508,9 @@ class World {
     this.players.update();
     // explosions
     this.explode.beforeRender();
+    this.shooting.render(this.scene, this._camera, this.players);
 
     this._renderer.render(this.scene, this._camera);
-    labelRenderer.render(this.scene, this._camera);
+    this.renderer2d.render(this.scene, this._camera);
   }
 }

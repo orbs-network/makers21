@@ -303,7 +303,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('winnerNick').innerHTML = `${this.mngrState.winnerNick} has captured the flag!`;
     document.getElementById('winnerIsRed').innerHTML =`${winnerTeam} TEAM IS THE WINNER`;
     this.moving = false;
-    startUpdateLoop(false);
+    this.startUpdateLoop(false);
   }
   //////////////////////////////////////////////////////////
   onMngrState(state){
@@ -431,16 +431,6 @@ class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   createWorld(){
     this.world = new World();
-
-    ///////////////////////////
-    // 2d
-    this.labelRenderer = new THREE.CSS2DRenderer();
-    this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
-    this.labelRenderer.domElement.style.position = 'absolute';
-    this.labelRenderer.domElement.style.top = 0; // IMPORTANT FOR SCROLL
-    // this.labelRenderer.domElement.style.border = "10px solid white";
-    this.labelRenderer.domElement.style.pointerEvents = "none";
-    document.body.appendChild( this.labelRenderer.domElement );
   }
   //////////////////////////////////////////////////////////
   playAudio(id){
@@ -634,21 +624,11 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.controls.update(1);
     }
 
-    // actual
-    //this.renderer.render(this.scene, this.);
-    this.world.render(this.labelRenderer);
+    this.world.render();
   }
   //////////////////////////////////////////////////////////
   onresize(e){
-
-    this.labelRenderer.domElement.style.width = window.innerWidth;
-    this.labelRenderer.domElement.style.height = window.innerHeight;
-
-	  this.aspect = window.innerWidth / window.innerHeight
-
-    //this.updateProjectionMatrix()
-    this.world.renderer.setSize(window.innerWidth, window.innerHeight)
-    this.world.camera.updateProjectionMatrix();
+    this.world.onresize(e);
 
     // for mouse
     // this.v2.x = ( e.clientX / window.innerWidth ) * 2 - 1;
