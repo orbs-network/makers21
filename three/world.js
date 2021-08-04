@@ -145,6 +145,9 @@ class World {
     // HUD
     this.hud = window.factory.firstPerson.createHUD()
     this._camera.add(this.hud)
+
+    // aiming & shooting
+    this.shooting = new Shooting();
   }
   //////////////////////////////////////////////////////////
   createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos){
@@ -506,6 +509,7 @@ class World {
     this.players.update();
     // explosions
     this.explode.beforeRender();
+    this.shooting.render(this.scene, this._camera, this.players);
 
     this._renderer.render(this.scene, this._camera);
     this.renderer2d.render(this.scene, this._camera);

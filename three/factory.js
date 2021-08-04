@@ -9,6 +9,9 @@ window.factory = {
       }
       hud.position.set( 0, 0, -1 );
       return hud;
+    },
+    createPlayerBoundingBox: (obj) => {
+      return new THREE.BoxHelper(obj)
     }
   }
 }
