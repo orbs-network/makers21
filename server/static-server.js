@@ -8,7 +8,7 @@ var server = new StaticServer({
   cors: '*',                // optional, defaults to undefined
   followSymlink: true,      // optional, defaults to a 404 error
   templates: {
-    index: 'foo.html',      // optional, defaults to 'index.html'
+    index: 'index.html',      // optional, defaults to 'index.html'
     notFound: '404.html'    // optional, defaults to undefined
   }
 });
