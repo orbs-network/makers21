@@ -6,8 +6,11 @@ class Player{
     this.obj = obj;
     this.moving = false;
     this.isRed = isRed;
+    this.started = false;
 
     this._initLabel(nick, isRed);
+    this.boundingBox = window.factory.firstPerson.createPlayerBoundingBox(this.obj);
+    this.obj.add(this.boundingBox)
     this.setColor(isRed);
 
     // create sounds
@@ -99,6 +102,7 @@ class Players{
       // this.world.scene.remove(p);
       // p.clear();
     }
+    this.started = false;
     // remove all wrapping players
     // this.dict = {};
 
@@ -110,6 +114,11 @@ class Players{
   }
   //////////////////////////////////////////////////////////
   onEvent(data){
+    // ignore all events fly events if game hasnt started
+    if(!this.started){
+      return;
+    }
+
     const p = this.getPlayer(data.nick);
     if(!p){
       console.error(`Player ${data.id} not found`);
@@ -136,8 +145,8 @@ class Players{
   }
   //////////////////////////////////////////////////////////
   checkIsRed(nick){
-    if(this.red.includes(nick)) return 1;
-    if(this.blue.includes(nick)) return -1;
+    if(this.red?.includes(nick)) return 1;
+    if(this.blue?.includes(nick)) return -1;
     return 0;
   }
   //////////////////////////////////////////////////////////
@@ -153,7 +162,7 @@ class Players{
     // return null if not in either team
     const isRed = this.checkIsRed(nick);
     if(!isRed){
-      console.error(`${nick} wasnt found in either team`);
+      console.log(`${nick} wasnt found in either team`);
       console.log('blue team:', this.blue.join());
       console.log('red  team:', this.red.join());
       return null;
@@ -162,7 +171,7 @@ class Players{
     //let p = new THREE.Mesh();
     p.copy(this.model);
     // scale
-    const s = SIZE/3;// was2
+    const s = SIZE/4;// was2
     p.scale.set(s,s,s);
 
     p.name = nick;
@@ -184,7 +193,7 @@ class Players{
     const material = new THREE.MeshLambertMaterial({
         color: 0xffffff,
         transparent: true,
-        opacity:  0.1
+        opacity:  0.5
     })
 
     return new THREE.Mesh(geometry, material);
@@ -194,6 +203,13 @@ class Players{
     let all = [];
     for ( let nick in this.dict){
       all.push(this. dict[nick].obj);
+    }
+    return all;
+  }
+  boundingBoxes() {
+    let all = [];
+    for ( let nick in this.dict){
+      all.push(this. dict[nick].boundingBox);
     }
     return all;
   }

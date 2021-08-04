@@ -1,8 +1,13 @@
 const { DeepstreamClient } = window.DeepstreamClient
 //const client = new DeepstreamClient('10.11.11.4:6020')
+<<<<<<< HEAD
 // const client = new DeepstreamClient('127.0.0.1:6020')
 // const client = new DeepstreamClient('10.11.11.4:6020')
 const client = new DeepstreamClient('34.134.236.209:6020')
+=======
+const client = new DeepstreamClient('34.134.236.209:6020')
+//const client = new DeepstreamClient('10.11.11.4:6020')
+>>>>>>> 785c0f9301658b8a71ecc3f9363561e90a4396a2
 
 //const client = new DeepstreamClient('192.168.1.113:6020')
 

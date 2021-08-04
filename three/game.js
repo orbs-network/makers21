@@ -3,6 +3,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   constructor(){
     this.resetMembers();
     this.loadLocalState();
+    this.useNeck = localStorage.getItem('neck') == 'true';
   }
   //////////////////////////////////////////////////////////
   resetMembers(){
@@ -170,6 +171,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.moving = !this.moving;
     this.controls.autoForward = this.moving;
     this.controls.enabled = this.moving;
+    //this.controls
     let pos = this.world.camera.position;
     deepStream.sendEvent('player',{
       type:"start",
@@ -179,6 +181,10 @@ class Game /*extends THREE.EventDispatcher*/ {
     });
     // start
     if(this.moving){
+      if(this.useNeck){
+        this.controls.face.captureCenterXY();
+      }
+
       if(this.first){
         this.first = false;
         //this.world.onFirst();
@@ -199,34 +205,19 @@ class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   initControls(init){
     if(!this.controls){
-      this.controls = new THREE.FirstPersonControls(this.world.camera, this.world.renderer.domElement);
+      if(this.useNeck){
+        this.controls = new THREE.NeckPersonControls(this.world.camera, this.world.renderer.domElement);
+      }else{
+        this.controls = new THREE.FirstPersonControls(this.world.camera, this.world.renderer.domElement);
+      }
       this.controls.activeLook = true;
       this.controls.movementSpeed = config.speed;
+      this.controls.constrainVertical = true;
+      this.controls.verticalMax  = 1.5 + config.vertLimit;
+      this.controls.verticalMin  = 1.5 - config.vertLimit;
+      this.controls.lookSpeed = config.lookSpeed;
     }
     this.controls.enabled = init;
-    //this.controls = new THREE.TmpControls(this., this.renderer.domElement);
-    //this.controls = TrackballControls( this., this.renderer.domElement );
-
-
-    // this.controls.constrainVertical = true;
-    //this.controls.mouseDrageOn = true;
-    //this.controls.lookSpeed = 0.002; // def= 0.005
-    // //this.controls.verticalMax = 0.001;
-    // this.controls.verticalMin = 0.1;
-
-    //this.controls = new THREE.PointerLockControls(this., this.renderer.domElement);
-    //this.controls.connect();
-
-    // fly controls
-    //var flyControls = new THREE.FlyControls(this., document.body);
-    // this.controls.movementSpeed = 0.001;
-    // //this.controls.domElement = document.querySelector("#WebGL-output");
-    // //this.controls.domElement = document.body;
-    // //this.controls.rollSpeed = Math.PI / 92 ; 0.005
-    // this.controls.rollSpeed = 0.01;
-
-    // this.controls.autoForward = true;
-    // this.controls.dragToLook = true;
   }
   //////////////////////////////////////////////////////////
   setInputs(){
@@ -278,6 +269,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     // either way update whos on ehich team
     this.world.setPlayerTeams(this.mngrState.red, this.mngrState.blue);
+    this.world.players.started = true;
 
     // 3 2 1
     if(Date.now() < this.mngrState.startTs){
@@ -312,7 +304,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('winnerNick').innerHTML = `${this.mngrState.winnerNick} has captured the flag!`;
     document.getElementById('winnerIsRed').innerHTML =`${winnerTeam} TEAM IS THE WINNER`;
     this.moving = false;
-    startUpdateLoop(false);
+    this.startUpdateLoop(false);
   }
   //////////////////////////////////////////////////////////
   onMngrState(state){
@@ -440,16 +432,6 @@ class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   createWorld(){
     this.world = new World();
-
-    ///////////////////////////
-    // 2d
-    this.labelRenderer = new THREE.CSS2DRenderer();
-    this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
-    this.labelRenderer.domElement.style.position = 'absolute';
-    this.labelRenderer.domElement.style.top = 0; // IMPORTANT FOR SCROLL
-    // this.labelRenderer.domElement.style.border = "10px solid white";
-    this.labelRenderer.domElement.style.pointerEvents = "none";
-    document.body.appendChild( this.labelRenderer.domElement );
   }
   //////////////////////////////////////////////////////////
   playAudio(id){
@@ -643,21 +625,11 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.controls.update(1);
     }
 
-    // actual
-    //this.renderer.render(this.scene, this.);
-    this.world.render(this.labelRenderer);
+    this.world.render();
   }
   //////////////////////////////////////////////////////////
   onresize(e){
-
-    this.labelRenderer.domElement.style.width = window.innerWidth;
-    this.labelRenderer.domElement.style.height = window.innerHeight;
-
-	  this.aspect = window.innerWidth / window.innerHeight
-
-    //this.updateProjectionMatrix()
-    this.world.renderer.setSize(window.innerWidth, window.innerHeight)
-    this.world.camera.updateProjectionMatrix();
+    this.world.onresize(e);
 
     // for mouse
     // this.v2.x = ( e.clientX / window.innerWidth ) * 2 - 1;

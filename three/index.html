@@ -2,7 +2,7 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Makers 2021</title>
-		<link rel="stylesheet" href="../static/style.css">
+		<link rel="stylesheet" href="/style.css">
 	</head>
 	<body>
 		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js"></script> -->
@@ -18,6 +18,9 @@
 		<!-- <script src="https://threejs.org/examples/js/controls/FlyControls.js"></script> -->
 		<!-- <script src="https://threejs.org/examples/js/controls/PointerLockControls.js"></script>		 -->
 		<script src="https://threejs.org/examples/js/controls/FirstPersonControls.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/face_mesh.js" crossorigin="anonymous"></script>
 		<script type="module">
 			//window.iso
 			// import { FirstPersonControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/FirstPersonControls.js';
@@ -63,15 +66,20 @@
 
     <script src="config.js"></script>
     <script src="sound.js"></script>
+		<script src="factory.js"></script>
+		<script src="shooting.js"></script>
 		<script src="flag.js"></script>
 		<script src="deepstream.js"></script>
 		<script src="physics.js"></script>
 		<script src="world.js"></script>
 		<script src="explode.js"></script>
 		<script src="players.js"></script>
+		<script src="face.js"></script>
+		<script src="neckControls.js"></script>		
 		<script src="/static/jsm/obejcts/Sky.js"></script>
 		<script src="/static/jsm/obejcts/Lensflare.js"></script>
     <script src="game.js"></script>
+
 		<!-- HTML SOUNDS -->
 		<audio id="ping" src="./sound/ping.mp3"></audio>
 		<audio id="success" src="./sound/success.wav"></audio>
@@ -90,19 +98,19 @@
 			<div id="inputs" style="display:none">
 				<!-- nick -->
 				<label for="fname">nickname:</label>
-				<input type="text" id="nick" name="nick" style="background-color: transparent; color:gray; border: 1px solid purple; padding:0.2em"><br><br>
+				<input type="text" id="nick" name="nick"><br><br>
 				<!-- choose team -->
 				<div id="choose-team" style="display:none">
 					<div>choose team:</div>
-					<div>
+					<div class="team-label">
 						<input type="radio" id="red" name="team" value="red" checked>
 						<label for="team" class="red">RED</label>
 					</div>
-					<div>
+					<div class="team-label">
 						<input type="radio" id="blue" name="team" value="blue">
 						<label for="team" class="blue">BLUE</label>
 					</div>
-					<input type="button" id="join"  value="join" >
+					<input type="button" id="join"  class="btn" value="join" >
 				</div>
 			</div>
 			<!-- joined -->
@@ -110,7 +118,7 @@
 				<div>
 					You are joined as <span id="nick-join"></span> to the <span id="team-join"></span> team
 				</div>
-				<input type="button" id="leave"  value="leave">
+				<input type="button" id="leave" class="btn"  value="leave">
 			</div>
 			<!-- ready  -->
 			<div id="ready" >
@@ -126,12 +134,17 @@
 			<div>msg: <span id="msg"></span></div>
 		</div>
 		<!-- GAVE OVER -->
-		<div id="game-over" style=display:none>
+		<div id="game-over" style="display:none">
 			<h1>GAME OVER!</h1>
 			<p id="winnerNick"></p>
 			<p id="winnerIsRed"></p>
 			<input type="button" id="reset"  value="reset">
 		</div>
-
+		<!-- Face -->
+		<!--<div id="face-display" >
+			<canvas id="face-canvas" style="height: 90%; width: 100%; left: 0; top: 0; transform: scale(-1, 1);" class="output_canvas"></canvas>
+			<span>X:<span id="face-x"></span></span>
+			<span>Y:<span id="face-y"></span></span>
+		</div>-->
 	</body>
 </html>
