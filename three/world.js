@@ -308,6 +308,7 @@ class World {
     //     return true;
     //   }
     // }
+    // AMI BUFFER CLOSE TO BORDERS
 
     // Y axis
     if(this._camera.position.y < this.border.floor) return true;
@@ -323,6 +324,7 @@ class World {
     }
   }
   ////////////////////////////////////////////////////////
+  // AMI rename to also obstacles
   checkColissionGate(){
     // update the picking ray with the camera and mouse position
 	  //this.raycaster.setFromCamera( this.v2, this._camera );
