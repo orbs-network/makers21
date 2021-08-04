@@ -32,7 +32,7 @@ AFRAME.registerComponent('move-control', {
         //   break;
         case "Space":
           stop = !stop;
-          document.getElementById('control-panel').style.display = stop ? 'block' : 'none';
+          document.getElementById('control-panel').style.display = stop ? '' : 'none';
           if(!stop){
             window.GAZE_ORIENTATION.zeroX = window.GAZE_ORIENTATION.x;
             window.GAZE_ORIENTATION.zeroY = window.GAZE_ORIENTATION.y;

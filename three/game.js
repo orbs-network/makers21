@@ -284,7 +284,6 @@ class Game /*extends THREE.EventDispatcher*/ {
       // show countdown
       this.show321();
       //this.setGameMsg('game begins in:');
-      return;
     }else{
       // update world
       this.world.setNick(this.localState.nick);
@@ -330,7 +329,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     const joined = this.isJoined()
 
     // online status
-    document.getElementById('online').innerText = "connected!";
+    document.getElementById('online').innerText = "Connected to server!";
 
     //////////////////////////////////////////////////////////
     // game you have joined - is WON
@@ -356,20 +355,18 @@ class Game /*extends THREE.EventDispatcher*/ {
 
         document.getElementById('inputs').style.display = "none";
         document.getElementById('teams').style.display = "none";
-        document.getElementById('started').innerText = "game has started - please wait for next game to start";
+        document.getElementById('ready-text').innerText = "game has started - please wait for next game to start";
       }
       return;
     }
 
     // ready to start
-    document.getElementById('ready-text').innerText = state.ready? "ready to start": "waiting for more players to join";
+    document.getElementById('ready-text').innerText = state.ready? "Ready to start": "Waiting for more players to join...";
 
     // joined section - show/hide
     document.getElementById('inputs').style.display = "none";
 
     //////////////////////////////////////////////////////////
-    // game pending  - show welcome
-    document.getElementById('started').innerText = "game is pending";
 
     // update teams
     document.getElementById('red-team').innerHTML = state.red?.length? state.red?.join() : '0 players';
@@ -382,7 +379,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('joined').style.display = joined? "block":"none";
 
     // show [start] only of ready and joined team
-    document.getElementById('start').style.display = (state.ready && joined)? 'block':'none';
+    document.getElementById('start').style.display = (state.ready && joined)? '':'none';
 
     if(!joined){
       document.getElementById('inputs').style.display = "block";
@@ -414,13 +411,13 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   onOffline(){
-    document.getElementById('online').innerText = "could not connect, please reload to retry";
+    document.getElementById('online').innerText = "Could not connect, please reload to retry again";
     //alert('offline!!!');
     console.log('offline!!!');
   }
   //////////////////////////////////////////////////////////
   connect(){
-    document.getElementById('online').innerText = "connecting...";
+    document.getElementById('online').innerText = "Connecting...";
     // send join - receieve state
     deepStream.subscribe('mngr', this.onEvent.bind(this));
     // broadcast online for 3 seconds
