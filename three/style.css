@@ -92,6 +92,16 @@ div{
     text-align: center;
 }
 
+#face-display {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 150px;
+    height: 150px;
+    border: 1px solid silver;
+    color: silver;
+}
+
 .control-panel div {
     display: flex;
     justify-content: center;
