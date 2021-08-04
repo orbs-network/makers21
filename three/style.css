@@ -25,7 +25,12 @@ body {
     left: calc(50% - 400px);
     top: calc(50% - 400px);
 }
-#leave {
+.team-label {
+    width: 200px;
+    text-align: center;
+    margin: auto;
+}
+.btn {
     padding: 1px 31px;
     font-size: 26px;
     height: 48px;
