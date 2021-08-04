@@ -6,7 +6,7 @@
 	</head>
 	<body>
 		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js"></script> -->
-		<script src="https://unpkg.com/three@0.126.1/build/three.min.js"></script>
+		<script src="https://unpkg.com/three@0.122/build/three.min.js"></script>
 		<script src="https://cdn.deepstream.io/js/client/latest/ds.min.js"></script>
 		<!-- <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/OBJLoader.js"></script> -->
 		<script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script>
@@ -75,7 +75,9 @@
 		<script src="explode.js"></script>
 		<script src="players.js"></script>
 		<script src="face.js"></script>
-		<script src="neckControls.js"></script>
+		<script src="neckControls.js"></script>		
+		<script src="/static/jsm/obejcts/Sky.js"></script>
+		<script src="/static/jsm/obejcts/Lensflare.js"></script>
     <script src="game.js"></script>
 
 		<!-- HTML SOUNDS -->
@@ -139,10 +141,10 @@
 			<input type="button" id="reset"  value="reset">
 		</div>
 		<!-- Face -->
-		<div id="face-display" >
+		<!--<div id="face-display" >
 			<canvas id="face-canvas" style="height: 90%; width: 100%; left: 0; top: 0; transform: scale(-1, 1);" class="output_canvas"></canvas>
 			<span>X:<span id="face-x"></span></span>
 			<span>Y:<span id="face-y"></span></span>
-		</div>
+		</div>-->
 	</body>
 </html>

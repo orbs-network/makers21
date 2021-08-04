@@ -20,7 +20,7 @@
       document.body.appendChild( renderer.domElement );
 
       let geometry = new THREE.BoxGeometry();
-      let material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+      let material = new THREE.MeshStandardMaterial( { color: 0x00ff00 } );
       const cube = new THREE.Mesh( geometry, material );
       scene.add( cube );
 
@@ -28,7 +28,7 @@
       const g = new THREE.CircleGeometry( 0.1, 32 );
       const edges = new THREE.EdgesGeometry( geometry );
       const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
-      //const m = new THREE.MeshBasicMaterial( { color: 0xffff00 } );      
+      //const m = new THREE.MeshStandardMaterial( { color: 0xffff00 } );
       //const circle = new THREE.Mesh( g, m );
       
       camera.add(line);

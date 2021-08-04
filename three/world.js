@@ -84,13 +84,123 @@ class World {
     const skyColor = 0xB1E1FF;  // light blue
     const groundColor = 0xB97A20;  // brownish orange
     const intensity = 1;
-    const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
-    this.scene.add(light);
+    let light = new THREE.DirectionalLight( 0xffffff, 1, 100 );
+    light.position.set( 1, 0.25, 0 ); //default; light shining from top
+    light.castShadow = true; // default false
+    this.scene.add( light );
 
     // renderer
     this._renderer = new THREE.WebGLRenderer();
     this._renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( this._renderer.domElement );
+
+    // Add Sky
+    const sky = new Sky();
+    sky.scale.setScalar( 1000 );
+    this.scene.add( sky );
+
+    const sun = new THREE.Vector3();
+
+    /// GUI
+
+    const effectController = {
+      turbidity: 20,
+      rayleigh: 0.122,
+      mieCoefficient: 0.01,
+      mieDirectionalG: 0.9999,
+      elevation: 15,
+      azimuth: 90,
+      exposure: 100
+    };
+
+    const uniforms = sky.material.uniforms;
+    uniforms[ 'turbidity' ].value = effectController.turbidity;
+    uniforms[ 'rayleigh' ].value = effectController.rayleigh;
+    uniforms[ 'mieCoefficient' ].value = effectController.mieCoefficient;
+    uniforms[ 'mieDirectionalG' ].value = effectController.mieDirectionalG;
+
+    const phi = THREE.MathUtils.degToRad( 90 - effectController.elevation );
+    const theta = THREE.MathUtils.degToRad( effectController.azimuth );
+
+    sun.setFromSphericalCoords( 1, phi, theta );
+
+    uniforms[ 'sunPosition' ].value.copy( sun );
+
+    this._renderer.toneMappingExposure = effectController.exposure;
+
+
+    let starGeo = new THREE.Geometry();
+
+    for(let i=0;i<1000;i++) {
+      const star = new THREE.Vector3(
+          Math.random() * 600 - 300,
+          Math.random() * 600 - 300,
+          Math.random() * 600 - 300
+      );
+
+      starGeo.vertices.push(star);
+
+    }
+
+    let sprite = new THREE.TextureLoader().load( '../static/img/star.png' );
+
+    let starMaterial = new THREE.PointsMaterial({
+      opacity: 0.8,
+      transparent: true,
+      color: 0xaaaaaa,
+      size: 0.3,
+      map: sprite
+    });
+
+    let stars = new THREE.Points(starGeo,starMaterial);
+
+    this.scene.add(stars);
+
+     starGeo = new THREE.Geometry();
+
+    for(let i=0;i<1000;i++) {
+      const star = new THREE.Vector3(
+          Math.random() * 60 - 30,
+          Math.random() * 60 - 30,
+          Math.random() * 60 - 30
+      );
+
+      starGeo.vertices.push(star);
+
+    }
+
+
+    starMaterial = new THREE.PointsMaterial({
+      opacity: 0.5,
+      transparent: true,
+      color: 0xaaaaaa,
+      size: 0.08,
+      map: sprite
+    });
+
+     stars = new THREE.Points(starGeo,starMaterial);
+
+    this.scene.add(stars);
+
+
+    // lensflares
+    const textureLoader = new THREE.TextureLoader();
+
+    const textureFlare0 = textureLoader.load( '../static/texture/lensflare/lensflare0_alpha.png' );
+    const textureFlare3 = textureLoader.load( '../static/texture/lensflare/lensflare3.png' );
+
+    light = new THREE.PointLight( 0xffffff, 1.5, 2000 );
+    light.color.setHSL( 0, 0, 0.1 );
+    light.position.set( 800, 250, 0 );
+    this.scene.add( light );
+
+    const lensflare = new Lensflare();
+    lensflare.addElement( new LensflareElement( textureFlare0, 700, 0, light.color ) );
+    lensflare.addElement( new LensflareElement( textureFlare3, 60, 0.6 ) );
+    lensflare.addElement( new LensflareElement( textureFlare3, 70, 0.7 ) );
+    lensflare.addElement( new LensflareElement( textureFlare3, 120, 0.9 ) );
+    lensflare.addElement( new LensflareElement( textureFlare3, 70, 1 ) );
+    light.add( lensflare );
 
     // 2d renderer
     this.renderer2d = new THREE.CSS2DRenderer();
@@ -205,13 +315,13 @@ class World {
     let geometry = new THREE.TorusGeometry( GATE_SIZE, GATE_SIZE/3, 32, 8 );
     // red gate
     // NOT WORKING WITH RAYCAST! let material = new THREE.LineBasicMaterial({color: color /*side: THREE.DoubleSide*/  });
-    let material = new THREE.MeshBasicMaterial({color: color /*side: THREE.DoubleSide*/  });
+    let material = new THREE.MeshStandardMaterial({color: color /*side: THREE.DoubleSide*/  });
     let gate = new THREE.Mesh( geometry, material );
 
     // add internal sphere for gate pass calc
     geometry = new THREE.SphereGeometry( GATE_SIZE/1.5, 16, 16 );
     const sColor = color === RED2? 0xFF0000 : 0x0000FF;
-    material = new THREE.MeshBasicMaterial( {color: 0xFFFFFF, side: THREE.DoubleSide, transparent: true, opacity: 0.1} );
+    material = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, side: THREE.DoubleSide, transparent: true, opacity: 0.1} );
     const sphere = new THREE.Mesh( geometry, material );
     sphere.name = 'gatePass';
     gate.add( sphere );
@@ -245,7 +355,7 @@ class World {
 
     // aim and dashboard
     // var cubeGeometry = new THREE.CircleGeometry( 0.2, 32);
-    // var cubeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, transparent: false, opacity: 0.5, depthTest: false});
+    // var cubeMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, side: THREE.DoubleSide, transparent: false, opacity: 0.5, depthTest: false});
     // var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
     // this._camera.add(cube);
     // cube.position.set( 0, 0, -30 );
