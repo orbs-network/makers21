@@ -115,3 +115,7 @@ input {
 .control-percentage {
     width: 80px
 }
+
+#face-display {
+    display:none;
+}
