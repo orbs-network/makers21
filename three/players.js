@@ -162,7 +162,7 @@ class Players{
     //let p = new THREE.Mesh();
     p.copy(this.model);
     // scale
-    const s = SIZE/3;// was2
+    const s = SIZE/4;// was2
     p.scale.set(s,s,s);
 
     p.name = nick;
@@ -184,7 +184,7 @@ class Players{
     const material = new THREE.MeshLambertMaterial({
         color: 0xffffff,
         transparent: true,
-        opacity:  0.1
+        opacity:  0.5
     })
 
     return new THREE.Mesh(geometry, material);

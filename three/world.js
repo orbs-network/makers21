@@ -204,9 +204,8 @@ class World {
   //////////////////////////////////////////////////////////
   initSound(){
     this.sound = new Sound(this._camera);
-    this.sound.add('gate.wav', this.redGate, true);
-    this.sound.add('gate.wav', this.blueGate, true);
-
+    this.sound.add('gate.wav', this.redGate, true, SIZE);
+    this.sound.add('gate.wav', this.blueGate, true, SIZE);
 
     //this.explode.initSound(this.sound);
 
@@ -388,7 +387,7 @@ class World {
       this._camera.position.y = SIZE/2 ;
       return;
     }
-    this.startLineZ = SIZE * (isRed? 1.5 : -1.5);
+    this.startLineZ = SIZE * (isRed? 1.3 : -1.3);
     this.startLineY = SIZE/2 ;
     this.startLineX = 0;
 
