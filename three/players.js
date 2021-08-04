@@ -6,6 +6,7 @@ class Player{
     this.obj = obj;
     this.moving = false;
     this.isRed = isRed;
+    this.started = false;
 
     this._initLabel(nick, isRed);
     this.setColor(isRed);
@@ -99,6 +100,7 @@ class Players{
       // this.world.scene.remove(p);
       // p.clear();
     }
+    this.started = false;
     // remove all wrapping players
     // this.dict = {};
 
@@ -110,6 +112,11 @@ class Players{
   }
   //////////////////////////////////////////////////////////
   onEvent(data){
+    // ignore all events fly events if game hasnt started
+    if(!this.started){
+      return;
+    }
+
     const p = this.getPlayer(data.nick);
     if(!p){
       console.error(`Player ${data.id} not found`);
@@ -153,7 +160,7 @@ class Players{
     // return null if not in either team
     const isRed = this.checkIsRed(nick);
     if(!isRed){
-      console.error(`${nick} wasnt found in either team`);
+      console.log(`${nick} wasnt found in either team`);
       console.log('blue team:', this.blue.join());
       console.log('red  team:', this.red.join());
       return null;

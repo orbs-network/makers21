@@ -269,6 +269,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     // either way update whos on ehich team
     this.world.setPlayerTeams(this.mngrState.red, this.mngrState.blue);
+    this.world.players.started = true;
 
     // 3 2 1
     if(Date.now() < this.mngrState.startTs){
