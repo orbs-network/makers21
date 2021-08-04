@@ -19,6 +19,7 @@
   "dependencies": {
     "@deepstream/client": "^5.2.4",
     "@deepstream/server": "^5.2.4",
-    "ngrok": "^4.0.1"
+    "ngrok": "^4.0.1",
+    "static-server": "^2.2.1"
   }
 }
