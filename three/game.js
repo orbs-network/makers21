@@ -304,7 +304,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('winnerNick').innerHTML = `${this.mngrState.winnerNick} has captured the flag!`;
     document.getElementById('winnerIsRed').innerHTML =`${winnerTeam} TEAM IS THE WINNER`;
     this.moving = false;
-    startUpdateLoop(false);
+    this.startUpdateLoop(false);
   }
   //////////////////////////////////////////////////////////
   onMngrState(state){
