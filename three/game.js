@@ -167,6 +167,11 @@ class Game /*extends THREE.EventDispatcher*/ {
       console.log('cant start while exploding')
       return;
     }
+
+	if (!this.controls) {
+		return
+	}
+
     this.moving = !this.moving;
     this.controls.autoForward = this.moving;
     this.controls.enabled = this.moving;
@@ -343,6 +348,12 @@ class Game /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     // game already started
     if(state.started){
+
+      if(!joined) {
+		document.getElementById('online').innerText = "observer!";
+      	return;
+	  }
+
       // first means hasnt moved, after reload
       if(joined && this.first){
         // return/start game
