@@ -151,7 +151,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     // UI events
     document.getElementById('nick').addEventListener('input',(e)=>{
       // show/hide chose team
-      document.getElementById('choose-team').style.display = (e.target.value.length > 2)? 'block':'none';
+      document.getElementById('choose-team').style.display = (e.target.value.length > 2)? '':'none';
       if(e.target.value.length > 2){
         this.localState.nick = e.target.value;
         this.saveLocalState();
@@ -168,6 +168,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       return;
     }
     this.moving = !this.moving;
+    document.getElementById('game-display').style.display = !this.moving ? 'block' : 'none';
     this.controls.autoForward = this.moving;
     this.controls.enabled = this.moving;
     let pos = this.world.camera.position;
@@ -247,9 +248,9 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   show321(){
-    let sec = 0;
+    let seconds = 3;
     this.playAudio('ping');
-    this.tid321 = setInterval(() =>{
+    let handler = () =>{
       const diff = this.mngrState.startTs - Date.now();
       if(diff < 0 ){
         if(this.tid321){
@@ -260,16 +261,14 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.onGameStarted();
         return;
       }
-      var seconds = parseInt(diff / 1000);
       var mili  = (new Date(diff)).getMilliseconds();
-      this.setGameMsg(`GAME BEGINS IN ${seconds}:${mili}`);
+      this.setGameMsg(`Game Begins in ${seconds--}...`);
       // ping
-      sec +=1;
-      if(!(sec % 15)){
-        //this.ping.stop();
-        this.playAudio('ping');
-      }
-    },100);
+      this.stopAudio('ping');
+      this.playAudio('ping');
+    };
+    this.tid321 = setInterval(handler,1000);
+    handler();
   }
   //////////////////////////////////////////////////////////
   onGameStarted(){
@@ -300,7 +299,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       // start broadcast interval
       this.startUpdateLoop(true);
       // to enable start stop
-      this.setGameMsg('press any key to start flying!');
+      this.setGameMsg('Press any key to start flying!');
     }
   }
   //////////////////////////////////////////////////////////
@@ -372,7 +371,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('red-team').innerHTML = state.red?.length? state.red?.join() : '0 players';
     document.getElementById('blue-team').innerHTML = state.blue?.length? state.blue?.join(): '0 players';
     // show teams
-    document.getElementById('teams').style.display = "block";
+    document.getElementById('teams').style.display = "";
 
     //////////////////////////////////////////////////////////
     // not joined - show joined
@@ -449,6 +448,22 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.body.appendChild( this.labelRenderer.domElement );
   }
   //////////////////////////////////////////////////////////
+  stopAudio(id) {
+    if(!this.audio){
+      this.audio = {};
+    }
+    if(!(id in this.audio )){
+      this.audio[id] = document.getElementById(id);
+    }
+    if(this.audio[id]){
+      this.audio[id].pause();
+      this.audio[id].currentTime = 0;
+    }
+    else{
+      console.error(`${id} is missing in audio`);
+    }
+
+  }
   playAudio(id){
     if(!this.audio){
       this.audio = {};
@@ -506,7 +521,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       else{
         // My team's gate
         console.log('wrong gatePass!', gate.name);
-        this.setGameMsg(`capture the <span class="${this.localState.isRed?'red':'blue'}">flag</span> before passing in <span class="${this.localState.isRed?'red':'blue'}> this gate</span> `);
+        this.setGameMsg(`Capture the <span style="font-size: 32px !important;" class="${this.localState.isRed?'red':'blue'}">flag</span> before passing in <span class="${this.localState.isRed?'red':'blue'}> this gate</span> `);
         this.playAudio('wrong');
       }
     }

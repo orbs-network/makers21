@@ -86,17 +86,17 @@
 			<!-- chose -->
 			<div id="inputs" style="display:none">
 				<!-- nick -->
-				<label for="nick" style="font-size: 18px; vertical-align: middle;">Nickname:</label>
+				<label for="nick" class="label">Nickname:</label>
 				<input type="text" id="nick" name="nick" placeholder="The best one">
 				<!-- choose team -->
 				<div id="choose-team" style="display:none">
 					<div>Choose a team:</div>
 					<div class="red">
-						<input type="radio" id="red" name="team" placeholder="The killer" checked>
+						<input style="vertical-align: top; margin-right: 8px;" type="radio" id="red" name="team" placeholder="The killer" checked>
 						<label for="red">RED</label>
 					</div>
 					<div class="blue">
-						<input type="radio" id="blue" name="team" value="blue">
+						<input style="vertical-align: top; margin-right: 8px;" type="radio" id="blue" name="team" value="blue">
 						<label for="blue">BLUE</label>
 					</div>
 					<input type="button" id="join"  value="Join" >
@@ -119,8 +119,7 @@
 		</div>
 		<!-- welcome END -->
 		<div id="game-display">
-			<div>game display</div>
-			<div>msg: <span id="msg"></span></div>
+			<div><span id="msg"></span></div>
 		</div>
 		<!-- GAVE OVER -->
 		<div id="game-over" style=display:none>

@@ -115,13 +115,13 @@ div#ready input {
 #game-display {
     display: none;
     position: absolute;
-    top: 0;
+    top: 50%;
     right: 25%;
     width: 50%;
     background-color: black;
     color: silver;
-    border: 1px solid silver;
     text-align: center;
+    font-size: 32px;
 }
 
 #game-over {
@@ -147,6 +147,11 @@ div#ready input {
     text-align: center;
 }
 
+.label {
+    font-size: 18px;
+    vertical-align: middle;
+}
+
 .control-panel div {
     display: flex;
     justify-content: center;
@@ -159,7 +164,7 @@ div#ready input {
 
 label {
     color: white;
-    padding: 0 10px 0 10px;
+    padding: 0 10px 0 0px;
     width: 75px;
 }
 
