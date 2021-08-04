@@ -2,7 +2,7 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Makers 2021</title>
-		<link rel="stylesheet" href="../static/style.css">
+		<link rel="stylesheet" href="/style.css">
 	</head>
 	<body>
 		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js"></script> -->
@@ -90,19 +90,19 @@
 			<div id="inputs" style="display:none">
 				<!-- nick -->
 				<label for="fname">nickname:</label>
-				<input type="text" id="nick" name="nick" style="background-color: transparent; color:gray; border: 1px solid purple; padding:0.2em"><br><br>
+				<input type="text" id="nick" name="nick"><br><br>
 				<!-- choose team -->
 				<div id="choose-team" style="display:none">
 					<div>choose team:</div>
-					<div>
+					<div class="team-label">
 						<input type="radio" id="red" name="team" value="red" checked>
 						<label for="team" class="red">RED</label>
 					</div>
-					<div>
+					<div class="team-label">
 						<input type="radio" id="blue" name="team" value="blue">
 						<label for="team" class="blue">BLUE</label>
 					</div>
-					<input type="button" id="join"  value="join" >
+					<input type="button" id="join"  class="btn" value="join" >
 				</div>
 			</div>
 			<!-- joined -->
@@ -110,7 +110,7 @@
 				<div>
 					You are joined as <span id="nick-join"></span> to the <span id="team-join"></span> team
 				</div>
-				<input type="button" id="leave"  value="leave">
+				<input type="button" id="leave" class="btn"  value="leave">
 			</div>
 			<!-- ready  -->
 			<div id="ready" >
