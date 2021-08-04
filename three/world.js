@@ -317,6 +317,7 @@ class World {
     if(this._camera.position.z < this.border.north) return true;
     if(this._camera.position.z > this.border.south) return true;
 
+
     //var collision = camBox.containsPoint( camera.position );
     if(this.checkColissionGate()){
       console.log('Gate Colision!');
