@@ -10,7 +10,7 @@ class Mngr /*extends THREE.EventDispatcher*/ {
     setTimeout(()=> {
       deepStream.sendEvent('mngr-ui', {init:true});
       $("#reset").click(()=> {
-        window.deepStream.sendEvent('reset');
+        window.deepStream.sendEvent('reset', {});
       })
     }, 500);
 
