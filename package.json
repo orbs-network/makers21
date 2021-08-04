@@ -4,7 +4,8 @@
   "description": "use move1/index.html to see flight poc",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-server": "DEEPSTREAM_CONFIG_DIRECTORY=./server/config/config.yaml node ./server/index.js"
   },
   "repository": {
     "type": "git",

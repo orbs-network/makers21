@@ -8,6 +8,8 @@ class Player{
     this.isRed = isRed;
 
     this._initLabel(nick, isRed);
+    this.boundingBox = window.factory.firstPerson.createPlayerBoundingBox(this.obj);
+    this.obj.add(this.boundingBox)
     this.setColor(isRed);
 
     // create sounds
@@ -176,24 +178,17 @@ class Players{
 	  return newPlayer;
   }
   //////////////////////////////////////////////////////////
-  //generateBoundingBox (width, height, depth) {
-  generateBoundingBox (obj) {
-    const geometry = new THREE.Box3().setFromObject( obj );
-    //const geometry = new THREE.BoxGeometry(width, height, depth)
-
-    const material = new THREE.MeshLambertMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity:  0.1
-    })
-
-    return new THREE.Mesh(geometry, material);
-  }
-  //////////////////////////////////////////////////////////
   all(){
     let all = [];
     for ( let nick in this.dict){
       all.push(this. dict[nick].obj);
+    }
+    return all;
+  }
+  boundingBoxes() {
+    let all = [];
+    for ( let nick in this.dict){
+      all.push(this. dict[nick].boundingBox);
     }
     return all;
   }
