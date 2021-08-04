@@ -22,8 +22,8 @@ body {
     text-align: center;
     color: silver;
     background-color: #ffffff40;
-    left: calc(50% - 380px);
-    top: calc(50% - 280px);
+    left: calc(50% - 400px);
+    top: calc(50% - 400px);
 }
 #nick {
     background-color: transparent;
