@@ -18,6 +18,9 @@
 		<!-- <script src="https://threejs.org/examples/js/controls/FlyControls.js"></script> -->
 		<!-- <script src="https://threejs.org/examples/js/controls/PointerLockControls.js"></script>		 -->
 		<script src="https://threejs.org/examples/js/controls/FirstPersonControls.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/face_mesh.js" crossorigin="anonymous"></script>
 		<script type="module">
 			//window.iso
 			// import { FirstPersonControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/FirstPersonControls.js';
@@ -72,7 +75,10 @@
 		<script src="world.js"></script>
 		<script src="explode.js"></script>
 		<script src="players.js"></script>
-		<script src="game.js"></script>
+		<script src="face.js"></script>
+		<script src="neckControls.js"></script>
+    <script src="game.js"></script>
+
 		<!-- HTML SOUNDS -->
 		<audio id="ping" src="./sound/ping.mp3"></audio>
 		<audio id="success" src="./sound/success.wav"></audio>
@@ -134,6 +140,11 @@
 			<p id="winnerIsRed"></p>
 			<input type="button" id="reset"  value="reset">
 		</div>
-
+		<!-- Face -->
+		<div id="face-display" >
+			<canvas id="face-canvas" style="height: 90%; width: 100%; left: 0; top: 0; transform: scale(-1, 1);" class="output_canvas"></canvas>
+			<span>X:<span id="face-x"></span></span>
+			<span>Y:<span id="face-y"></span></span>
+		</div>
 	</body>
 </html>
