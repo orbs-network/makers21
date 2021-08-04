@@ -22,6 +22,18 @@ body {
     left: calc(50% - 380px);
     top: calc(50% - 280px);
 }
+#nick {
+    background-color: transparent;
+    color: gray;
+    border: 0;
+    border-bottom: 1px solid #fff;
+    padding: 0.2em;
+    outline: 0;
+    font-size: 27px;
+    color: #fff;
+    width: 200px;
+}
+
 div{
     padding: 0.2em;
 }
