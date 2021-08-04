@@ -1,0 +1,5 @@
+# general configuration with default values
+serverName: makerz
+showLogo: true
+dependencyInitializationTimeout: 2000
+exitOnFatalError: false
