@@ -207,7 +207,6 @@ class World {
     this.sound.add('gate.wav', this.redGate, true);
     this.sound.add('gate.wav', this.blueGate, true);
 
-
     //this.explode.initSound(this.sound);
 
     // add explode sound to camera
@@ -308,7 +307,6 @@ class World {
     //     return true;
     //   }
     // }
-    // AMI BUFFER CLOSE TO BORDERS
 
     // Y axis
     if(this._camera.position.y < this.border.floor) return true;
@@ -324,6 +322,18 @@ class World {
       return true;
     }
   }
+
+  bordersAlarm(){
+
+	const bordersAlarmTh = config.bordersAlarmFactor * config.speed
+
+	return ((this._camera.position.y < this.border.floor + bordersAlarmTh) ||
+	(this._camera.position.y > this.border.ceiling - bordersAlarmTh) ||
+	(this._camera.position.z < this.border.north  + bordersAlarmTh) ||
+	(this._camera.position.z > this.border.south  - bordersAlarmTh))
+
+  }
+
   ////////////////////////////////////////////////////////
   // AMI rename to also obstacles
   checkColissionGate(){
@@ -388,7 +398,7 @@ class World {
       this._camera.position.y = SIZE/2 ;
       return;
     }
-    this.startLineZ = SIZE * (isRed? 1.5 : -1.5);
+    this.startLineZ = SIZE * (isRed? 1.25 : -1.25);
     this.startLineY = SIZE/2 ;
     this.startLineX = 0;
 

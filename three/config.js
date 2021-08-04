@@ -18,6 +18,7 @@ window.config = {
   horizLimit:0.02,
   vertLimit:0.005,
   rotUnit:0.001,
+  bordersAlarmFactor:10
 };
 
 window.config.collisionDistance= window.config.speed * 5;
