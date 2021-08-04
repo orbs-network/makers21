@@ -1,6 +1,9 @@
 body {
     font-family: monospace;
     font-size: 30px;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
 }
 
 .player-label{
