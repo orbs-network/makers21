@@ -25,6 +25,14 @@ body {
     left: calc(50% - 400px);
     top: calc(50% - 400px);
 }
+#leave {
+    padding: 1px 31px;
+    font-size: 26px;
+    height: 48px;
+    color: #fff;
+    background-color: transparent;
+    border: 2px solid #fff;
+}
 #nick {
     background-color: transparent;
     color: gray;
