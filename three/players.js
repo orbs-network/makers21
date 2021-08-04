@@ -136,8 +136,8 @@ class Players{
   }
   //////////////////////////////////////////////////////////
   checkIsRed(nick){
-    if(this.red.includes(nick)) return 1;
-    if(this.blue.includes(nick)) return -1;
+    if(this.red?.includes(nick)) return 1;
+    if(this.blue?.includes(nick)) return -1;
     return 0;
   }
   //////////////////////////////////////////////////////////
