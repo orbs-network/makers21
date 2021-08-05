@@ -410,9 +410,14 @@ class Game /*extends THREE.EventDispatcher*/ {
   onEvent(data){
     console.log('onEvent manager', data);
     switch(data.type){
+   	  case "init":
+		// this.onMngrState(data.state);
+		break;
+
       case "state":
         this.onMngrState(data.state);
         break;
+
     }
   }
   //////////////////////////////////////////////////////////

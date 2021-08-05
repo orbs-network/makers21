@@ -23,17 +23,17 @@ class Obstacles  {
   createRandomGrid() {
 
    	let a0 = this.range(config.ObstaclesGridDivider, -Math.floor(config.ObstaclesGridDivider/2))
-    let a1 = this.range(config.ObstaclesGridDivider, -Math.floor(config.ObstaclesGridDivider/2))
+    let a1 = this.range(config.ObstaclesGridDivider)
     let a2 = this.range(config.ObstaclesGridDivider, -Math.floor(config.ObstaclesGridDivider/2))
 
     a0 = a0.sort(() => (Math.random() > .5) ? 1 : -1)
     a1 = a1.sort(() => (Math.random() > .5) ? 1 : -1)
     a2 = a2.sort(() => (Math.random() > .5) ? 1 : -1)
 
-	const ref = 2 * config.size / config.ObstaclesGridDivider
+	const ref = config.size / config.ObstaclesGridDivider
 
 	for (let i = 0; i < config.ObstaclesGridDivider; i++) {
-		this.grid.push([ref * a0[i], ref * a1[i], ref * a2[i]])
+		this.grid.push([2 * ref * a0[i], ref * a1[i], 2 * ref * a2[i]])
 	}
 
   }

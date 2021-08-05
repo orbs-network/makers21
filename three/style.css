@@ -1,9 +1,6 @@
 body {
-    font-family: monospace;
-    font-size: 30px;
-    overflow: hidden;
-    padding: 0;
-    margin: 0;
+    font-family: Arial, sans-serif;
+    margin:0
 }
 
 .player-label{
@@ -11,46 +8,17 @@ body {
     font-family: monospace;
     text-shadow:0 0 7px #000;
     margin-top: 1em;
-    font-size: 18px;
 }
 
 #welcome {
     position: absolute;
-    /* top: 0; */
-    /* right: 0; */
-    padding: 65px 20px;
-    width: 800px;
+    top: 0;
+    right: 0;
+    padding: 20px;
+    width: 100%;
     text-align: center;
     color: silver;
-    background-color: #ffffff40;
-    left: calc(50% - 400px);
-    top: calc(50% - 400px);
 }
-.team-label {
-    width: 200px;
-    text-align: center;
-    margin: auto;
-}
-.btn {
-    padding: 1px 31px;
-    font-size: 26px;
-    height: 48px;
-    color: #fff;
-    background-color: transparent;
-    border: 2px solid #fff;
-}
-#nick {
-    background-color: transparent;
-    color: gray;
-    border: 0;
-    border-bottom: 1px solid #fff;
-    padding: 0.2em;
-    outline: 0;
-    font-size: 27px;
-    color: #fff;
-    width: 200px;
-}
-
 div{
     padding: 0.2em;
 }
@@ -81,7 +49,15 @@ div{
     font-size: xx-large;
 }
 
-
+#face-display{
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 150px;
+    height: 150px;
+    border: 1px solid silver;
+    color: silver;
+}
 .control-panel {
     background-color: #0000004D;
     position: absolute;
