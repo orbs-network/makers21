@@ -11,7 +11,7 @@ const toRad = (Math.PI/180);
 
 window.config = {
   size:SIZE ,
-  speed: SIZE/400,
+  speed: SIZE/100,
   //speed: BASE_SIZE/100,
   //speed: 0,
   fps:30,
