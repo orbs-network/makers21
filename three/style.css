@@ -7,21 +7,19 @@ body {
 
 .player-label{
     background-color: transparent;
-    font-family: monospace;
     text-shadow:0 0 7px #000;
     margin-top: 1em;
-    font-size: 18px;
 }
 
 #welcome {
     position: absolute;
     /* top: 0; */
     /* right: 0; */
+    border: 1px solid silver;
     padding: 65px 20px;
     width: 800px;
     text-align: center;
     color: silver;
-    background-color: #ffffff40;
     left: calc(50% - 400px);
     top: calc(50% - 400px);
 }
@@ -31,12 +29,14 @@ body {
     margin: auto;
 }
 .btn {
-    padding: 1px 31px;
-    font-size: 26px;
-    height: 48px;
-    color: #fff;
-    background-color: transparent;
-    border: 2px solid #fff;
+    padding: 0.5em 2em;
+    margin: 0.5em;
+    cursor: pointer;
+    /*font-size: 26px;*/
+    /*height: 48px;*/
+    color:silver;
+    background-color: black;
+    border: 1px solid silver;
 }
 #nick {
     background-color: transparent;
@@ -45,9 +45,9 @@ body {
     border-bottom: 1px solid #fff;
     padding: 0.2em;
     outline: 0;
-    font-size: 27px;
+    font-size: larger;
     color: #fff;
-    width: 200px;
+    width: 30%;
 }
 
 div{

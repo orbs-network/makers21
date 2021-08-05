@@ -321,7 +321,7 @@ class World {
     // add internal sphere for gate pass calc
     geometry = new THREE.SphereGeometry( GATE_SIZE/1.5, 16, 16 );
     const sColor = color === RED2? 0xFF0000 : 0x0000FF;
-    material = new THREE.MeshStandardMaterial( {color: 0xFFFFFF, side: THREE.DoubleSide, transparent: true, opacity: 0.1} );
+    material = new THREE.MeshStandardMaterial( {color: 0xFF00FF, side: THREE.DoubleSide, transparent: true, opacity: 0.3} );
     const sphere = new THREE.Mesh( geometry, material );
     sphere.name = 'gatePass';
     gate.add( sphere );
@@ -512,6 +512,8 @@ class World {
       this._camera.position.z = 0;
       this._camera.position.x = 0;
       this._camera.position.y = SIZE/2 ;
+      // not joined-
+      this.players.gameJoined = false;
       return;
     }
     this.startLineZ = SIZE * (isRed? 1.3 : -1.3);
