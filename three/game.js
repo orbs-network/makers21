@@ -427,7 +427,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         return;
       }
       this.onMngrState(result.state);
-    })
+    });
   }
   //////////////////////////////////////////////////////////
   createWorld(){

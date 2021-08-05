@@ -3,16 +3,28 @@ class Mngr /*extends THREE.EventDispatcher*/ {
   constructor(){
     this.resetState();
 
+    // get initial state
+    // get updates
     deepStream.subscribe('mngr',(data)=> {
-      console.log('mngr', data);
+      this.state = data;
       this.updateUI(data.state);
-    })
-    setTimeout(()=> {
-      deepStream.sendEvent('mngr-ui', {init:true});
-      $("#reset").click(()=> {
-        window.deepStream.sendEvent('reset', {});
-      })
-    }, 500);
+    });
+
+    deepStream.client.rpc.make( 'client', {type:'online'}, (error, result) => {
+      if(error){
+        console.error(error);
+        this.onOffline();
+        return;
+      }
+      this.updateUI(result.state);
+    });
+
+    // setTimeout(()=> {
+    //   deepStream.sendEvent('mngr-ui', {init:true});
+    //   $("#reset").click(()=> {
+    //     window.deepStream.sendEvent('reset', {});
+    //   })
+    // }, 500);
 
   }
   //////////////////////////////////////////////////////////
@@ -75,9 +87,7 @@ class Mngr /*extends THREE.EventDispatcher*/ {
     }else{
       $('#reset').hide();
     }
-
   }
-
 }
 
 $(document).ready(function(){

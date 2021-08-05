@@ -41,13 +41,13 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       //$('#reset').click(this.reset.bind(this));
       //setFields
 
-      this.client.event.subscribe('player', (data)=>{
-        console.log('player ', data);
-      })
+      // this.client.event.subscribe('player', (data)=>{
+      //   console.log('player ', data);
+      // })
 
-      this.client.event.subscribe('mngr-ui', (data)=>{
-        this.tellState();
-      });
+      // this.client.event.subscribe('mngr-ui', (data)=>{
+      //   this.tellState();
+      // });
 
       // rpcServer.
       this.client.rpc.provide('client', this.onClient.bind(this));

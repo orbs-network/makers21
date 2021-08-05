@@ -14,8 +14,7 @@ var playerGhosts = {};
 
 server.start();
 client.login(null , ()=>{
-
-  console.log(`-==================== login ==================-`);
+  console.log(`-==================== server login ==================-`);
 })
 
 
@@ -38,7 +37,3 @@ client.login(null , ()=>{
     client.event.subscribe('heartbeat', (data)=>{
         console.log('====== heartbeat ========= ', data);
      });
-
-
-
-
