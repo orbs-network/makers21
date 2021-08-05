@@ -87,8 +87,8 @@ class Flags  {
 	//////////////////////////////////////////////////////////
 	rotate() {
 		if(Object.keys(this.dict).length == 2){
-			this.dict['red'].rotateY(config.gateSpeed*2);// rotation.y -= speed;
-			this.dict['blue'].rotateY(-config.gateSpeed*2);// rotation.y += config.gateSpeed;
+			this.dict['red'].rotateY(-config.gateSpeed*2);// rotation.y -= speed;
+			this.dict['blue'].rotateY(config.gateSpeed*2);// rotation.y += config.gateSpeed;
 		}
 	}
 }

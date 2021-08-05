@@ -55,7 +55,9 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.world.setNick(this.localState.nick);
     this.world.setTeamPos(null);
     this.world._camera.rotation.set(0,0,0);
-    this.controls.lookAt(this.world.redGate.position);
+    if(this.controls){
+      this.controls.lookAt(this.world.redGate.position);
+    }
 
     this.world.resetGateRotation();
 
@@ -319,7 +321,10 @@ class Game /*extends THREE.EventDispatcher*/ {
       document.getElementById('welcome').style.display = 'block';
     }
 
-    const joined = this.isJoined()
+    const joined = this.isJoined();
+    // update players module - to avoid events
+    this.world.players.gameJoined = joined;
+
 
     // online status
     document.getElementById('online').innerText = "connected!";
@@ -374,7 +379,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('joined').style.display = joined? "block":"none";
 
     // show [start] only of ready and joined team
-    document.getElementById('start').style.display = (state.ready && joined)? 'block':'none';
+    document.getElementById('start').style.display = (state.ready && joined)? '':'none';
 
     if(!joined){
       document.getElementById('inputs').style.display = "block";
