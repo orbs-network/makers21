@@ -19,8 +19,8 @@ window.config = {
   //ctrlHeightLimit: (20 * toRad)
   // steerReleaseFactor: 0.95,
   // horizLimit:0.02,
-  vertLimit:0.30,
-  lookSpeed:0.004,
+  vertLimit:0.40,
+  lookSpeed:0.005,
   // rotUnit:0.001,
 };
 

@@ -2,7 +2,7 @@ class Flags  {
   //////////////////////////////////////////////////////////
   constructor(){
 		this.dict ={};
-		this.parent ={};
+		this.holders ={};
 		this.gates ={};
 		this.airplanePos = new THREE.Vector3(0,0,0);
   }
@@ -36,19 +36,26 @@ class Flags  {
   }
 	//////////////////////////////////////////////////////////
 	moveToGate(name) {
-		const obj = this.dict[name];
+		const flag = this.dict[name];
 		const gate = this.gates[name];
 
-		var bbox = new THREE.Box3().setFromObject(obj);
-		obj.position.z = gate.position.z;
-		obj.position.y = gate.position.y - bbox.getSize().y /2;
+		//flag.updateMatrixWorld();
+		var bbox = new THREE.Box3().setFromObject(flag);
+		flag.position.x = gate.position.x;
+		flag.position.z = gate.position.z;
+		flag.position.y = gate.position.y - bbox.getSize().y /2;
+		// flag.updateMatrixWorld();
+		// flag.updateWorldMatrix();
+
+		// console.log(`move toGate: ${name}`);
+		// console.log(flag.position.x,flag.position.y,flag.position.z);
 	}
 	//////////////////////////////////////////////////////////
 	detach(name) {
 		const flag = this.dict[name];
-		if(this.parent[name]){
-			//this.parent[name].remove(flag);
-			this.parent[name] = null;
+		if(this.holders[name]){
+			//this.holders[name].remove(flag);
+			this.holders[name] = null;
 		}
 		return flag;
 	}
@@ -59,36 +66,45 @@ class Flags  {
 		//parent.add(obj);
 		//parent.updateMatrixWorld(true);
 		//obj.updateMatrix();
-		parent.attach(obj);
+		//parent.attach(obj);
 		// keep for detach
-		this.parent[name] = parent;
+		this.holders[name] = parent;
 	}
 	//////////////////////////////////////////////////////////
-	setPosCamera(name) {
-		let obj = this.dict[name];
-		obj.position.set(0, 1.5, -SIZE/3);
-		// let sound = obj.getObjectByName('sound_flag');
-		// if(sound){
-		// 	sound.pause();
-		// }
-	}
-	//////////////////////////////////////////////////////////
-	setAirplanePosition(name) {
-		console.log("setAirplanePosition", name);
-		let obj = this.dict[name];
+	// setPosCamera(name) {
+	// 	let obj = this.dict[name];
+	// 	obj.position.set(0, 1.5, -SIZE/3);
+	// 	// let sound = obj.getObjectByName('sound_flag');
+	// 	// if(sound){
+	// 	// 	sound.pause();
+	// 	// }
+	// }
+	// //////////////////////////////////////////////////////////
+	// setPosPlayer(name) {
+	// 	console.log("setPosPlayer", name);
+	// 	// let obj = this.dict[name];
 
-		obj.position.set(0, SIZE/500, 0);
+	// 	// obj.position.set(0, SIZE/500, 0);
 
-		// let sound = obj.getObjectByName('sound_flag');
-		// if(sound){
-		// 	sound.play();
-		// }
-	}
+	// 	// let sound = obj.getObjectByName('sound_flag');
+	// 	// if(sound){
+	// 	// 	sound.play();
+	// 	// }
+	// }
 	//////////////////////////////////////////////////////////
-	rotate() {
+	update() {
+		// implement parent movement
+		for(let flagName in this.holders){
+			const flag = this.dict[flagName];
+			const holder = this.holders[flagName];
+			if(holder){
+				flag.position.set(holder.position.x, holder.position.y, holder.position.z);
+			}
+		}
+		// rotate
 		if(Object.keys(this.dict).length == 2){
-			this.dict['red'].rotateY(-config.gateSpeed*2);// rotation.y -= speed;
-			this.dict['blue'].rotateY(config.gateSpeed*2);// rotation.y += config.gateSpeed;
+			this.dict['red'].rotateY(config.gateSpeed*6);// rotation.y -= speed;
+			this.dict['blue'].rotateY(-config.gateSpeed*6);// rotation.y += config.gateSpeed;
 		}
 	}
 }

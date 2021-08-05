@@ -245,8 +245,8 @@ class World {
     this.initSound();
 
     // Flags
-    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.blueGate, 'red', 0xFF0000, .002, this.sound);
-    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.redGate, 'blue', 0x0000FF, .002, this.sound);
+    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.blueGate, 'red', 0xFF0000, .004, this.sound);
+    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.redGate, 'blue', 0x0000FF, .004, this.sound);
 
     // create players
     this.players = new Players(this);
@@ -540,7 +540,7 @@ class World {
       console.log('attachFlagToHolder', flagName, holderNick);
       const holder = this.players.getPlayer(holderNick).obj;
       this.flags.attachTo(flagName, holder);
-      this.flags.setAirplanePosition(flagName);
+      //this.flags.setPosPlayer(flagName);
     }
     else{ // return to gate
       const gateName = flagIsRed? 'blue':'red';
@@ -557,7 +557,7 @@ class World {
       let name = localState.isRed? "blue":"red";
       // attach correct flag to self/camera
       this.flags.attachTo(name, this._camera);
-      this.flags.setPosCamera(name);
+      //this.flags.setPosCamera(name);
     }else {
       this.attachFlagToHolderOrGate(mngrState.redHolder, true);
       this.attachFlagToHolderOrGate(mngrState.blueHolder, false);
@@ -614,7 +614,7 @@ class World {
     // rotate gates
     this.redGate.rotateY(config.gateSpeed);// rotation.y -= config.gateSpeed;
     this.blueGate.rotateY(-config.gateSpeed);// rotation.y += config.gateSpeed;
-    this.flags.rotate();
+    this.flags.update();
 
     // players
     this.players.update();

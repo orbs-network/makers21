@@ -127,6 +127,7 @@ class Players{
     switch(data.type){
       case "start":
         p.onStart(data);
+        p.obj.visible = true;
         break;
       case "pos":
         p.onPos(data);

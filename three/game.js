@@ -215,8 +215,8 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.controls.activeLook = true;
       this.controls.movementSpeed = config.speed;
       this.controls.constrainVertical = true;
-      this.controls.verticalMax  = 1.5 + config.vertLimit;
-      this.controls.verticalMin  = 1.5 - config.vertLimit;
+      this.controls.verticalMax  = 1.6 + config.vertLimit;
+      this.controls.verticalMin  = 1.6 - config.vertLimit;
       this.controls.lookSpeed = config.lookSpeed;
     }
     this.controls.enabled = init;
@@ -592,6 +592,16 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.world.returnToStart(()=>{
           this.controls.lookAt(gate.position);
           this.exploding = false;
+          // broadcast final pos
+          let cam = this.world.camera;
+          let direction = new THREE.Vector3();
+          cam.getWorldDirection(direction);
+          deepStream.sendEvent('player',{
+            type:"pos",
+            pos:cam.position,
+            dir:direction,
+            nick: this.localState.nick
+          });
         }, this.controls, gate);
         return;
       }
