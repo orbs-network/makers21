@@ -5,7 +5,7 @@ window.factory = {
     createHUD: () => {
       const hud = new THREE.Group();
       for (let i = 0; i < 4; i++) {
-        hud.add(new THREE.Mesh(new THREE.RingGeometry(0.048, 0.05, 128, 1, hPi * i + 0.2, hPi - 0.4), new THREE.LineBasicMaterial({color: `#60eaff`, transparent:true, opacity:0.5})))
+        hud.add(new THREE.Mesh(new THREE.RingGeometry(0.045, 0.055, 128, 1, hPi * i + 0.2, hPi - 0.4), new THREE.LineBasicMaterial({color: `#60eaff`, transparent:true, opacity:0.1})))
       }
       hud.position.set( 0, 0, -1 );
       return hud;

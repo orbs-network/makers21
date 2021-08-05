@@ -2,22 +2,29 @@ let v3 = new THREE.Vector3(0,0,0);
 //////////////////////////////////////////////////////////
 class Player{
   //////////////////////////////////////////////////////////
-  constructor(obj, nick, isRed, sound){
+  constructor(obj, nick, isRed, sound, useShooting){
     this.obj = obj;
     this.moving = false;
     this.isRed = isRed;
     this.gameJoined = false;
 
     this._initLabel(nick, isRed);
-    this.boundingBox = window.factory.firstPerson.createPlayerBoundingBox(this.obj);
-    this.obj.add(this.boundingBox)
     this.setColor(isRed);
 
     // create sounds
     if(sound){ // might be undefined when players added before user started flying
       this.addSound(sound);
     }
-    //this.prevRot = new THREE.Vector3(0,0,0);
+
+    // useShooting
+    this.useShooting = useShooting;
+    if(useShooting){
+      this.boundingBox = window.factory.firstPerson.createPlayerBoundingBox(this.obj);
+      this.boundingBox.material.color.set("#ff0000");
+      this.boundingBox.material.transparent = true;
+      this.boundingBox.material.opacity = 0; // invisible
+      this.obj.add(this.boundingBox)
+    }
   }
   //////////////////////////////////////////////////////////
   setColor(isRed){
@@ -90,6 +97,7 @@ class Players{
     const material = new THREE.MeshPhongMaterial();
     material.flatShading = false;
     this.matter = material;
+    this.useShooting = false;
 
 		deepStream.subscribe("player", this.onEvent.bind(this));
   }
@@ -179,7 +187,7 @@ class Players{
 
     this.world.scene.add(p);
     //p.castShadow = true;
-    let newPlayer = new Player(p, nick, (isRed===1), this.sound);
+    let newPlayer = new Player(p, nick, (isRed===1), this.sound, this.useShooting);
 
     this.dict[nick] = newPlayer;
     console.log('create player',nick);
@@ -187,18 +195,18 @@ class Players{
   }
   //////////////////////////////////////////////////////////
   //generateBoundingBox (width, height, depth) {
-  generateBoundingBox (obj) {
-    const geometry = new THREE.Box3().setFromObject( obj );
-    //const geometry = new THREE.BoxGeometry(width, height, depth)
+  // generateBoundingBox (obj) {
+  //   const geometry = new THREE.Box3().setFromObject( obj );
+  //   //const geometry = new THREE.BoxGeometry(width, height, depth)
 
-    const material = new THREE.MeshLambertMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity:  0.5
-    })
+  //   const material = new THREE.MeshLambertMaterial({
+  //       color: 0xffffff,
+  //       transparent: true,
+  //       opacity:  0.5
+  //   })
 
-    return new THREE.Mesh(geometry, material);
-  }
+  //   return new THREE.Mesh(geometry, material);
+  // }
   //////////////////////////////////////////////////////////
   all(){
     let all = [];
@@ -228,6 +236,10 @@ class Players{
       return p;
     }
     return this.createNew(nick);
+  }
+  //////////////////////////////////////////////////////////
+  initShooting(){
+    this.useShooting = true;
   }
 }
 window.Players = Players;

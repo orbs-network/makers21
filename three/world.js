@@ -189,7 +189,7 @@ class World {
     const textureFlare0 = textureLoader.load( '../static/texture/lensflare/lensflare0_alpha.png' );
     const textureFlare3 = textureLoader.load( '../static/texture/lensflare/lensflare3.png' );
 
-    light = new THREE.PointLight( 0xffffff, 1.5, 2000 );
+    light = new THREE.PointLight( 0xFFFFFF, 1.5, 2000 );
     light.color.setHSL( 0, 0, 0.1 );
     light.position.set( 800, 250, 0 );
     this.scene.add( light );
@@ -252,12 +252,16 @@ class World {
     this.players = new Players(this);
     this.players.initSound(this.sound);
 
-    // HUD
-    this.hud = window.factory.firstPerson.createHUD()
-    this._camera.add(this.hud)
 
     // aiming & shooting
-    this.shooting = new Shooting();
+    if(localStorage.getItem('shooting') == 'true'){
+      this.shooting = new Shooting();
+      this.players.initShooting();
+
+      // HUD
+      this.hud = window.factory.firstPerson.createHUD()
+      this._camera.add(this.hud)
+    }
   }
   //////////////////////////////////////////////////////////
   createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos){
@@ -625,7 +629,9 @@ class World {
     this.players.update();
     // explosions
     this.explode.beforeRender();
-    this.shooting.render(this.scene, this._camera, this.players);
+    if(this.shooting){
+      this.shooting.render(this.scene, this._camera, this.players);
+    }
 
     this._renderer.render(this.scene, this._camera);
     this.renderer2d.render(this.scene, this._camera);
