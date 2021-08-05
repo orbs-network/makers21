@@ -81,6 +81,41 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       }
 
     }
+
+	range(size, startAt = 0) {
+		return [...Array(size).keys()].map(i => i + startAt);
+	}
+
+	createRandomGrid() {
+
+		this.grid = []
+
+		let a0 = this.range(config.ObstaclesGridDivider, -Math.floor(config.ObstaclesGridDivider/2))
+		let a1 = this.range(config.ObstaclesGridDivider)
+		let a2 = this.range(config.ObstaclesGridDivider, -Math.floor(config.ObstaclesGridDivider/2))
+
+		a0 = a0.sort(() => (Math.random() > .5) ? 1 : -1)
+		a1 = a1.sort(() => (Math.random() > .5) ? 1 : -1)
+		a2 = a2.sort(() => (Math.random() > .5) ? 1 : -1)
+
+		const ref = config.size / config.ObstaclesGridDivider
+
+		for (let i = 0; i < config.ObstaclesGridDivider; i++) {
+			this.grid.push([2 * ref * a0[i], ref * a1[i], 2 * ref * a2[i]])
+		}
+
+	}
+
+	initObstacles() {
+		console.log('init obstacles');
+		this.createRandomGrid();
+
+		this.client.event.emit('mngr',{
+			type:"init",
+			state:this.grid
+		});
+	}
+
     //////////////////////////////////////////////////////////
     tellState(){
       console.log('tell state');
@@ -152,6 +187,8 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       res.send('ok');
       this.setReady();
       this.tellState();
+      this.initObstacles();
+
     }
     //////////////////////////////////////////////////////////
     onLeave(data, res){
