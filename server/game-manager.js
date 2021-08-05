@@ -21,7 +21,7 @@ class GameManager /*extends THREE.EventDispatcher*/ {
         ready:false, // enough players are connected
         red:[],
         blue:[],
-        clients:new Set(),
+        clients:[],
         redHolder:null,
         blueHolder:null,
         winnerNick:null,
@@ -34,7 +34,6 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       this.state.needReset = true;
       this.tellState();
       this.state.needReset = false;
-      this.saveState();
     }
     //////////////////////////////////////////////////////////
     init(){
@@ -57,7 +56,7 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       console.log('###################################################### xxxx ',data);
       switch(data.type){
         case 'online':
-          res.send({status:'ok',state:this.state});
+          this.onOnline(data, res);
           break;
         case 'join':
           this.onJoin(data, res);
@@ -117,11 +116,15 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       // });
     }
     //////////////////////////////////////////////////////////
-    // onOnline(data){
-    //   console.log("onOnline",data);
-    //   this.state.clients.add(data.id);
-    //   this.tellState();
-    // }
+    onOnline(data, res){
+      //console.log("onOnline",data, res);
+      if(!this.state.clients.includes(res.correlationId)){
+        //console.log('+++add CLIENT ID', res.correlationId);
+        this.state.clients.push(res.correlationId);
+      }
+      res.send({status:'ok',state:this.state});
+      //this.tellState(); - NO NEED
+    }
     setReady(){
       // if team size is equal on both size and > 0
       this.state.ready = this.state.red.length > 0 && (this.state.red.length == this.state.blue.length);
