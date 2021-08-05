@@ -6,7 +6,7 @@ class Player{
     this.obj = obj;
     this.moving = false;
     this.isRed = isRed;
-    this.started = false;
+    this.gameJoined = false;
 
     this._initLabel(nick, isRed);
     this.boundingBox = window.factory.firstPerson.createPlayerBoundingBox(this.obj);
@@ -95,14 +95,14 @@ class Players{
   }
   //////////////////////////////////////////////////////////
   reset(){
-    // remove objects from scene
+    // hide objects from scene
     for(let p of this.all()){
       p.visible = false;
       // THREE.SceneUtils.detach(p, this.world.scene, this.world.scene);
       // this.world.scene.remove(p);
       // p.clear();
     }
-    this.started = false;
+    this.gameJoined = false;
     // remove all wrapping players
     // this.dict = {};
 
@@ -115,7 +115,7 @@ class Players{
   //////////////////////////////////////////////////////////
   onEvent(data){
     // ignore all events fly events if game hasnt started
-    if(!this.started){
+    if(!this.gameJoined){
       return;
     }
 
