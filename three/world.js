@@ -551,12 +551,17 @@ class World {
   }
   //////////////////////////////////////////////////////////
   setFlagHolders(holdingFlag, localState, mngrState){
-    console.log('setFlagHolders');
+    //console.log('setFlagHolders');
+    let el = document.getElementById('flag-holder');
+    el.style.display =  holdingFlag? 'block':'none';
+
     // Im the Holder
     if (holdingFlag){
       let name = localState.isRed? "blue":"red";
+      el.className = name;
       // attach correct flag to self/camera
       this.flags.attachTo(name, this._camera);
+
       //this.flags.setPosCamera(name);
     }else {
       this.attachFlagToHolderOrGate(mngrState.redHolder, true);
