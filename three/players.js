@@ -19,11 +19,21 @@ class Player{
     // useShooting
     this.useShooting = useShooting;
     if(useShooting){
+      // bounding box
       this.boundingBox = window.factory.firstPerson.createPlayerBoundingBox(this.obj);
+      this.boundingBox.expandByScalar(0.3);
       this.boundingBox.material.color.set("#ff0000");
       this.boundingBox.material.transparent = true;
-      this.boundingBox.material.opacity = 0; // invisible
-      this.obj.add(this.boundingBox)
+      this.boundingBox.material.opacity = 0.4; // invisible
+      this.obj.add(this.boundingBox);
+      // lasser beam
+      var laserBeam	= new THREEx.LaserBeam();
+      this.obj.add(laserBeam.object3d);
+      laserBeam.object3d.visible = false;
+      laserBeam.object3d.rotateY(THREE.MathUtils.degToRad(90));
+      laserBeam.object3d.position.z = -.05; // infront of airplane
+      this.laserBeam = laserBeam;
+      //laserBeam.object3d.rotation.set(new THREE.Vector3(0,0,0));
     }
   }
   //////////////////////////////////////////////////////////
@@ -41,6 +51,7 @@ class Player{
   addSound(sound){
     sound.add('fly-by.wav', this.obj, true);
     sound.add('explode.wav', this.obj, false, config.size, 1);
+    sound.add('laser.wav', this.obj, false, config.size, 1);
   }
   //////////////////////////////////////////////////////////
   moveForward(){
@@ -76,6 +87,24 @@ class Player{
     this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
   }
   //////////////////////////////////////////////////////////
+  onFire(data){
+    // play already installed sound
+    let sound = this.obj.getObjectByName('sound_laser.wav');
+
+    if(sound) sound.play();
+    this.laserBeam.object3d.visible = true;
+    // auto hide
+    if(this.tidHideFire){
+      clearTimeout(this.tidHideFire);
+    }
+    this.tidHideFire = setTimeout(() =>{
+      this.laserBeam.object3d.visible = false;
+      this.tidHideFire = null;
+    },200);
+
+
+  }
+  //////////////////////////////////////////////////////////
   _initLabel(nick, isRed) {
     const playerLabelDiv = document.createElement( 'div' );
     playerLabelDiv.className = 'player-label';
@@ -94,9 +123,12 @@ class Players{
     this.world= world;
     this.model = world.models['airplane'];
 
-    const material = new THREE.MeshPhongMaterial();
-    material.flatShading = false;
-    this.matter = material;
+    //const material = new THREE.MeshPhongMaterial();
+    //const material = THREE.MeshToonMaterial();
+    //const material = THREE.MeshBasicMaterial();
+    //material.flatShading = false;
+    //material.flatShading = true;
+    //this.matter = material;
     this.useShooting = false;
 
 		deepStream.subscribe("player", this.onEvent.bind(this));
@@ -142,6 +174,9 @@ class Players{
         break;
       case "explode":
         p.onExplode(data, this.world.explode);
+        break;
+      case "fire":
+        p.onFire(data);
         break;
 
     }

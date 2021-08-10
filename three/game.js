@@ -189,13 +189,13 @@ class Game /*extends THREE.EventDispatcher*/ {
 
       if(this.first){
         this.first = false;
+        this.world.sound.play();
         //this.world.onFirst();
       }
-      this.world.sound.play();
     }
     // stop
     else{
-      this.world.sound.pause();
+      //this.world.sound.pause();
     }
   }
   //////////////////////////////////////////////////////////
@@ -439,15 +439,19 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.world = new World();
   }
   //////////////////////////////////////////////////////////
-  playAudio(id){
-    if(!this.audio){
-      this.audio = {};
-    }
-    if(!(id in this.audio )){
-      this.audio[id] = document.getElementById(id);
-    }
-    if(this.audio[id]){
-      this.audio[id].play()
+  playAudio(id, cb){
+    let sound =  document.getElementById(id);
+    if(sound){
+      console.log(id, sound.ended, sound.currentTime);
+      // stop first
+      if( !sound.paused && !sound.ended && 0 < sound.currentTime){
+        sound.pause();
+        sound.currentTime = 0;
+      }
+      let prms = sound.play();
+      if(cb){
+        prms.then(cb);
+      }
     }
     else{
       console.error(`${id} is missing in audio`);
@@ -555,71 +559,99 @@ class Game /*extends THREE.EventDispatcher*/ {
       if(this.gameOver){
         return;
       }
-
-      // always check (even when passing to know if exited)
-      const gate = this.world.checkGatePass();
-      // enter gate pass
-      if(!this.passingGate && gate){
-        console.log(`enter ${gate.name}`);
-        this.passingGate = gate;
-        return; // avoid collision check
-      }
-      // exit of gate pass
-      if(this.passingGate && !gate){
-        console.log(`exit ${this.passingGate.name}`);
-        this.passInGate(this.passingGate);
-        this.passingGate = null;
-        return; // avoid collision check
-      }
-
-      // collision detection
-      if(this.exploding = this.world.checkColission()){
-        this.startStop(); // STOP FLYING!
-        this.world.doExplode();
-        // look at oposite gate
-        const gate = this.localState.isRed? this.world.redGate : this.world.blueGate;
+    }, 250);
+  }
+  //////////////////////////////////////////////////////////
+  checkGatePass(){
+    // always check (even when passing to know if exited)
+    const gate = this.world.checkGatePass();
+    // enter gate pass
+    if(!this.passingGate && gate){
+      console.log(`enter ${gate.name}`);
+      this.passingGate = gate;
+      return true; // avoid collision check
+    }
+    // exit of gate pass
+    if(this.passingGate && !gate){
+      console.log(`exit ${this.passingGate.name}`);
+      this.passInGate(this.passingGate);
+      this.passingGate = null;
+      return true; // avoid collision check
+    }
+    return false;
+  }
+  //////////////////////////////////////////////////////////
+  checkCollision(){
+    let cam = this.world.camera;
+    let direction = new THREE.Vector3();
+    // collision detection
+    if(this.exploding = this.world.checkColission()){
+      this.startStop(); // STOP FLYING!
+      this.world.doExplode();
+      this.playAudio('explode');
+      // look at oposite gate
+      const gate = this.localState.isRed? this.world.redGate : this.world.blueGate;
+      this.controls.lookAt(gate.position);
+      // event explosion
+      deepStream.sendEvent('player',{
+        type:"explode",
+        pos:cam.position,
+        dir:direction,
+        nick: this.localState.nick
+      });
+      // return flag if holders
+      this.checkFlagDrop()
+      // return to start
+      this.world.returnToStart(()=>{
         this.controls.lookAt(gate.position);
-        // event explosion
+        this.exploding = false;
+        // broadcast final pos
+        let cam = this.world.camera;
+        cam.getWorldDirection(direction);
         deepStream.sendEvent('player',{
-          type:"explode",
+          type:"pos",
           pos:cam.position,
           dir:direction,
           nick: this.localState.nick
         });
-        // return flag if holders
-        this.checkFlagDrop()
-        // return to start
-        this.world.returnToStart(()=>{
-          this.controls.lookAt(gate.position);
-          this.exploding = false;
-          // broadcast final pos
-          let cam = this.world.camera;
-          let direction = new THREE.Vector3();
-          cam.getWorldDirection(direction);
-          deepStream.sendEvent('player',{
-            type:"pos",
-            pos:cam.position,
-            dir:direction,
-            nick: this.localState.nick
-          });
-        }, this.controls, gate);
-        return;
-      }
-    }, 250);
+      }, this.controls, gate);
+      return true;
+    }
+    return false;
+  }
+  //////////////////////////////////////////////////////////
+  doFire(){
+    if(this.firing){
+      return;
+    }
+    this.firing = true;
+    deepStream.sendEvent('player',{
+      type:"fire",
+      nick: this.localState.nick
+    });
+
+    this.playAudio('laser',()=>{
+      this.firing = false;
+    });
   }
   //////////////////////////////////////////////////////////
   keydown(e){
+    console.log('keydown code=', e.code);
     // not started
-    if(!this.mngrState.started){
-      console.log("cant fly before game started");
+    if(!this.mngrState.started && this.world.players.gameJoined){
+      console.log("cant fly before game started and joined");
       return;
     }
 
     //e.preventDefault = true;
     switch(e.code){
-      case "Space":{
-       this.startStop();
-      }
+      case "Space":
+        this.startStop();
+        break;
+      case "KeyF":
+        this.doFire();
+        break;
+
     }
     //return false;
   }
@@ -641,6 +673,24 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 
     this.world.render();
+
+
+    // conditions
+    if(this.exploding){
+      return;
+    }
+    if(!this.moving){
+      return;
+    }
+
+    // gate pass
+    // if(this.checkGatePass()){
+    //   return;
+    // };
+    // collisions and gate pass
+    if(this.checkCollision()){
+      return;
+    }
   }
   //////////////////////////////////////////////////////////
   onresize(e){

@@ -11,8 +11,8 @@ const toRad = (Math.PI/180);
 
 window.config = {
   size:SIZE ,
-  speed: SIZE/100,
-  //speed: BASE_SIZE/100,
+  //speed: SIZE/400,
+  speed: BASE_SIZE/100,
   //speed: 0,
   fps:30,
   gateSpeed : 0.01,
@@ -24,4 +24,10 @@ window.config = {
   // rotUnit:0.001,
 };
 
-window.config.collisionDistance= window.config.speed * 5;
+
+config.targetNear = SIZE /10;
+config.targetFar = config.targetNear + SIZE/2;
+
+config.colideNear = 0;
+config.colideFar= SIZE/10;
+config.colideDistance= window.config.speed * 10;

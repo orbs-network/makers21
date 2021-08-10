@@ -72,36 +72,102 @@ class World {
 
     this.createCamera();
 
-    // for colision
-    this.raycaster = new THREE.Raycaster();
-
-    // helper for size
-    // const axesHelper = new THREE.AxesHelper( SIZE );
-    // this.scene.add( axesHelper );
-
-    ///////////////////////////////
-    // Light
-    const skyColor = 0xB1E1FF;  // light blue
-    const groundColor = 0xB97A20;  // brownish orange
-    const intensity = 1;
-    let light = new THREE.DirectionalLight( 0xffffff, 1, 100 );
-    light.position.set( 1, 0.25, 0 ); //default; light shining from top
-    light.castShadow = true; // default false
-    this.scene.add( light );
-
     // renderer
     this._renderer = new THREE.WebGLRenderer();
     this._renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( this._renderer.domElement );
 
+    // for colision and shooting
+    this.raycaster = new THREE.Raycaster();
+
+    ///////////////////////////////
+    // Light
+    // ambient light to light all objects equally
+    const amb = new THREE.AmbientLight( 0xA0A0A0 ); // soft white light
+    this.scene.add( amb );
+    let light = new THREE.DirectionalLight( 0xA0A0A0, 1, 100 );
+    //let light = new THREE.HemisphereLight( 0xfffff0, 0x101020, 0.2 )
+    light.position.set( 1, 0.25, 0 ); //default; light shining from top
+    light.castShadow = true; // default false
+    this.scene.add( light );
+
+    // helper for size
+    // const axesHelper = new THREE.AxesHelper( SIZE );
+    // this.scene.add( axesHelper );
+
+
+    // // const skyColor = 0xB1E1FF;  // light blue
+    // // const groundColor = 0xB97A20;  // brownish orange
+    // // const intensity = 1;
+
+
+    // create players
+    this.players = new Players(this);
+    this.players.initSound(this.sound);
+
+    // GATES
+    const GATE_SIZE = config.size / 20;
+    // red gate
+    this.redGate = this.createGate(RED2, GATE_SIZE);
+    this.redGate.name = "redGate";
+
+    // move front and up
+    this.redGate.position.z = -SIZE;
+    this.redGate.position.y = SIZE/2 - 2*GATE_SIZE;
+    this.scene.add( this.redGate );
+    // pass
+    this.redGate.passSphere = new THREE.Sphere(this.redGate.position, GATE_SIZE/1.5);
+
+    // blue gate
+    this.blueGate = this.createGate(BLUE2, GATE_SIZE);
+    this.blueGate.name = "blueGate";
+
+    // move back and up
+    this.blueGate.position.z = SIZE;
+    this.blueGate.position.y = SIZE/2 - 2*GATE_SIZE;
+    this.scene.add( this.blueGate );
+    // pass
+    this.blueGate.passSphere = new THREE.Sphere(this.blueGate.position, GATE_SIZE/1.5);
+
+    // Flags
+    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.blueGate, 'red', 0xFF0000, .0035, this.sound);
+    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.redGate, 'blue', 0x0000FF, .0035, this.sound);
+
+    // create red+blue borders & ceeling
+    this.createBorders(RED, 1);
+    this.createBorders(BLUE, -1);
+
+    // sound
+    //init from user ket down in game this.initSound();
+    // or is it ok to init here, and only play when user action?
+    this.initSound();
+
+    // 2d renderer
+    this.renderer2d = new THREE.CSS2DRenderer();
+    this.renderer2d.setSize( window.innerWidth, window.innerHeight );
+    this.renderer2d.domElement.style.position = 'absolute';
+    this.renderer2d.domElement.style.top = 0; // IMPORTANT FOR SCROLL
+    // this.labelRenderer.domElement.style.border = "10px solid white";
+    this.renderer2d.domElement.style.pointerEvents = "none";
+    document.body.appendChild( this.renderer2d.domElement );
+
+     // aiming & shooting
+     if(localStorage.getItem('shooting') == 'true'){
+      this.shooting = new Shooting();
+      this.players.initShooting();
+
+      // HUD
+      this.hud = window.factory.firstPerson.createHUD();
+      this._camera.add(this.hud)
+    }
+  }
+  createSpace(){
     // Add Sky
     const sky = new Sky();
     sky.scale.setScalar( 1000 );
     this.scene.add( sky );
 
     const sun = new THREE.Vector3();
-
-    /// GUI
 
     const effectController = {
       turbidity: 20,
@@ -128,20 +194,20 @@ class World {
 
     this._renderer.toneMappingExposure = effectController.exposure;
 
-
+    // stars
     let starGeo = new THREE.Geometry();
 
+    const starDis = 1000;
     for(let i=0;i<1000;i++) {
       const star = new THREE.Vector3(
-          Math.random() * 600 - 300,
-          Math.random() * 600 - 300,
-          Math.random() * 600 - 300
+          Math.random() * starDis - starDis/2,
+          Math.random() * starDis - starDis/2,
+          Math.random() * starDis - starDis/2
       );
 
       starGeo.vertices.push(star);
 
     }
-
     let sprite = new THREE.TextureLoader().load( '../static/img/star.png' );
 
     let starMaterial = new THREE.PointsMaterial({
@@ -201,67 +267,6 @@ class World {
     lensflare.addElement( new LensflareElement( textureFlare3, 120, 0.9 ) );
     lensflare.addElement( new LensflareElement( textureFlare3, 70, 1 ) );
     light.add( lensflare );
-
-    // 2d renderer
-    this.renderer2d = new THREE.CSS2DRenderer();
-    this.renderer2d.setSize( window.innerWidth, window.innerHeight );
-    this.renderer2d.domElement.style.position = 'absolute';
-    this.renderer2d.domElement.style.top = 0; // IMPORTANT FOR SCROLL
-    // this.labelRenderer.domElement.style.border = "10px solid white";
-    this.renderer2d.domElement.style.pointerEvents = "none";
-    document.body.appendChild( this.renderer2d.domElement );
-
-    // create red+blue borders & ceeling
-    this.createBorders(RED, 1);
-    this.createBorders(BLUE, -1);
-
-    // GATES
-    const GATE_SIZE = config.size / 20;
-    // red gate
-    this.redGate = this.createGate(RED2, GATE_SIZE);
-    this.redGate.name = "redGate";
-
-    // move front and up
-    this.redGate.position.z = -SIZE;
-    this.redGate.position.y = SIZE/2 - 2*GATE_SIZE;
-    this.scene.add( this.redGate );
-    // pass
-    this.redGate.passSphere = new THREE.Sphere(this.redGate.position, GATE_SIZE/1.5);
-
-    // blue gate
-    this.blueGate = this.createGate(BLUE2, GATE_SIZE);
-    this.blueGate.name = "blueGate";
-
-    // move back and up
-    this.blueGate.position.z = SIZE;
-    this.blueGate.position.y = SIZE/2 - 2*GATE_SIZE;
-    this.scene.add( this.blueGate );
-    // pass
-    this.blueGate.passSphere = new THREE.Sphere(this.blueGate.position, GATE_SIZE/1.5);
-
-     // sound
-    //init from user ket down in game this.initSound();
-    // or is it ok to init here, and only play when user action?
-    this.initSound();
-
-    // Flags
-    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.blueGate, 'red', 0xFF0000, .004, this.sound);
-    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.redGate, 'blue', 0x0000FF, .004, this.sound);
-
-    // create players
-    this.players = new Players(this);
-    this.players.initSound(this.sound);
-
-
-    // aiming & shooting
-    if(localStorage.getItem('shooting') == 'true'){
-      this.shooting = new Shooting();
-      this.players.initShooting();
-
-      // HUD
-      this.hud = window.factory.firstPerson.createHUD()
-      this._camera.add(this.hud)
-    }
   }
   //////////////////////////////////////////////////////////
   createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos){
@@ -342,8 +347,9 @@ class World {
 
     // add explode sound to camera
     const loop = false;
-    const vol = 0.3; // self not loudest
-    this.sound.add('explode.wav', this._camera, loop, config.size, vol);
+    const vol = 0.3;
+    // self not loudest
+    //this.sound.add('explode.wav', this._camera, loop, config.size, vol);
   }
   //////////////////////////////////////////////////////////
   // onFirst(){
@@ -420,6 +426,15 @@ class World {
     //this._camera.position.z += SIZE;
     this.startLineZ = this._camera.position.z;
     this.startLineY = this._camera.position.y;
+
+     // lasser beam
+    //  var laserBeam	= new THREEx.LaserBeam();
+
+    //  laserBeam.object3d.rotateY(THREE.MathUtils.degToRad(70));
+    //  laserBeam.object3d.position.z = 4; // infront of airplane
+
+    //  this._camera.add(laserBeam.object3d);
+
   }
   //////////////////////////////////////////////////////////
   checkGatePass(){
@@ -429,17 +444,6 @@ class World {
   }
   //////////////////////////////////////////////////////////
   checkColission(){
-    // check colission other players
-    // var camBox = new THREE.Box3().setFromObject( this._camera );
-    // var players = this.players.all();
-    // for(let p of players){
-    //   if (isIntersecting(camBox, p)){
-    //     console.log('collision other player: '+p.name);
-    //     return true;
-    //   }
-    // }
-    // AMI BUFFER CLOSE TO BORDERS
-
     // Y axis
     if(this._camera.position.y < this.border.floor) return true;
     if(this._camera.position.y > this.border.ceiling) return true;
@@ -447,12 +451,11 @@ class World {
     if(this._camera.position.z < this.border.north) return true;
     if(this._camera.position.z > this.border.south) return true;
 
-
-    //var collision = camBox.containsPoint( camera.position );
     if(this.checkColissionGate()){
       console.log('Gate Colision!');
       return true;
     }
+    return false;
   }
   ////////////////////////////////////////////////////////
   // AMI rename to also obstacles
@@ -462,6 +465,8 @@ class World {
     this._camera.getWorldPosition(this.worldPos);
     this._camera.getWorldDirection(this.worldDir);
     this.raycaster.set(this.worldPos, this.worldDir );
+    this.raycaster.near = config.colideNear;
+    this.raycaster.far = config.colideFar;
 
     // const dis = this.raycaster.ray.origin.distanceTo( this.blueGate.position );
     // console.log('distance = ',dis);
@@ -472,9 +477,9 @@ class World {
     //const intersects = this.raycaster.intersectObject( this.blueGate );
 
     if(intersects && intersects.length){
-      //console.log(intersects.length, intersects[0].distance, `thresh: ${config.collisionDistance}`);
+      console.log(intersects.length, intersects[0].distance, `thresh: ${config.colideDistance}`);
       // for(let i of intersects){
-      if (intersects[0].distance < config.collisionDistance){
+      if (intersects[0].distance < config.colideDistance){
         return true;
       }
 
@@ -500,8 +505,9 @@ class World {
   //////////////////////////////////////////////////////////
   doExplode(){
     this.explode.create(this._camera.position.x, this._camera.position.y, this._camera.position.z );
-    let sound = this._camera.getObjectByName('sound_explode.wav');
-    if(sound) sound.play();
+    // camera sound moved to HTMLs
+    //let sound = this._camera.getObjectByName('sound_explode.wav');
+    //if(sound) sound.play();
   }
   //////////////////////////////////////////////////////////
   // set this player's team
@@ -614,8 +620,11 @@ class World {
   }
   //////////////////////////////////////////////////////////
   onresize(e) {
-    this.renderer.setSize(window.innerWidth, window.innerHeight)
+    // 3D
+    this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
+    this.renderer.setSize(window.innerWidth, window.innerHeight)
+    // 2D
     this.renderer2d.domElement.style.width = window.innerWidth;
     this.renderer2d.domElement.style.height = window.innerHeight;
   }
@@ -630,7 +639,7 @@ class World {
     // explosions
     this.explode.beforeRender();
     if(this.shooting){
-      this.shooting.render(this.scene, this._camera, this.players);
+      this.shooting.updateTarget(this.raycaster, this._camera, this.players);
     }
 
     this._renderer.render(this.scene, this._camera);
