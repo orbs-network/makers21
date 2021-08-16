@@ -8,6 +8,7 @@ class World {
 
     this.loader = new THREE.OBJLoader();
     this.models = {};
+    this.v2 = new THREE.Vector2(0,0);
   }
   //////////////////////////////////////////////////////////
   reset(){
@@ -79,6 +80,7 @@ class World {
 
     // for colision and shooting
     this.raycaster = new THREE.Raycaster();
+    this.raycaster.layers.set( 1 );
 
     ///////////////////////////////
     // Light
@@ -154,11 +156,12 @@ class World {
      // aiming & shooting
      if(localStorage.getItem('shooting') == 'true'){
       this.shooting = new Shooting();
+      this._camera.add(this.shooting.createHUD())
       this.players.initShooting();
 
       // HUD
-      this.hud = window.factory.firstPerson.createHUD();
-      this._camera.add(this.hud)
+      // this.hud = window.factory.firstPerson.createHUD();
+      // this._camera.add(this.hud)
     }
   }
   createSpace(){
@@ -461,10 +464,9 @@ class World {
   // AMI rename to also obstacles
   checkColissionGate(){
     // update the picking ray with the camera and mouse position
-	  //this.raycaster.setFromCamera( this.v2, this._camera );
-    this._camera.getWorldPosition(this.worldPos);
-    this._camera.getWorldDirection(this.worldDir);
-    this.raycaster.set(this.worldPos, this.worldDir );
+    // this._camera.getWorldPosition(this.worldPos);
+    // this._camera.getWorldDirection(this.worldDir);
+    // this.raycaster.set(this.worldPos, this.worldDir );
     this.raycaster.near = config.colideNear;
     this.raycaster.far = config.colideFar;
 
@@ -533,8 +535,9 @@ class World {
     this._camera.position.z = this.startLineZ
     this._camera.rotation.y = isRed? 0 : Math.PI * (360 / 360);
 
-    //this.startLineRot = this._camera.rotation;
-    //this._camera.lookAt(isRed? this.redGate : this.blueGate);
+    if(this.shooting){
+      this.shooting.isRed = isRed;
+    }
   }
   //////////////////////////////////////////////////////////
   // set other players teams
@@ -638,8 +641,10 @@ class World {
     this.players.update();
     // explosions
     this.explode.beforeRender();
+
+    this.raycaster.setFromCamera( new THREE.Vector3() , this.camera );
     if(this.shooting){
-      this.shooting.updateTarget(this.raycaster, this._camera, this.players);
+      this.shooting.updateTarget(this.raycaster, this.players);
     }
 
     this._renderer.render(this.scene, this._camera);

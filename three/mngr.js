@@ -30,7 +30,12 @@ class Mngr /*extends THREE.EventDispatcher*/ {
           }
       });
     });
+
+    //this.addDummies();
   }
+  //////////////////////////////////////////////////////////
+  // addDummies() {}{
+  // }
   //////////////////////////////////////////////////////////
   resetState(){
     this.state = {

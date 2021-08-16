@@ -19,13 +19,15 @@ class Player{
     // useShooting
     this.useShooting = useShooting;
     if(useShooting){
-      // bounding box
-      this.boundingBox = window.factory.firstPerson.createPlayerBoundingBox(this.obj);
-      this.boundingBox.expandByScalar(0.3);
-      this.boundingBox.material.color.set("#ff0000");
-      this.boundingBox.material.transparent = true;
-      this.boundingBox.material.opacity = 0.4; // invisible
-      this.obj.add(this.boundingBox);
+      // bounding sphere
+      const sz = 0.06;
+      const geometry = new THREE.SphereGeometry( sz, 16, 8 );
+      this.boundSphere = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: isRed? 0xFF0000:0x0000FF } ) );
+      this.boundSphere.layers.enable(1); // MUST
+      this.boundSphere.material.transparent = true;
+      this.boundSphere.name = nick + '_bound_sphere';
+      //this.boundSphere.material.opacity = 0.4; // invisible
+      this.obj.add(this.boundSphere);
       // lasser beam
       var laserBeam	= new THREEx.LaserBeam();
       this.obj.add(laserBeam.object3d);
@@ -33,7 +35,6 @@ class Player{
       laserBeam.object3d.rotateY(THREE.MathUtils.degToRad(90));
       laserBeam.object3d.position.z = -.05; // infront of airplane
       this.laserBeam = laserBeam;
-      //laserBeam.object3d.rotation.set(new THREE.Vector3(0,0,0));
     }
   }
   //////////////////////////////////////////////////////////
@@ -229,20 +230,6 @@ class Players{
 	  return newPlayer;
   }
   //////////////////////////////////////////////////////////
-  //generateBoundingBox (width, height, depth) {
-  // generateBoundingBox (obj) {
-  //   const geometry = new THREE.Box3().setFromObject( obj );
-  //   //const geometry = new THREE.BoxGeometry(width, height, depth)
-
-  //   const material = new THREE.MeshLambertMaterial({
-  //       color: 0xffffff,
-  //       transparent: true,
-  //       opacity:  0.5
-  //   })
-
-  //   return new THREE.Mesh(geometry, material);
-  // }
-  //////////////////////////////////////////////////////////
   all(){
     let all = [];
     for ( let nick in this.dict){
@@ -250,10 +237,11 @@ class Players{
     }
     return all;
   }
-  boundingBoxes() {
+  //////////////////////////////////////////////////////////
+  boundSpheres() {
     let all = [];
     for ( let nick in this.dict){
-      all.push(this. dict[nick].boundingBox);
+      all.push(this. dict[nick].boundSphere);
     }
     return all;
   }

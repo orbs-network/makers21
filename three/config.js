@@ -12,7 +12,7 @@ const toRad = (Math.PI/180);
 window.config = {
   size:SIZE ,
   //speed: SIZE/400,
-  speed: BASE_SIZE/100,
+  speed: BASE_SIZE/200,
   //speed: 0,
   fps:30,
   gateSpeed : 0.01,
@@ -26,7 +26,7 @@ window.config = {
 
 
 config.targetNear = SIZE /10;
-config.targetFar = config.targetNear + SIZE/2;
+config.targetFar = config.targetNear + 2*SIZE;
 
 config.colideNear = 0;
 config.colideFar= SIZE/10;
