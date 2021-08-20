@@ -7,6 +7,7 @@ class Player{
     this.moving = false;
     this.isRed = isRed;
     this.gameJoined = false;
+    this.nick = nick;
 
     this._initLabel(nick, isRed);
     this.setColor(isRed);
@@ -26,7 +27,7 @@ class Player{
       this.boundSphere.layers.enable(1); // MUST
       this.boundSphere.material.transparent = true;
       this.boundSphere.name = nick + '_bound_sphere';
-      //this.boundSphere.material.opacity = 0.4; // invisible
+      this.boundSphere.material.opacity = 0; // invisible
       this.obj.add(this.boundSphere);
       // lasser beam
       var laserBeam	= new THREEx.LaserBeam();
