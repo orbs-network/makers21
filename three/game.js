@@ -439,15 +439,25 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.world = new World();
   }
   //////////////////////////////////////////////////////////
-  playAudio(id, cb){
+  stopAudio(id){
     let sound =  document.getElementById(id);
     if(sound){
-      console.log(id, sound.ended, sound.currentTime);
-      // stop first
       if( !sound.paused && !sound.ended && 0 < sound.currentTime){
         sound.pause();
         sound.currentTime = 0;
       }
+    }
+  }
+  //////////////////////////////////////////////////////////
+  playAudio(id, cb){
+    let sound =  document.getElementById(id);
+    if(sound){
+
+      // stop first
+      this.stopAudio(id);
+      const begin = sound.getAttribute('begin');
+      sound.currentTime = begin? parseFloat(begin) : 0;
+
       let prms = sound.play();
       if(cb){
         prms.then(cb);
