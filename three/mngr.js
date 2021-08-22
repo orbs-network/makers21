@@ -30,6 +30,16 @@ class Mngr /*extends THREE.EventDispatcher*/ {
           }
       });
     });
+    $('#add-dum').click((e) => {
+      deepStream.client.rpc.make( 'client', {
+        type:'add-dum',
+        nick:'mngr-client'}, (error, result) => {
+          if(error){
+            console.error('reset',error);
+            return;
+          }
+      });
+    });
 
     //this.addDummies();
   }

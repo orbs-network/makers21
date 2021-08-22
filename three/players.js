@@ -179,6 +179,8 @@ class Players{
         break;
       case "fire":
         p.onFire(data);
+        // explode myself if im the target
+        game.checkFireTarget(data);
         break;
 
     }

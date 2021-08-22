@@ -343,16 +343,11 @@ class World {
   //////////////////////////////////////////////////////////
   initSound(){
     this.sound = new Sound(this._camera);
-    this.sound.add('gate.wav', this.redGate, true, SIZE);
-    this.sound.add('gate.wav', this.blueGate, true, SIZE);
+    // TODO: resume
+    // this.sound.add('gate.wav', this.redGate, true, SIZE);
+    // this.sound.add('gate.wav', this.blueGate, true, SIZE);
 
     //this.explode.initSound(this.sound);
-
-    // add explode sound to camera
-    const loop = false;
-    const vol = 0.3;
-    // self not loudest
-    //this.sound.add('explode.wav', this._camera, loop, config.size, vol);
   }
   //////////////////////////////////////////////////////////
   // onFirst(){
@@ -644,7 +639,7 @@ class World {
 
     this.raycaster.setFromCamera( new THREE.Vector3() , this.camera );
     if(this.shooting){
-      this.shooting.updateTarget(this.raycaster, this.players);
+      this.shooting.update(this.raycaster, this.players);
     }
 
     this._renderer.render(this.scene, this._camera);

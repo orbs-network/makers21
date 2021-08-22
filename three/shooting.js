@@ -5,7 +5,7 @@ class Shooting {
     //this.raycaster = new THREE.Raycaster();
     this.isRed = "uninitialized!!!";
     this.friend = false;
-
+    this.firing = false;
   }
   //////////////////////////////////////////////
   createHUD(){
@@ -68,6 +68,7 @@ class Shooting {
   //////////////////////////////////////////////
   onNewTarget(target, players) {
     // reset locking
+    const wasLocked = this.locked;
     this.locked = false;
 
     if(this.target){
@@ -82,9 +83,10 @@ class Shooting {
       // reset enemy lock
       if(this.tsEnemyLock){
         this.tsEnemyLock = 0;
+        // stop laser up either way
+        game.stopAudio('laser_up');
         // play lasert down
-        if(!this.isLocked){
-          game.stopAudio('laser_up');
+        if(wasLocked){
           game.playAudio('laser_down');
         }
       }
@@ -107,6 +109,8 @@ class Shooting {
   }
   //////////////////////////////////////////////
   update(raycaster, players) {
+    if(this.firing) return;
+
     raycaster.near = config.targetNear;
     raycaster.far = config.targetFar;
 
@@ -133,7 +137,7 @@ class Shooting {
           const countdown = parseInt((config.targetLockMs-diff)/100);
           this.hudLabel.textContent = "[locking] " + countdown;
           // rotate while locking
-          this.hud.rotateZ(diff/8000);
+          this.hud.rotateZ(diff/(config.targetLockMs*5));
         }
         else{
           this.hudLabel.textContent = "Target locked!"
