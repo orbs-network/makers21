@@ -4,7 +4,6 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       this.client = deepStream;
       this.resetState();
       this.init();
-
       //this.client.event.subscribe('managerState', state => {this.state = state});
     }
     syncState() {
@@ -13,7 +12,54 @@ class GameManager /*extends THREE.EventDispatcher*/ {
      //   this.state.type = 'state';
        // this.client.event.emit('mngr', this.state);
     }
+    //////////////////////////////////////////////////////////
+    moveDum(){
+      console.log('move dummies');
+      const direction = {x:0,y:0,z:0};
+      for(let d of this.dummies){
+        d.pos.x += 2 *(Math.random() - 1);
+        d.pos.y += 2 *(Math.random() - 1);
+        d.pos.z += 2 *(Math.random() - 1);
+        this.client.event.emit('player',{
+          type:"pos",
+          pos:d.pos,
+          dir:direction,
+          nick: d.nick
+        });
+      }
+    }
+    //////////////////////////////////////////////////////////
+    addDumTeam(isRed, indx){
+      const nick = (isRed? 'red':'blue') + '_dummie_'+ indx;
+      console.log('add dummie', nick);
+      const dum = {
+        nick: nick,
+        pos:{
+          x:0,y:2,z:0
+        }
+      }
+      this.dummies.push(dum);
 
+      if(isRed){
+        this.state.red.push(nick);
+      }
+      else{
+        this.state.blue.push(nick);
+      }
+      this.tellState();
+    }
+    //////////////////////////////////////////////////////////
+    addDum(){
+      let indx = this.state.red?.length;
+      // red
+      this.addDumTeam(true, indx);
+      // blue
+      this.addDumTeam(false, indx);
+      // move random
+      if(!this.tidMoveDum){
+        this.tidMoveDum = setInterval(this.moveDum.bind(this), 1000);
+      }
+    }
     //////////////////////////////////////////////////////////
     resetState(){
       this.state = {
@@ -27,6 +73,12 @@ class GameManager /*extends THREE.EventDispatcher*/ {
         winnerNick:null,
         winnerIsRed:false
       };
+      // reset dummies
+      this.dummies = [];
+      if(this.tidMoveDum){
+        clearInterval(this.tidMoveDum);
+        this.tidMoveDum =- 0;
+      }
     }
     //////////////////////////////////////////////////////////
     reset(){
@@ -75,6 +127,10 @@ class GameManager /*extends THREE.EventDispatcher*/ {
           break;
         case 'reset':
           this.reset();
+          res.send('ok');
+          break;
+        case 'add-dum':
+          this.addDum();
           res.send('ok');
           break;
       }
