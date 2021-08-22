@@ -312,6 +312,8 @@ class Game /*extends THREE.EventDispatcher*/ {
   onMngrState(state){
     // store
     this.mngrState = state;
+    // to add dummies during game
+    this.world.setPlayerTeams(state.red, state.blue);
 
     // reset from mngr
     if(state.needReset){
@@ -591,62 +593,87 @@ class Game /*extends THREE.EventDispatcher*/ {
     return false;
   }
   //////////////////////////////////////////////////////////
-  checkCollision(){
+  doExplode(){
+    // STOP FLYING!
+    if(this.moving){
+      this.startStop();
+    }
+    // local var for back to start
     let cam = this.world.camera;
     let direction = new THREE.Vector3();
-    // collision detection
-    if(this.exploding = this.world.checkColission()){
-      this.startStop(); // STOP FLYING!
-      this.world.doExplode();
-      this.playAudio('explode');
-      // look at oposite gate
-      const gate = this.localState.isRed? this.world.redGate : this.world.blueGate;
+    // visual
+    this.world.doExplode();
+    this.playAudio('explode');
+    // look at oposite gate
+    const gate = this.localState.isRed? this.world.redGate : this.world.blueGate;
+    this.controls.lookAt(gate.position);
+    // event explosion
+    deepStream.sendEvent('player',{
+      type:"explode",
+      pos:cam.position,
+      dir:direction,
+      nick: this.localState.nick
+    });
+    // return flag if holders
+    this.checkFlagDrop()
+    // return to start
+    this.world.returnToStart(()=>{
       this.controls.lookAt(gate.position);
-      // event explosion
+      this.exploding = false;
+      // broadcast final pos
+      let cam = this.world.camera;
+      cam.getWorldDirection(direction);
       deepStream.sendEvent('player',{
-        type:"explode",
+        type:"pos",
         pos:cam.position,
         dir:direction,
         nick: this.localState.nick
       });
-      // return flag if holders
-      this.checkFlagDrop()
-      // return to start
-      this.world.returnToStart(()=>{
-        this.controls.lookAt(gate.position);
-        this.exploding = false;
-        // broadcast final pos
-        let cam = this.world.camera;
-        cam.getWorldDirection(direction);
-        deepStream.sendEvent('player',{
-          type:"pos",
-          pos:cam.position,
-          dir:direction,
-          nick: this.localState.nick
-        });
-      }, this.controls, gate);
+    }, this.controls, gate);
+  }
+  //////////////////////////////////////////////////////////
+  checkCollision(){
+    // collision detection
+    if(this.exploding = this.world.checkColission()){
+      this.doExplode();
       return true;
     }
     return false;
   }
   //////////////////////////////////////////////////////////
+  checkFireTarget(data) {
+    if(data.targetNick == this.localState.nick){
+      this.doExplode();
+    }
+  }
+  //////////////////////////////////////////////////////////
   doFire(){
-    if(this.firing){
+    if(!this.world.shooting) return;
+    if(this.world.shooting.firing) return;
+    if(!this.world.shooting.locked){
+      this.setGameMsg('lock target before fire');
+      this.playAudio('wrong');
       return;
     }
+
     this.firing = true;
     deepStream.sendEvent('player',{
       type:"fire",
-      nick: this.localState.nick
+      nick: this.localState.nick,
+      targetNick: this.world.shooting.targetPlayer.nick
     });
 
     this.playAudio('laser',()=>{
-      this.firing = false;
+      this.world.shooting.firing = false;
     });
+    // hide player
+
+    // reset shooting
+    this.world.shooting.onNewTarget(null,null);
   }
   //////////////////////////////////////////////////////////
   keydown(e){
-    console.log('keydown code=', e.code);
+    //console.log('keydown code=', e.code);
     // not started
     if(!this.mngrState.started && this.world.players.gameJoined){
       console.log("cant fly before game started and joined");
