@@ -6,20 +6,15 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       this.init();
       //this.client.event.subscribe('managerState', state => {this.state = state});
     }
-    syncState() {
-    //  console.log('================================   syncState ==================================== ')
-        //this.client.event.emit('managerState', this.state);
-     //   this.state.type = 'state';
-       // this.client.event.emit('mngr', this.state);
-    }
     //////////////////////////////////////////////////////////
     moveDum(){
       console.log('move dummies');
       const direction = {x:0,y:0,z:0};
+      const posFactor = 0.5;
       for(let d of this.dummies){
-        d.pos.x += 2 *(Math.random() - 1);
-        d.pos.y += 2 *(Math.random() - 1);
-        d.pos.z += 2 *(Math.random() - 1);
+        d.pos.x += posFactor *(Math.random() - 1);
+        d.pos.y += posFactor/10 *(Math.random() - 1);
+        d.pos.z += posFactor *(Math.random() - 1);
         this.client.event.emit('player',{
           type:"pos",
           pos:d.pos,
@@ -35,7 +30,9 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       const dum = {
         nick: nick,
         pos:{
-          x:0,y:2,z:0
+          x:10 *(Math.random() - 1),
+          y:5,z:0,
+          z:10 *(Math.random() - 1),
         }
       }
       this.dummies.push(dum);
