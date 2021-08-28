@@ -42,6 +42,7 @@ class Player{
   setColor(isRed){
     this.obj.traverse(child=> {
       if(child instanceof THREE.Mesh) {
+        child.material.side =  THREE.DoubleSide;
         if(isRed){
           child.material.color.setRGB(1,0,0);
         }else{
