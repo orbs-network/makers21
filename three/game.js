@@ -58,7 +58,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(this.controls){
       this.controls.lookAt(this.world.redGate.position);
     }
-
+    this.mngrState.startTs = 0;
     this.world.resetGateRotation();
 
     // 321 stop if in middle
@@ -301,7 +301,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       // start FPS loop
       const fps = document.getElementById('fps');
       this.frames = 0;
-      setTimeout(()=>{
+      setInterval(()=>{
         fps.innerHTML = 'FPS: ' + this.frames;
         this.frames = 0;
       },1000);

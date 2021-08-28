@@ -9,6 +9,9 @@ class World {
     this.loader = new THREE.OBJLoader();
     this.models = {};
     this.v2 = new THREE.Vector2(0,0);
+
+    this.msPerTurn = (1000 / config.gateTurnPerSec);
+    this.gateRad = Math.PI * 2 / this.msPerTurn ;// rotation.y -= config.gateSpeed;
   }
   //////////////////////////////////////////////////////////
   reset(){
@@ -627,10 +630,15 @@ class World {
     this.renderer2d.domElement.style.height = window.innerHeight;
   }
   render(){
-    // rotate gates
-    this.redGate.rotateY(config.gateSpeed);// rotation.y -= config.gateSpeed;
-    this.blueGate.rotateY(-config.gateSpeed);// rotation.y += config.gateSpeed;
-    this.flags.update();
+    if(game.mngrState?.startTs){
+      const diff =  Date.now() - game.mngrState.startTs;
+      // rotate gates
+      const modMs = diff % this.msPerTurn;
+      const angle = this.gateRad * modMs
+      this.redGate.rotation.y = angle;
+      this.blueGate.rotation.y = Math.PI*2 - angle;
+      this.flags.update(this.gateRad);
+    }
 
     // players
     this.players.update();

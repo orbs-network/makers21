@@ -11,6 +11,7 @@ class Flags  {
 		// set material and color
 		object.traverse( function ( child ) {
 			if ( child instanceof THREE.Mesh ) {
+				child.material.side =  THREE.DoubleSide;
 				child.material.color.set(color);
 			}
 		});
@@ -92,7 +93,7 @@ class Flags  {
 	// 	// }
 	// }
 	//////////////////////////////////////////////////////////
-	update() {
+	update(rad) {
 		// implement parent movement
 		for(let flagName in this.holders){
 			const flag = this.dict[flagName];
@@ -103,8 +104,8 @@ class Flags  {
 		}
 		// rotate
 		if(Object.keys(this.dict).length == 2){
-			this.dict['red'].rotateY(config.gateSpeed*6);// rotation.y -= speed;
-			this.dict['blue'].rotateY(-config.gateSpeed*6);// rotation.y += config.gateSpeed;
+			this.dict['red'].rotateY(rad*10);// rotation.y -= speed;
+			this.dict['blue'].rotateY(-rad*10);// rotation.y += config.gateSpeed;
 		}
 	}
 }
