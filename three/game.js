@@ -209,6 +209,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(!this.controls){
       if(this.useNeck){
         this.controls = new THREE.NeckPersonControls(this.world.camera, this.world.renderer.domElement);
+        console.log('USING NECK CONTROLS!');
       }else{
         this.controls = new THREE.FirstPersonControls(this.world.camera, this.world.renderer.domElement);
       }
@@ -296,6 +297,14 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.startUpdateLoop(true);
       // to enable start stop
       this.setGameMsg('press any key to start flying!');
+
+      // start FPS loop
+      const fps = document.getElementById('fps');
+      this.frames = 0;
+      setTimeout(()=>{
+        fps.innerHTML = 'FPS: ' + this.frames;
+        this.frames = 0;
+      },1000);
     }
   }
   //////////////////////////////////////////////////////////
@@ -704,6 +713,9 @@ class Game /*extends THREE.EventDispatcher*/ {
   // }
   //////////////////////////////////////////////////////////
   render(){
+    // FPS
+    this.frames++;
+
     // fly controls
     if(this.controls){
       this.controls.update(1);

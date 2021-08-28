@@ -26,7 +26,13 @@ body {
     width: 100%;
     display: none;
 }
-
+#fps {
+    position: absolute;
+    top:0;
+    left:0;
+    opacity: 0.5;
+    color: #fff;
+}
 #welcome {
     position: absolute;
     /* top: 0; */
