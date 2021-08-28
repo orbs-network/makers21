@@ -763,30 +763,16 @@ window.onload = function(){
     //game.createWorld();
     game.world.createScene();
     game.connect();
-    var fps = config.fps, fpsInterval, startTime, now, then, elapsed;
 
     function animate() {
       // request another frame
       requestAnimationFrame(animate);
 
-      // calc elapsed time since last loop
-      now = Date.now();
-      elapsed = now - then;
-
-      // if enough time has elapsed, draw the next frame
-      if (elapsed > fpsInterval) {
-          // Get ready for next frame by setting then=now, but also adjust for your
-          // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
-          then = now - (elapsed % fpsInterval);
-          // Put your drawing code here
-          game.render();
-      }
+      // Put your drawing code here
+      game.render();
     }
 
     // start animating
-    fpsInterval = 1000 / fps;
-    then = Date.now();
-    startTime = then;
     animate();
   });
 }
