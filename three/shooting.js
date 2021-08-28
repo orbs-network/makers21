@@ -99,7 +99,7 @@ class Shooting {
     console.log('on new target:', this.targetPlayer.nick);
 
     // target bounding sphere visible
-    this.target.material.opacity = 0.3;
+    this.target.material.opacity = 0.5;
 
     // play load laser sound
     if(this.tsEnemyLock){
@@ -128,9 +128,12 @@ class Shooting {
       return;
     }
 
+    // TODO : Pass the flag!
+
     // target locking
     if(this.tsEnemyLock){
       if (!this.locked){
+        // update locking state
         const diff = Date.now() - this.tsEnemyLock;
         this.locked = diff > config.targetLockMs;
         if(!this.locked){
@@ -138,6 +141,11 @@ class Shooting {
           this.hudLabel.textContent = "[locking] " + countdown;
           // rotate while locking
           this.hud.rotateZ(diff/(config.targetLockMs*5));
+          // update target being locked on
+          // TODO : Continue
+          // if(!this.targetPlayer.lockignSent && diff > config.lockingSentBuffer){
+          //   this.targetPlayer.lockignSent = true;
+          // }
         }
         else{
           this.hudLabel.textContent = "Target locked!"
@@ -146,30 +154,9 @@ class Shooting {
           this.hud.rotation.z = 0;
         }
       }
-    }
+    }// locked!
     else{
       this.hudLabel.textContent = game.localState.nick;
     }
-
-
-    // highlight target boxe
-    // for( let s of spheres ) {
-    //   s.material.opacity = (this.target && s.name === this.target.name)? 0.3:0;
-    // }
-
-    //const laserHit = intersections.find(i => i.distance < 10);
-    // if (laserHit) {
-    //   if (this.laserLockingObj === laserHit.object) {
-    //     if (Date.now() - this.laserLockingTimestamp > LOCKING_TIME) {
-    //       laserHit.object.material.color.set("#ff0000")
-    //     }
-    //   } else {
-    //     this.laserLockingTimestamp = Date.now()
-    //     this.laserLockingObj = laserHit.object
-    //   }
-    // } else {
-    //   this.laserLockingTimestamp = 0;
-    //   this.laserLockingObj = {};
-    // }
   }
 }
