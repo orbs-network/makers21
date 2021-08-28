@@ -79,6 +79,9 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   onExplode(data, explode){
+    // hide exploding airplaine
+    this.obj.visible = false;
+
     // create explosition attached to player
     explode.create(this.obj.position.x, this.obj.position.y, this.obj.position.z);
 
@@ -172,6 +175,7 @@ class Players{
         p.obj.visible = true;
         break;
       case "pos":
+        p.obj.visible = true;
         p.onPos(data);
         break;
       case "explode":
