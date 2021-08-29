@@ -12,7 +12,7 @@ const toRad = (Math.PI/180);
 window.config = {
   size:SIZE ,
   //speed: SIZE/400,
-  speed: BASE_SIZE/400,
+  speed: BASE_SIZE/500,
   //speed: 0,
   gateTurnPerSec : 0.2,
   //ctrlHeightLimit: (20 * toRad)
@@ -30,4 +30,4 @@ config.targetLockMs = 2000;
 
 config.colideNear = 0;
 config.colideFar= SIZE/10;
-config.colideDistance= window.config.speed * 10;
+config.colideDistance= config.speed * 10;

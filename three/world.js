@@ -83,7 +83,7 @@ class World {
 
     // for colision and shooting
     this.raycaster = new THREE.Raycaster();
-    this.raycaster.layers.set( 1 );
+    //this.raycaster.layers.set( 1 );
 
     ///////////////////////////////
     // Light
@@ -444,7 +444,7 @@ class World {
     return null
   }
   //////////////////////////////////////////////////////////
-  checkColission(){
+  checkCrossBorders(){
     // Y axis
     if(this._camera.position.y < this.border.floor) return true;
     if(this._camera.position.y > this.border.ceiling) return true;
@@ -452,10 +452,6 @@ class World {
     if(this._camera.position.z < this.border.north) return true;
     if(this._camera.position.z > this.border.south) return true;
 
-    if(this.checkColissionGate()){
-      console.log('Gate Colision!');
-      return true;
-    }
     return false;
   }
   ////////////////////////////////////////////////////////
@@ -465,6 +461,7 @@ class World {
     // this._camera.getWorldPosition(this.worldPos);
     // this._camera.getWorldDirection(this.worldDir);
     // this.raycaster.set(this.worldPos, this.worldDir );
+
     this.raycaster.near = config.colideNear;
     this.raycaster.far = config.colideFar;
 
@@ -477,7 +474,7 @@ class World {
     //const intersects = this.raycaster.intersectObject( this.blueGate );
 
     if(intersects && intersects.length){
-      console.log(intersects.length, intersects[0].distance, `thresh: ${config.colideDistance}`);
+      //console.log('checkColissionGate',intersects.length, intersects[0].distance, `distance: ${config.colideDistance}`);
       // for(let i of intersects){
       if (intersects[0].distance < config.colideDistance){
         return true;
@@ -630,9 +627,10 @@ class World {
     this.renderer2d.domElement.style.height = window.innerHeight;
   }
   render(){
+    // rotate gates & flags in sync with all players
     if(game.mngrState?.startTs){
       const diff =  Date.now() - game.mngrState.startTs;
-      // rotate gates
+
       const modMs = diff % this.msPerTurn;
       const angle = this.gateRad * modMs
       this.redGate.rotation.y = angle;
@@ -645,12 +643,27 @@ class World {
     // explosions
     this.explode.beforeRender();
 
-    this.raycaster.setFromCamera( new THREE.Vector3() , this.camera );
-    if(this.shooting){
-      this.shooting.update(this.raycaster, this.players);
+    // check collisions & shooting not during exploding or not moving
+    if(!game.exploding && game.moving){
+      if(this.checkCrossBorders())
+        return true;// exploding
+
+      // set raycast
+      this.raycaster.setFromCamera( new THREE.Vector3() , this.camera );
+
+      if(this.checkColissionGate())
+        return true; // exploding
+
+      // shooting
+      if(this.shooting){
+        this.shooting.update(this.raycaster, this.players);
+      }
     }
 
+    // scene 3d 2d rendering
     this._renderer.render(this.scene, this._camera);
     this.renderer2d.render(this.scene, this._camera);
+
+    return false; //not exploding
   }
 }

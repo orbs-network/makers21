@@ -641,14 +641,14 @@ class Game /*extends THREE.EventDispatcher*/ {
     }, this.controls, gate);
   }
   //////////////////////////////////////////////////////////
-  checkCollision(){
-    // collision detection
-    if(this.exploding = this.world.checkColission()){
-      this.doExplode();
-      return true;
-    }
-    return false;
-  }
+  // checkCollision(){
+  //   // collision detection
+  //   if(this.exploding = this.world.checkColission()){
+  //     this.doExplode();
+  //     return true;
+  //   }
+  //   return false;
+  // }
   //////////////////////////////////////////////////////////
   checkFireTarget(data) {
     if(data.targetNick == this.localState.nick){
@@ -721,8 +721,11 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.controls.update(1);
     }
 
-    this.world.render();
-
+    const collision = this.world.render();
+    if(collision){
+      this.exploding = true;
+      this.doExplode();
+    }
 
     // conditions
     if(this.exploding){
@@ -733,13 +736,13 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 
     // gate pass
-    // if(this.checkGatePass()){
-    //   return;
-    // };
-    // collisions and gate pass
-    if(this.checkCollision()){
+    if(this.checkGatePass()){
       return;
-    }
+    };
+    // collisions and gate pass
+    // if(this.checkCollision()){
+    //   return;
+    // }
   }
   //////////////////////////////////////////////////////////
   onresize(e){
