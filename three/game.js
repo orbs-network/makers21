@@ -214,7 +214,8 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.controls = new THREE.FirstPersonControls(this.world.camera, this.world.renderer.domElement);
       }
       this.controls.activeLook = true;
-      this.controls.movementSpeed = config.speed;
+      //this.controls.movementSpeed = config.speed;
+      this.controls.movementSpeed = config.distancePerMS;
       this.controls.constrainVertical = true;
       this.controls.verticalMax  = 1.6 + config.vertLimit;
       this.controls.verticalMin  = 1.6 - config.vertLimit;
@@ -572,15 +573,17 @@ class Game /*extends THREE.EventDispatcher*/ {
       cam.getWorldDirection(direction);
       deepStream.sendEvent('player',{
         type:"pos",
+        // old
         pos:cam.position,
         dir:direction,
+        // new
         nick: this.localState.nick
       });
 
       if(this.gameOver){
         return;
       }
-    }, 250);
+    }, config.updateInterval);
   }
   //////////////////////////////////////////////////////////
   checkGatePass(){
@@ -713,12 +716,15 @@ class Game /*extends THREE.EventDispatcher*/ {
   // }
   //////////////////////////////////////////////////////////
   render(){
-    // FPS
+    // FPS measure
     this.frames++;
+
+    const now = Date.now();
 
     // fly controls
     if(this.controls){
-      this.controls.update(1);
+      const delta = (now - this.tsRender);
+      this.controls.update(delta);
     }
 
     const collision = this.world.render();
@@ -726,6 +732,8 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.exploding = true;
       this.doExplode();
     }
+
+    this.tsRender = now;
 
     // conditions
     if(this.exploding){

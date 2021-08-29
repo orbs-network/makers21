@@ -60,7 +60,8 @@ class Player{
   moveForward(){
     if(this.moving){
       this.obj.getWorldDirection(v3);
-      const direction = v3.multiplyScalar(-config.speed);
+      //const direction = v3.multiplyScalar(-config.speed);
+      const direction = v3.multiplyScalar(-0.01);
       this.obj.position.add(direction);
     }
   }

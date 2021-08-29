@@ -12,14 +12,15 @@ const toRad = (Math.PI/180);
 window.config = {
   size:SIZE ,
   //speed: SIZE/400,
-  speed: BASE_SIZE/500,
+  //speed: BASE_SIZE/500,
   //speed: 0,
+  distancePerMS : 1/1000,
   gateTurnPerSec : 0.2,
   //ctrlHeightLimit: (20 * toRad)
   // steerReleaseFactor: 0.95,
   // horizLimit:0.02,
   vertLimit:0.40,
-  lookSpeed:0.005,
+  updateInterval:1000
   // rotUnit:0.001,
 };
 
@@ -30,4 +31,5 @@ config.targetLockMs = 2000;
 
 config.colideNear = 0;
 config.colideFar= SIZE/10;
-config.colideDistance= config.speed * 10;
+config.colideDistance= config.distancePerMS * 500;
+config.lookSpeed = config.distancePerMS * 0.1;//0.0005,
