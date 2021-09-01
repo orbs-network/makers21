@@ -13,6 +13,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.holdingFlag = false;
     this.passingGate = null;
     this.gameOver = false;
+    this.targetPos = new THREE.Vector3();
     // NEED THIS! this.mngrState = null;
   }
   //////////////////////////////////////////////////////////
@@ -571,19 +572,33 @@ class Game /*extends THREE.EventDispatcher*/ {
       }
       // broadcast position
       cam.getWorldDirection(direction);
+      //let quaternion = new THREE.Quaternion();
+      //cam.getWorldQuaternion(quaternion);
       deepStream.sendEvent('player',{
         type:"pos",
         // old
-        pos:cam.position,
+        //pos:cam.position,
         dir:direction,
+        nick: this.localState.nick,
         // new
-        nick: this.localState.nick
+        targetPos: this.calcTargetPos(cam.position, direction),
+        targetTS: Date.now() + config.updateInterval
+        //quaternion: quaternion
       });
 
       if(this.gameOver){
         return;
       }
     }, config.updateInterval);
+  }
+  //////////////////////////////////////////////////////////
+  calcTargetPos(pos, worldDir){
+    this.targetPos.copy(pos);
+    const distance = config.distancePerMS * config.updateInterval;
+    // move forward
+    const direction = worldDir.multiplyScalar(distance);
+    this.targetPos.add(direction);
+    return this.targetPos;
   }
   //////////////////////////////////////////////////////////
   checkGatePass(){
@@ -637,7 +652,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       cam.getWorldDirection(direction);
       deepStream.sendEvent('player',{
         type:"pos",
-        pos:cam.position,
+        targetPos:cam.position,
         dir:direction,
         nick: this.localState.nick
       });
@@ -720,14 +735,14 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.frames++;
 
     const now = Date.now();
+    const delta = (now - this.tsRender);
 
     // fly controls
     if(this.controls){
-      const delta = (now - this.tsRender);
       this.controls.update(delta);
     }
 
-    const collision = this.world.render();
+    const collision = this.world.render(delta);
     if(collision){
       this.exploding = true;
       this.doExplode();

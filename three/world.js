@@ -626,7 +626,7 @@ class World {
     this.renderer2d.domElement.style.width = window.innerWidth;
     this.renderer2d.domElement.style.height = window.innerHeight;
   }
-  render(){
+  render(delta){
     // rotate gates & flags in sync with all players
     if(game.mngrState?.startTs){
       const diff =  Date.now() - game.mngrState.startTs;
@@ -639,7 +639,7 @@ class World {
     }
 
     // players
-    this.players.update();
+    this.players.update(delta);
     // explosions
     this.explode.beforeRender();
 

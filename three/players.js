@@ -1,4 +1,6 @@
 let v3 = new THREE.Vector3(0,0,0);
+const lookDistance = -1000;
+
 //////////////////////////////////////////////////////////
 class Player{
   //////////////////////////////////////////////////////////
@@ -8,6 +10,7 @@ class Player{
     this.isRed = isRed;
     this.gameJoined = false;
     this.nick = nick;
+    this.go2Target = false;
 
     this._initLabel(nick, isRed);
     this.setColor(isRed);
@@ -57,32 +60,98 @@ class Player{
     sound.add('laser.wav', this.obj, false, config.size, 1);
   }
   //////////////////////////////////////////////////////////
-  moveForward(){
+  update(delta, now){
     if(this.moving){
-      this.obj.getWorldDirection(v3);
-      //const direction = v3.multiplyScalar(-config.speed);
-      const direction = v3.multiplyScalar(-0.01);
-      this.obj.position.add(direction);
+      // NEW
+      if(this.go2Target){
+        // Position
+        this.obj.position.x += this.xPerMS * delta;
+        this.obj.position.y += this.yPerMS * delta;
+        this.obj.position.z += this.zPerMS * delta;
+        // Rotation
+        // this.obj.rotation.x += this.xRotPerMS * delta;
+        // this.obj.rotation.y += this.yRotPerMS * delta;
+        // this.obj.rotation.z += this.zRotPerMS * delta;
+      }else{
+        // OLD
+        this.obj.getWorldDirection(v3);
+        //const direction = v3.multiplyScalar(-config.speed);
+        let distance = config.distancePerMS * delta ;
+        const direction = v3.multiplyScalar(-distance);
+        this.obj.position.add(direction);
+        //console.log('passed target!!!');
+      }
     }
   }
   //////////////////////////////////////////////////////////
   onPos(data){
-    this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
-    //this.rotation.set(data.rx, data.ry, data.rz);
-    // since camera is oposite- we look backward negative sign
-    const factor = -1000;
-    this.obj.lookAt(data.dir.x * factor, data.dir.y*factor, data.dir.z*factor);
-    this.moveForward();
+    // direction
+    // this.lookTarget = {
+    //   x: data.dir.x * lookDistance,
+    //   y: data.dir.y * lookDistance,
+    //   z: data.dir.z * lookDistance
+    // }
+    // OLD
+    this.obj.lookAt(data.dir.x * lookDistance, data.dir.y*lookDistance, data.dir.z*lookDistance);
+
+    // First time pos
+    // if(isNaN(this.obj.position.x)){
+    //   this.obj.position.x = data.targetPos.x;
+    //   this.obj.position.y = data.targetPos.y;
+    //   this.obj.position.z = data.targetPos.z;
+    //   this.go2Target = false;
+    //   return;
+    // }
+
+    // OLD
+    // this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
+    // //this.rotation.set(data.rx, data.ry, data.rz);
+    // // since camera is oposite- we look backward negative sign
+
+    // this.moveForward();
+    // NEW
+    // this.targetDir = data.dir;
+    // this.targetPos = data.targetPos;
+    //this.targetTS = data.targetTS;
+    // NEW 2
+
+
+    const timeToTarget = data.targetTS - Date.now();
+    if(timeToTarget > 0){
+      // Position
+      this.go2Target = true;
+      this.xPerMS = (data.targetPos.x - this.obj.position.x) / timeToTarget;
+      this.yPerMS = (data.targetPos.y - this.obj.position.y) / timeToTarget;
+      this.zPerMS = (data.targetPos.z - this.obj.position.z) / timeToTarget;
+      // Rotation
+      //this.obj.applyQuaternion(data.quaternion);
+      //this.obj.setRotationFromQuaternion(data.quaternion);
+      // this.obj.getWorldDirection(v3);
+      // this.xRotPerMS = (data.dir.x - v3.x) / timeToTarget;
+      // this.yRotPerMS = (data.dir.y - v3.y) / timeToTarget;
+      // this.zRotPerMS = (data.dir.z - v3.z) / timeToTarget;
+    }else{
+      this.go2Target = false;
+    }
+    // position if not moving
+    if(!this.moving){
+        this.obj.position.x = data.targetPos.x;
+        this.obj.position.y = data.targetPos.y;
+        this.obj.position.z = data.targetPos.z;
+
+    }
   }
   //////////////////////////////////////////////////////////
   onStart(data){
     this.moving = data.moving;
+    this.exploding = false;
     this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
   }
   //////////////////////////////////////////////////////////
   onExplode(data, explode){
     // hide exploding airplaine
     this.obj.visible = false;
+    this.exploding = true;
 
     // create explosition attached to player
     explode.create(this.obj.position.x, this.obj.position.y, this.obj.position.z);
@@ -192,9 +261,10 @@ class Players{
     }
   }
   //////////////////////////////////////////////////////////
-  update(){
+  update(delta){
+    const now = Date.now();
     for ( let nick in this.dict){
-      this.dict[nick].moveForward();
+      this.dict[nick].update(delta, now);
     }
   }
   //////////////////////////////////////////////////////////
@@ -225,7 +295,8 @@ class Players{
     //let p = new THREE.Mesh();
     p.copy(this.model);
     // scale
-    const s = SIZE/4;// was2
+    const s = SIZE/3.5;// was2
+    //const s = SIZE/2;// was4
     p.scale.set(s,s,s);
 
     p.name = nick;
