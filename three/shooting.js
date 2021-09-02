@@ -92,17 +92,26 @@ class Shooting {
       }
       return;
     }
+
     this.friend = this.isRed == this.target.isRed;
     this.tsEnemyLock = this.friend? 0 : Date.now();
 
     this.targetPlayer = players.getPlayer(this.target.parent.name);
     console.log('on new target:', this.targetPlayer.nick);
 
-    // target bounding sphere visible
-    this.target.material.opacity = 0.5;
+    // dont lock on exploding target (or not moving TODO:)
+    // not moving or exploding - DO NOTHING
+    if(/*!this.targetPlayer.moving ||*/ this.targetPlayer.exploding){
+      this.tsEnemyLock = 0;
+      return;
+    }
+
 
     // play load laser sound
     if(this.tsEnemyLock){
+      // target bounding sphere visible
+      this.target.material.opacity = 0.5;
+
       game.stopAudio('laser_down');
       game.playAudio('laser_up');
     }

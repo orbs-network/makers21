@@ -567,9 +567,9 @@ class Game /*extends THREE.EventDispatcher*/ {
       if(this.exploding){
         return;
       }
-      if(!this.moving){
-        return;
-      }
+      // if(!this.moving){
+      //   return;
+      // }
       // broadcast position
       cam.getWorldDirection(direction);
       //let quaternion = new THREE.Quaternion();
@@ -580,6 +580,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         //pos:cam.position,
         dir:direction,
         nick: this.localState.nick,
+        moving: this.moving,
         // new
         targetPos: this.calcTargetPos(cam.position, direction),
         targetTS: Date.now() + config.updateInterval

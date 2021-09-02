@@ -20,7 +20,8 @@ window.config = {
   // steerReleaseFactor: 0.95,
   // horizLimit:0.02,
   vertLimit:0.40,
-  updateInterval:100
+  updateInterval:100,
+  playerSphereSize: 0.1
   // rotUnit:0.001,
 };
 

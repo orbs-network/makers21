@@ -592,9 +592,9 @@ class World {
         this.tidReturn = null;
         return cb();
       }
-      zDiff *= 0.08;
-      yDiff *= 0.08;
-      xDiff *= 0.08;
+      zDiff *= 0.02;
+      yDiff *= 0.02;
+      xDiff *= 0.02;
       this._camera.position.z += zDiff;
       this._camera.position.y += yDiff;
       this._camera.position.x += xDiff;

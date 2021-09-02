@@ -24,8 +24,7 @@ class Player{
     this.useShooting = useShooting;
     if(useShooting){
       // bounding sphere
-      const sz = 0.06;
-      const geometry = new THREE.SphereGeometry( sz, 16, 8 );
+      const geometry = new THREE.SphereGeometry( config.playerSphereSize, 16, 8 );
       this.boundSphere = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: isRed? 0xFF0000:0x0000FF } ) );
       this.boundSphere.layers.enable(1); // MUST
       this.boundSphere.material.transparent = true;
@@ -94,6 +93,15 @@ class Player{
     // OLD
     this.obj.lookAt(data.dir.x * lookDistance, data.dir.y*lookDistance, data.dir.z*lookDistance);
 
+    // position if not moving
+    this.moving = data.moving;
+    if(!this.moving){
+      this.obj.position.x = data.targetPos.x;
+      this.obj.position.y = data.targetPos.y;
+      this.obj.position.z = data.targetPos.z;
+      return;
+    }
+
     // First time pos
     // if(isNaN(this.obj.position.x)){
     //   this.obj.position.x = data.targetPos.x;
@@ -133,25 +141,17 @@ class Player{
     }else{
       this.go2Target = false;
     }
-    // position if not moving
-    if(!this.moving){
-        this.obj.position.x = data.targetPos.x;
-        this.obj.position.y = data.targetPos.y;
-        this.obj.position.z = data.targetPos.z;
-
-    }
   }
   //////////////////////////////////////////////////////////
   onStart(data){
     this.moving = data.moving;
-    this.exploding = false;
     this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
   }
   //////////////////////////////////////////////////////////
   onExplode(data, explode){
     // hide exploding airplaine
     this.obj.visible = false;
-    this.exploding = true;
+    this.moving = false;
 
     // create explosition attached to player
     explode.create(this.obj.position.x, this.obj.position.y, this.obj.position.z);
@@ -295,7 +295,7 @@ class Players{
     //let p = new THREE.Mesh();
     p.copy(this.model);
     // scale
-    const s = SIZE/3.5;// was2
+    const s = SIZE/2.5;// was2
     //const s = SIZE/2;// was4
     p.scale.set(s,s,s);
 
