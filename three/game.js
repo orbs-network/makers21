@@ -3,7 +3,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   constructor(){
     this.resetMembers();
     this.loadLocalState();
-    this.useNeck = localStorage.getItem('neck') == 'true';
+    this.useNeck = localStorage.getItem('disableNeck') !== 'true';
   }
   //////////////////////////////////////////////////////////
   resetMembers(){
@@ -34,8 +34,18 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
   }
   //////////////////////////////////////////////////////////
+  loadNeck(cb){
+    if(!this.useNeck){
+      return cb();
+    }
+    this.face = new Face();
+    this.face.startCamera(cb);
+  }
+  //////////////////////////////////////////////////////////
   loadAsync(cb){
-    this.world.loadModels(cb);
+    this.loadNeck(()=>{
+      this.world.loadModels(cb);
+    });
   }
   //////////////////////////////////////////////////////////
   isJoined(){
@@ -209,7 +219,8 @@ class Game /*extends THREE.EventDispatcher*/ {
   initControls(init){
     if(!this.controls){
       if(this.useNeck){
-        this.controls = new THREE.NeckPersonControls(this.world.camera, this.world.renderer.domElement);
+        // face should be loaded during loadAsync()
+        this.controls = new THREE.NeckPersonControls(this.world.camera, this.world.renderer.domElement, this.face);
         console.log('USING NECK CONTROLS!');
       }else{
         this.controls = new THREE.FirstPersonControls(this.world.camera, this.world.renderer.domElement);

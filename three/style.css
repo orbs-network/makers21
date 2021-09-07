@@ -1,9 +1,17 @@
 body {
     font-family: monospace;
+    background-color: #000;
     overflow: hidden;
     padding: 0;
     margin: 0;
 }
+
+/* .input_video needed???
+{
+    transform: rotateY(180deg);
+    -webkit-transform:rotateY(180deg); // Safari and Chrome
+    -moz-transform:rotateY(180deg); // Firefox
+} */
 
 .player-label{
     background-color: transparent;
@@ -116,13 +124,20 @@ div{
 
 #face-display {
     position: absolute;
-    bottom: 0px;
-    left: 0px;
-    width: 150px;
-    height: 150px;
-    border: 1px solid silver;
+    top: 0px;
+    right: -100px;
+    width: 344;
+    height: 248;
+    /*border: 1px solid silver;*/
     color: silver;
 }
+#face-display .cords {
+    position: absolute;
+    color:#00FFA0;
+    top: 0px;
+    right:100px;
+}
+#face-x, #face-y {color: silver}
 
 .control-panel div {
     display: flex;

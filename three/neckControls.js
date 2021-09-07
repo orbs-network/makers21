@@ -8,7 +8,7 @@
 
 	class NeckPersonControls {
 
-		constructor( object, domElement ) {
+		constructor( object, domElement, face ) {
 
 			if ( domElement === undefined ) {
 
@@ -16,8 +16,9 @@
 				domElement = document;
 
 			}
-			this.face = new Face();
-			this.face.startCamera();
+			this.face = face;
+			// this.face = new Face();
+			// this.face.startCamera();
 
 			this.object = object;
 			this.domElement = domElement; // API

@@ -623,8 +623,9 @@ class World {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight)
     // 2D
-    this.renderer2d.domElement.style.width = window.innerWidth;
-    this.renderer2d.domElement.style.height = window.innerHeight;
+    this.renderer2d.setSize(window.innerWidth, window.innerHeight)
+    // this.renderer2d.domElement.style.width = window.innerWidth;
+    // this.renderer2d.domElement.style.height = window.innerHeight;
   }
   render(delta){
     // rotate gates & flags in sync with all players
