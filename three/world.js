@@ -108,7 +108,6 @@ class World {
 
     // create players
     this.players = new Players(this);
-    this.players.initSound(this.sound);
 
     // GATES
     const GATE_SIZE = config.size / 20;
@@ -161,10 +160,6 @@ class World {
       this.shooting = new Shooting();
       this._camera.add(this.shooting.createHUD())
       this.players.initShooting();
-
-      // HUD
-      // this.hud = window.factory.firstPerson.createHUD();
-      // this._camera.add(this.hud)
     }
   }
   createSpace(){
@@ -347,10 +342,13 @@ class World {
   initSound(){
     this.sound = new Sound(this._camera);
     // TODO: resume
-    // this.sound.add('gate.wav', this.redGate, true, SIZE);
-    // this.sound.add('gate.wav', this.blueGate, true, SIZE);
+    this.sound.add('gate.wav', this.redGate, true, SIZE);
+    // delay sound so both gates wont sync souds
+    setTimeout(() => this.sound.add('gate.wav', this.blueGate, true, SIZE), 500);
 
     //this.explode.initSound(this.sound);
+
+    this.players.initSound(this.sound);
   }
   //////////////////////////////////////////////////////////
   // onFirst(){
@@ -583,7 +581,7 @@ class World {
       let yDiff = this.startLineY - this._camera.position.y ;
       let xDiff = this.startLineX - this._camera.position.x ;
       //console.log('returnToStart zDiff', zDiff);
-      if(Math.abs(zDiff) <= 0.5){
+      if(Math.abs(zDiff) <= 0.05){
         console.log('DONE!', zDiff);
         this._camera.position.z = this.startLineZ;
         this._camera.position.y = this.startLineY;
