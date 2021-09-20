@@ -687,6 +687,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   doFire(){
+    if(!this.moving) return;
     if(!this.world.shooting) return;
     if(this.world.shooting.firing) return;
     if(!this.world.shooting.locked){
