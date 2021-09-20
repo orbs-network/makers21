@@ -56,7 +56,8 @@ class Player{
   addSound(sound){
     sound.add('fly-by.wav', this.obj, true);
     sound.add('explode.wav', this.obj, false, config.size, 1);
-    sound.add('laser.wav', this.obj, false, config.size, 1);
+    // TODO: Resume when fix sound
+    //sound.add('laser.wav', this.obj, false, config.size, 1);
   }
   //////////////////////////////////////////////////////////
   update(delta, now){
