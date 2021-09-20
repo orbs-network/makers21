@@ -1,3 +1,4 @@
+const dummyInterval = 1000;
 class GameManager /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     constructor(deepStream){
@@ -8,7 +9,7 @@ class GameManager /*extends THREE.EventDispatcher*/ {
     }
     //////////////////////////////////////////////////////////
     moveDum(){
-      console.log('move dummies');
+      //console.log('move dummies');
       const direction = {x:0,y:0,z:0};
       const posFactor = 0.5;
       for(let d of this.dummies){
@@ -17,9 +18,15 @@ class GameManager /*extends THREE.EventDispatcher*/ {
         d.pos.z += posFactor *(Math.random() - 1);
         this.client.event.emit('player',{
           type:"pos",
-          pos:d.pos,
+          targetPos:d.pos,
           dir:direction,
-          nick: d.nick
+          nick: d.nick,
+           // old
+          //pos:cam.position,
+          moving: true,
+          // new
+          targetTS: Date.now() + dummyInterval
+          //quaternion: quaternion
         });
       }
     }
@@ -54,7 +61,7 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       this.addDumTeam(false, indx);
       // move random
       if(!this.tidMoveDum){
-        this.tidMoveDum = setInterval(this.moveDum.bind(this), 1000);
+        this.tidMoveDum = setInterval(this.moveDum.bind(this), dummyInterval);
       }
     }
     //////////////////////////////////////////////////////////
