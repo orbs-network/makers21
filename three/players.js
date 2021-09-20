@@ -13,18 +13,20 @@ class Player{
     this.go2Target = false;
 
     this._initLabel(nick, isRed);
-    this.setColor(isRed);
 
     // create sounds
     if(sound){ // might be undefined when players added before user started flying
       this.addSound(sound);
     }
+    // DO BEFORE SHOOTING SO IT DOESNT REPLACE ADDED SPHERE MATTERIAL
+    this.setMaterialColor(isRed? materials.redPhong : materials.bluePhong);
 
     // useShooting
     this.useShooting = useShooting;
     if(useShooting){
       // bounding sphere
       const geometry = new THREE.SphereGeometry( config.playerSphereSize, 16, 8 );
+      // create new matterial per sphere so opacity can be changed individually
       this.boundSphere = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: isRed? 0xFF0000:0x0000FF } ) );
       this.boundSphere.layers.enable(1); // MUST
       this.boundSphere.material.transparent = true;
@@ -41,15 +43,10 @@ class Player{
     }
   }
   //////////////////////////////////////////////////////////
-  setColor(isRed){
+  setMaterialColor(matterial){
     this.obj.traverse(child=> {
       if(child instanceof THREE.Mesh) {
-        child.material.side =  THREE.DoubleSide;
-        if(isRed){
-          child.material.color.setRGB(1,0,0);
-        }else{
-          child.material.color.setRGB(0,0,1);
-        }
+        child.material = matterial;
       }});
   }
   //////////////////////////////////////////////////////////
@@ -200,6 +197,13 @@ class Players{
     this.world= world;
     this.model = world.models['airplane'];
 
+    this.redMaterial =
+
+    this.blueMaterial = new THREE.MeshPhongMaterial({
+      color: 0x0000FF,    // red (can also use a CSS color string here)
+      flatShading: true,
+      side: THREE.DoubleSide
+    });
     //const material = new THREE.MeshPhongMaterial();
     //const material = THREE.MeshToonMaterial();
     //const material = THREE.MeshBasicMaterial();
@@ -293,8 +297,10 @@ class Players{
       return null;
     }
     let p = new THREE.Object3D();
-    //let p = new THREE.Mesh();
+
+    // copy entire model
     p.copy(this.model);
+
     // scale
     const s = SIZE/2.5;// was2
     //const s = SIZE/2;// was4
@@ -303,7 +309,7 @@ class Players{
     p.name = nick;
 
     this.world.scene.add(p);
-    //p.castShadow = true;
+    p.castShadow = true;
     let newPlayer = new Player(p, nick, (isRed===1), this.sound, this.useShooting);
 
     this.dict[nick] = newPlayer;
