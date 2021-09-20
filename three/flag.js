@@ -40,16 +40,13 @@ class Flags  {
 		const flag = this.dict[name];
 		const gate = this.gates[name];
 
-		//flag.updateMatrixWorld();
 		var bbox = new THREE.Box3().setFromObject(flag);
+		let v3 = new THREE.Vector3 (0,0,0);
+		bbox.getSize(v3)
+
 		flag.position.x = gate.position.x;
 		flag.position.z = gate.position.z;
-		flag.position.y = gate.position.y - bbox.getSize().y /2;
-		// flag.updateMatrixWorld();
-		// flag.updateWorldMatrix();
-
-		// console.log(`move toGate: ${name}`);
-		// console.log(flag.position.x,flag.position.y,flag.position.z);
+		flag.position.y = gate.position.y - v3.y /2;
 	}
 	//////////////////////////////////////////////////////////
 	detach(name) {
