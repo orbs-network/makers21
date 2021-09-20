@@ -16,6 +16,7 @@ class Face  {
 		this.faceX = document.getElementById('face-x');
 		this.faceY = document.getElementById('face-y');
 		this.faceDisplay = document.getElementById('face-display');
+		this.faceDisplay.style.display = 'block';
 
 
 		//const canvasElement = document.getElementsByClassName("output_canvas")[0];
