@@ -133,6 +133,7 @@ div{
 }
 #face-display .cords {
     position: absolute;
+    display: none;
     color:#00FFA0;
     top: 0px;
     right:100px;
