@@ -1,4 +1,7 @@
 //////////////////////////////////////////////
+const HUD_Z_NEUTRAL = -0.7;
+const HUD_Z_ACTIVE = -1;
+//////////////////////////////////////////////
 class Shooting {
   //////////////////////////////////////////////
   constructor() {
@@ -13,7 +16,7 @@ class Shooting {
     for (let i = 0; i < 4; i++) {
       hud.add(new THREE.Mesh(new THREE.RingGeometry(0.045, 0.055, 128, 1, hPi * i + 0.2, hPi - 0.4), new THREE.LineBasicMaterial({color: `#ffffff`, transparent:true, opacity:0.1})))
     }
-    hud.position.set( 0, 0, -0.7 );
+    hud.position.set( 0, 0, HUD_Z_NEUTRAL );
     this.hud = hud;
 
     const label = document.createElement( 'div' );
@@ -45,24 +48,35 @@ class Shooting {
     this.hudLabel.style.opacity = opacity;
   }
   //////////////////////////////////////////////
-  setHudState() {
-    this.setHudOpacity(this.target? 1: 0.3);
+  changeHudState() {
+    this.setHudOpacity(0.3);
     // neutral
     if(!this.target){
+      // COLOR
       this.setHudColor("#FFFFFF");
       // SIZE
-      this.hud.position.z += 0.3;
+      this.hud.position.z = HUD_Z_NEUTRAL;
       // TEXT
       this.hudLabel.textContent = game.localState.nick;
     }
     else{
-      // red if emnemy
-      // green if pass the flag
-      this.setHudColor(this.friend? "#00FF00": "#FF0000");
-      // TEXT
-      this.hudLabel.textContent = this.friend? (game.holdingFlag? "Pass the flag":"Friendly fire disabled"): "Locking laser at "+ this.target.parent.name;
-      // SIZE
-      this.hud.position.z -= 0.3;
+      // cant lock on none moving targets
+      if(!this.targetPlayer.moving){
+        this.setHudColor("#FFFFFF");
+        // SIZE
+        this.hud.position.z = HUD_Z_NEUTRAL;
+        // TEXT
+        this.hudLabel.textContent = `can't lock on still target`;
+      }else{
+        this.setHudOpacity(1);
+        // red if emnemy
+        // green if pass the flag
+        this.setHudColor(this.friend? "#00FF00": "#FF0000");
+        // SIZE
+        this.hud.position.z = HUD_Z_ACTIVE;
+        // TEXT
+        this.hudLabel.textContent = this.friend? (game.holdingFlag? "Pass the flag":"Friendly fire disabled"): "Locking laser at "+ this.target.parent.name;
+      }
     }
   }
   //////////////////////////////////////////////
@@ -76,8 +90,7 @@ class Shooting {
       this.target.material.opacity = 0;
     }
     this.target = target;
-    // update hud
-    this.setHudState()
+
     // no target
     if(!target){
       // reset enemy lock
@@ -90,6 +103,8 @@ class Shooting {
           game.playAudio('laser_down');
         }
       }
+      // update hud
+      //this.setHudState();
       return;
     }
 
@@ -97,11 +112,13 @@ class Shooting {
     this.tsEnemyLock = this.friend? 0 : Date.now();
 
     this.targetPlayer = players.getPlayer(this.target.parent.name);
-    console.log('on new target:', this.targetPlayer.nick);
-
+    // update hud
+    //this.setHudState();
+    //console.log('on new target:', this.targetPlayer.nick);
     // dont lock on exploding target (or not moving TODO:)
     // not moving or exploding - DO NOTHING
-    if(/*!this.targetPlayer.moving ||*/ this.targetPlayer.exploding){
+    //console.log(`target moving: ${this.targetPlayer.moving}`)
+    if(!this.targetPlayer.moving || this.targetPlayer.exploding){
       this.tsEnemyLock = 0;
       return;
     }
@@ -117,26 +134,7 @@ class Shooting {
     }
   }
   //////////////////////////////////////////////
-  update(raycaster, players) {
-    if(this.firing) return;
-
-    raycaster.near = config.targetNear;
-    raycaster.far = config.targetFar;
-
-    const spheres = players.boundSpheres();
-    const intersections = raycaster.intersectObjects(spheres);
-    let target;
-    if(intersections.length){
-      target = intersections[0].object;
-      //console.log(this.target.name, intersections[0].distance);//, dis);
-      // target changed
-    }
-
-    if(target != this.target){
-      this.onNewTarget(target, players);
-      return;
-    }
-
+  updateLock() {
     // TODO : Pass the flag!
 
     // target locking
@@ -166,6 +164,36 @@ class Shooting {
     }// locked!
     else{
       this.hudLabel.textContent = game.localState.nick;
+    }
+  }
+  //////////////////////////////////////////////
+  update(raycaster, players) {
+    if(!game.moving) return;
+    if(game.exploding) return;
+    if(this.firing) return;
+
+    raycaster.near = config.targetNear;
+    raycaster.far = config.targetFar;
+
+    const spheres = players.boundSpheres();
+    const intersections = raycaster.intersectObjects(spheres);
+    let target;
+    if(intersections.length){
+      target = intersections[0].object;
+      //console.log(this.target.name, intersections[0].distance);//, dis);
+      // target changed
+    }
+
+    if(target != this.target){
+      this.onNewTarget(target, players);
+      this.changeHudState();
+    }
+
+    if(target){
+      // locking
+      if(this.tsEnemyLock){
+        this.updateLock();
+      }
     }
   }
 }
