@@ -53,8 +53,7 @@ class Player{
   addSound(sound){
     sound.add('fly-by.wav', this.obj, true);
     sound.add('explode.wav', this.obj, false, config.size, 1);
-    // TODO: Resume when fix sound
-    //sound.add('laser.wav', this.obj, false, config.size, 1);
+    sound.add('laser.wav', this.obj, false, config.size, 1);
   }
   //////////////////////////////////////////////////////////
   update(delta, now){
@@ -302,7 +301,7 @@ class Players{
     p.copy(this.model);
 
     // scale
-    const s = SIZE/2.5;// was2
+    const s = SIZE/6;// was2
     //const s = SIZE/2;// was4
     p.scale.set(s,s,s);
 
@@ -348,8 +347,8 @@ class Players{
     return this.createNew(nick);
   }
   //////////////////////////////////////////////////////////
-  initShooting(){
-    this.useShooting = true;
+  initShooting(enabled){
+    this.useShooting = enabled;
   }
 }
 window.Players = Players;

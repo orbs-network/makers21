@@ -64,9 +64,9 @@ class Sound {
   }
   ////////////////////////////////////////////////
   play(){
-    // play all exclude explosions - by demand
+    // play all exclude explosions and lasers - by demand
     for(let s of this.positionals){
-      if(s.name.indexOf('explode') == -1){
+      if(s.name.indexOf('explode') == -1 && s.name.indexOf('laser') == -1  ){
         s.play();
       }
     }
