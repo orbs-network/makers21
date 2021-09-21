@@ -155,12 +155,13 @@ class World {
     this.renderer2d.domElement.style.pointerEvents = "none";
     document.body.appendChild( this.renderer2d.domElement );
 
-     // aiming & shooting
-     if(localStorage.getItem('shooting') == 'true'){
+     // aiming & shooting - disabled only if set to FALSE
+    if(localStorage.getItem('shooting') !== 'false'){
       this.shooting = new Shooting();
       this._camera.add(this.shooting.createHUD())
-      this.players.initShooting();
+      this.players.initShooting(true);
     }
+    console.log('shooting is ' + (this.shooting? 'enabled':'disabled'));
   }
   createSpace(){
     // Add Sky
@@ -369,71 +370,10 @@ class World {
     // this._camera.add(cube);
     // cube.position.set( 0, 0, -30 );
     this.scene.add(this._camera); //TODO: resume
-    // this._cameraAim = cube;
-
-    // /// line for raycasting
-    // // Draw a line from pointA in the given direction at distance 100
-    // var pointA = new THREE.Vector3( 0, 0, 0 );
-    // var direction = new THREE.Vector3( 10, 0, 0 );
-    // direction.normalize();
-
-    // var distance = 100; // at what distance to determine pointB
-
-    // var pointB = new THREE.Vector3();
-    // pointB.addVectors ( pointA, direction.multiplyScalar( distance ) );
-
-    // var geometry = new THREE.BufferGeometry();
-    // const positions = new Float32Array( 2 );
-    // geometry.setAttribute( 'position', new THREE.BufferAttribute( positions, 2 ) );
-    // // geometry.vertices.push( pointA );
-    // let index = 0;
-    // positions[ index++ ] = pointA.x;
-    // positions[ index++ ] = pointA.y;
-    // positions[ index++ ] = pointA.z;
-    // positions[ index++ ] = pointB.x;
-    // positions[ index++ ] = pointB.y;
-    // positions[ index++ ] = pointB.z;
-
-    // // geometry.vertices.push( pointB );
-    // var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
-    // var line = new THREE.Line( geometry, material );
-    // this.scene.add( line );
-
-    //crosshair
-    // const lineMaterial = new THREE.LineBasicMaterial({
-    //   color: 0xffffff
-    // });
-    // var points = new Array();
-    // points[0] = new THREE.Vector3(-.1, 0, 0);
-    // points[1] = new THREE.Vector3(.1, 0, 0);
-    // let lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-    // const xLine = new THREE.Line(lineGeometry, lineMaterial);
-    // this._camera.add(xLine);
-    // points[0] = new THREE.Vector3(0, -.1, 0);
-    // points[1] = new THREE.Vector3(0, .1, 0);
-    // lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-    // const yLine = new THREE.Line(lineGeometry, lineMaterial);
-    // this._camera.add(yLine);
-    // points[0] = new THREE.Vector3(0, 0, -.1);
-    // points[1] = new THREE.Vector3(0, 0, .1);
-    // lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-    // const zLine = new THREE.Line(lineGeometry, lineMaterial);
-    // this._camera.add(zLine);
 
     this._camera.position.y = SIZE/2 ;
-    //this._camera.position.z += SIZE/2;
-    //this._camera.position.z += SIZE;
     this.startLineZ = this._camera.position.z;
     this.startLineY = this._camera.position.y;
-
-     // lasser beam
-    //  var laserBeam	= new THREEx.LaserBeam();
-
-    //  laserBeam.object3d.rotateY(THREE.MathUtils.degToRad(70));
-    //  laserBeam.object3d.position.z = 4; // infront of airplane
-
-    //  this._camera.add(laserBeam.object3d);
-
   }
   //////////////////////////////////////////////////////////
   checkGatePass(){
@@ -521,12 +461,18 @@ class World {
       this.players.gameJoined = false;
       return;
     }
+    // set start line
     this.startLineZ = SIZE * (isRed? 1.3 : -1.3);
-    this.startLineY = SIZE/2 ;
-    this.startLineX = 0;
+    this.startLineY = Math.floor(Math.random() * SIZE);
+    this.startLineX = Math.floor(Math.random() * SIZE) - SIZE;
 
+    // POS
+    this._camera.position.x = this.startLineX;
+    this._camera.position.y = this.startLineY;
     this._camera.position.z = this.startLineZ
-    this._camera.rotation.y = isRed? 0 : Math.PI * (360 / 360);
+
+    // Look at the other gate
+    this._camera.rotation.y = isRed? 0 : Math.PI //* (360 / 360);
 
     if(this.shooting){
       this.shooting.isRed = isRed;

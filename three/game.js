@@ -656,7 +656,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     // return flag if holders
     this.checkFlagDrop()
     // return to start
-    this.world.returnToStart(()=>{
+  this.world.returnToStart(()=>{
       this.controls.lookAt(gate.position);
       this.exploding = false;
       // broadcast final pos
