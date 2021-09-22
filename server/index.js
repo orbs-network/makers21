@@ -1,7 +1,7 @@
 console.log(`-====================-`)
 
 const { Deepstream } = require('@deepstream/server')
-const server = new Deepstream()
+const server = new Deepstream(process.env.DEEPSTREAM_CONFIG_DIRECTORY);
 
 
 const { DeepstreamClient } = require('@deepstream/client')

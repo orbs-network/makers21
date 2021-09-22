@@ -4,7 +4,7 @@ const BLUE = 0x000055;
 const RED = 0x550000;
 const BLUE2 = 0x000088;
 const RED2 = 0x880000;
-const GREY = 0x111111;
+const GREY = 0x331133;
 const WHITE = 0xFFFFFF;
 
 const toRad = (Math.PI/180);
