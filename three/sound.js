@@ -67,7 +67,10 @@ class Sound {
     // play all exclude explosions and lasers - by demand
     for(let s of this.positionals){
       if(s.name.indexOf('explode') == -1 && s.name.indexOf('laser') == -1  ){
-        s.play();
+        // randomize the start of playing
+        setTimeout(()=>{
+          s.play();
+        }, Math.random()*3000);
       }
     }
   }
