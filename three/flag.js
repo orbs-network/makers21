@@ -13,6 +13,7 @@ class Flags  {
 			if ( child instanceof THREE.Mesh ) {
 				child.material.side =  THREE.DoubleSide;
 				child.material.color.set(color);
+				//child.material = color=='red'? materials.redPhong : materials.bluePhong;
 			}
 		});
 
@@ -96,7 +97,7 @@ class Flags  {
 			const flag = this.dict[flagName];
 			const holder = this.holders[flagName];
 			if(holder){
-				flag.position.set(holder.position.x, holder.position.y, holder.position.z);
+				flag.position.set(holder.position.x, holder.position.y + 0.05, holder.position.z);
 			}
 		}
 		// rotate
