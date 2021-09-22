@@ -110,7 +110,7 @@ class World {
     this.players = new Players(this);
 
     // GATES
-    const GATE_SIZE = config.size / 20;
+    const GATE_SIZE = config.size / 30;
     // red gate
     this.redGate = this.createGate(RED2, GATE_SIZE);
     this.redGate.name = "redGate";
@@ -136,8 +136,8 @@ class World {
     this.blueGate.passSphere = new THREE.Sphere(this.blueGate.position, GATE_SIZE/1.5);
 
     // Flags
-    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.blueGate, 'red', 0xFF0000, .0035, this.sound);
-    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.redGate, 'blue', 0x0000FF, .0035, this.sound);
+    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.blueGate, 'red', 0xFF0000, .002, this.sound);
+    this.flags.createFlag(this.createModelClone('flag'), this.scene, this.redGate, 'blue', 0x0000FF, .002, this.sound);
 
     // create red+blue borders & ceeling
     this.createBorders(RED, 1);
@@ -311,6 +311,10 @@ class World {
   //////////////////////////////////////////////////////////
   createBorders(color, zDir){
     const divisions = 30;
+
+    this.border.east =  SIZE ;
+    this.border.west = -SIZE ;
+
     // create floor
     this.border.floor = 0;
     this.createHoriz(divisions, color, zDir, this.border.floor);
@@ -385,6 +389,9 @@ class World {
   }
   //////////////////////////////////////////////////////////
   checkCrossBorders(){
+    // X axis
+    if(this._camera.position.x < this.border.west) return true;
+    if(this._camera.position.x > this.border.east) return true;
     // Y axis
     if(this._camera.position.y < this.border.floor) return true;
     if(this._camera.position.y > this.border.ceiling) return true;
