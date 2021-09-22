@@ -61,7 +61,8 @@ class Shooting {
     }
     else{
       // cant lock on none moving targets
-      if(!this.targetPlayer.moving){
+      // TODO: remove false
+      if(false && !this.targetPlayer.moving){
         this.setHudColor("#FFFFFF");
         // SIZE
         this.hud.position.z = HUD_Z_NEUTRAL;
@@ -75,7 +76,8 @@ class Shooting {
         // SIZE
         this.hud.position.z = HUD_Z_ACTIVE;
         // TEXT
-        this.hudLabel.textContent = this.friend? (game.holdingFlag? "Pass the flag":"Friendly fire disabled"): "Locking laser at "+ this.target.parent.name;
+        const targetName =  this.target.parent.name;
+        this.hudLabel.textContent = this.friend? (game.holdingFlag? `Pass the flag to ${targetName}`:"Friendly fire is disabled"): `Locking laser at ${targetName}`;
       }
     }
   }
@@ -93,6 +95,7 @@ class Shooting {
 
     // no target
     if(!target){
+      this.friend = false;
       // reset enemy lock
       if(this.tsEnemyLock){
         this.tsEnemyLock = 0;
@@ -103,26 +106,35 @@ class Shooting {
           game.playAudio('laser_down');
         }
       }
-      // update hud
-      //this.setHudState();
       return;
     }
+    // get wrapping player class
+    this.targetPlayer = players.getPlayer(this.target.parent.name);
 
-    this.friend = this.isRed == this.target.isRed;
+    // set friend
+    this.friend = this.isRed === this.targetPlayer.isRed;
+
+    // start locking if enemy
     this.tsEnemyLock = this.friend? 0 : Date.now();
 
-    this.targetPlayer = players.getPlayer(this.target.parent.name);
+
     // update hud
-    //this.setHudState();
     //console.log('on new target:', this.targetPlayer.nick);
     // dont lock on exploding target (or not moving TODO:)
     // not moving or exploding - DO NOTHING
     //console.log(`target moving: ${this.targetPlayer.moving}`)
-    if(!this.targetPlayer.moving || this.targetPlayer.exploding){
-      this.tsEnemyLock = 0;
-      return;
+    // TODO: Remove false
+    if(false){
+      if(!this.targetPlayer.moving || this.targetPlayer.exploding){
+        this.tsEnemyLock = 0;
+        return;
+      }
     }
-
+    // lock for pass the flag
+    if(this.friend && game.holdingFlag){
+      game.playAudio('locked');
+      return; // no need to continue for enemy locking
+    }
 
     // play load laser sound
     if(this.tsEnemyLock){
@@ -147,7 +159,7 @@ class Shooting {
           const countdown = parseInt((config.targetLockMs-diff)/100);
           this.hudLabel.textContent = "[locking] " + countdown;
           // rotate while locking
-          this.hud.rotateZ(diff/(config.targetLockMs*5));
+          this.hud.rotateZ(diff/(config.targetLockMs * 5));
           // update target being locked on
           // TODO : Continue
           // if(!this.targetPlayer.lockignSent && diff > config.lockingSentBuffer){

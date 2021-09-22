@@ -372,8 +372,15 @@ class Game /*extends THREE.EventDispatcher*/ {
         // Ongoing game update (not first since reload)
 
         // Handle Flags
-        this.holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
-        this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
+        const holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
+        this.world.setFlagHolders(holdingFlag, this.localState, this.mngrState);
+
+        // play success if it was flag got captured
+        if(holdingFlag && !this.holdingFlag){
+          // SUCCESS - you are the holder of the flag
+          game.playAudio('success');
+        }
+        this.holdingFlag = holdingFlag;
 
         document.getElementById('inputs').style.display = "none";
         document.getElementById('teams').style.display = "none";
@@ -507,24 +514,23 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.setGameMsg('gatePass: '+result );
         this.playAudio('wrong');
         return;
-      }else{
+      }/*else{ - Receive it onMngrState
         this.holdingFlag = true;
         // SUCCESS - you are the holder of the flag
         this.playAudio('success');
-      }
+      }*/
     });
   }
   //////////////////////////////////////////////////////////
   passInGate(gate){
-    // team gate
-    let _this = this;
+    // correct far gate
     if(this.localState.isRed == (gate.name == "redGate")){
       console.log('collect gatePass!', gate.name);
       // tell mngr
       this.tellGatePass(false);
     }else{
       const team = this.localState.isRed?'red':'blue';
-      // Game Won?
+      // return to home gate - Game Won?
       if(this.holdingFlag){
         console.log('WIN - tell manager!!!!!!!!!!!!!!!!!')
         this.setGameMsg(`<span class="${team}">${team} TEAM</span> WINS thanks to you!`);
@@ -532,7 +538,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.tellGatePass(true);
       }
       else{
-        // My team's gate
+        // home gate - before captured (holdingFlag = False)
         console.log('wrong gatePass!', gate.name);
         this.setGameMsg(`capture the <span class="${this.localState.isRed?'red':'blue'}">flag</span> before passing in <span class="${this.localState.isRed?'red':'blue'}> this gate</span> `);
         this.playAudio('wrong');
@@ -633,6 +639,9 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   doExplode(){
+    // return flag if holders
+    this.checkFlagDrop();
+
     // STOP FLYING!
     if(this.moving){
       this.startStop();
@@ -653,10 +662,9 @@ class Game /*extends THREE.EventDispatcher*/ {
       dir:direction,
       nick: this.localState.nick
     });
-    // return flag if holders
-    this.checkFlagDrop()
+
     // return to start
-  this.world.returnToStart(()=>{
+    this.world.returnToStart(()=>{
       this.controls.lookAt(gate.position);
       this.exploding = false;
       // broadcast final pos
@@ -686,10 +694,39 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
   }
   //////////////////////////////////////////////////////////
+  doPassFlag(target){
+    this.playAudio('laser',()=>{
+      this.world.shooting.firing = false;
+    });
+    //
+    deepStream.client.rpc.make('client',{
+      type:"passFlag",
+      isRed: this.localState.isRed,
+      nick: this.localState.nick,
+      targetNick: target.nick
+    },(error,result) => {
+      if(error){
+        this.onError(error);
+        return;
+      }
+      if(result!='ok'){
+        this.setGameMsg('passFlag: '+result);
+      }
+    });
+  }
+  //////////////////////////////////////////////////////////
   doFire(){
     if(!this.moving) return;
     if(!this.world.shooting) return;
     if(this.world.shooting.firing) return;
+
+    // pass the flag to friend
+    if(this.world.shooting.friend && this.holdingFlag){
+      this.doPassFlag(this.world.shooting.targetPlayer);
+      return;
+    }
+
+    // shooting an enemy
     if(!this.world.shooting.locked){
       this.setGameMsg('lock target before fire');
       this.playAudio('wrong');
@@ -706,7 +743,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.playAudio('laser',()=>{
       this.world.shooting.firing = false;
     });
-    // hide player
+    // hide player TODO: ???
 
     // reset shooting
     this.world.shooting.onNewTarget(null,null);

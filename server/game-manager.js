@@ -137,6 +137,9 @@ class GameManager /*extends THREE.EventDispatcher*/ {
           this.addDum();
           res.send('ok');
           break;
+        case 'passFlag':
+          this.onPassFlag(data, res);
+          break;
       }
 
     }
@@ -266,11 +269,21 @@ class GameManager /*extends THREE.EventDispatcher*/ {
     onFlagDrop(data, res){
       const flagHolder = data.isRed? 'blueHolder':'redHolder';
       // flag is dropped - assset dropper is indeed the holder
-      if(this.state[flagHolder] == data.nick){
+      if(this.state[flagHolder] === data.nick){
         this.setFlagHolder(flagHolder, null, res);
       }else{
         res.send(`${this.state[flagHolder]} the flag is not held by [${data.nick}] to drop`);
       }
+    }
+    //////////////////////////////////////////////////////////
+    onPassFlag(data, res){
+      // make sure requestor is holding the flagHolder
+      const flagHolder = data.isRed? 'blueHolder':'redHolder';
+      if(this.state[flagHolder] !== data.nick){
+        res.send(`${this.state[flagHolder]} the flag is not held by [${data.nick}] to pass`);
+        return;
+      }
+      this.setFlagHolder(flagHolder, data.targetNick, res);
     }
   }
 
