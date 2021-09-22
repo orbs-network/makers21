@@ -162,7 +162,7 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       res.send('ok');
 
       let dt = new Date();
-      dt.setSeconds( dt.getSeconds() + 3, 0 );
+      dt.setSeconds( dt.getSeconds() + 5, 0 );
       console.log('game start time:',dt.toISOString());
 
       this.state.started = true;
