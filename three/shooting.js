@@ -61,8 +61,7 @@ class Shooting {
     }
     else{
       // cant lock on none moving targets
-      // TODO: remove false
-      if(false && !this.targetPlayer.moving){
+      if(!this.targetPlayer.moving){
         this.setHudColor("#FFFFFF");
         // SIZE
         this.hud.position.z = HUD_Z_NEUTRAL;
@@ -123,13 +122,11 @@ class Shooting {
     // dont lock on exploding target (or not moving TODO:)
     // not moving or exploding - DO NOTHING
     //console.log(`target moving: ${this.targetPlayer.moving}`)
-    // TODO: Remove false
-    if(false){
-      if(!this.targetPlayer.moving || this.targetPlayer.exploding){
-        this.tsEnemyLock = 0;
-        return;
-      }
+    if(!this.targetPlayer.moving || this.targetPlayer.exploding){
+      this.tsEnemyLock = 0;
+      return;
     }
+
     // lock for pass the flag
     if(this.friend && game.holdingFlag){
       game.playAudio('locked');
@@ -147,8 +144,6 @@ class Shooting {
   }
   //////////////////////////////////////////////
   updateLock() {
-    // TODO : Pass the flag!
-
     // target locking
     if(this.tsEnemyLock){
       if (!this.locked){
