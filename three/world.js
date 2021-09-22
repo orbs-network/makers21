@@ -115,9 +115,11 @@ class World {
     this.redGate = this.createGate(RED2, GATE_SIZE);
     this.redGate.name = "redGate";
 
+    const gateY = SIZE/2 + GATE_SIZE;
+
     // move front and up
     this.redGate.position.z = -SIZE;
-    this.redGate.position.y = SIZE/2 - 2*GATE_SIZE;
+    this.redGate.position.y = gateY;
     this.scene.add( this.redGate );
     // pass
     this.redGate.passSphere = new THREE.Sphere(this.redGate.position, GATE_SIZE/1.5);
@@ -128,7 +130,7 @@ class World {
 
     // move back and up
     this.blueGate.position.z = SIZE;
-    this.blueGate.position.y = SIZE/2 - 2*GATE_SIZE;
+    this.blueGate.position.y = gateY;
     this.scene.add( this.blueGate );
     // pass
     this.blueGate.passSphere = new THREE.Sphere(this.blueGate.position, GATE_SIZE/1.5);
@@ -463,8 +465,11 @@ class World {
     }
     // set start line
     this.startLineZ = SIZE * (isRed? 1.3 : -1.3);
-    this.startLineY = Math.floor(Math.random() * SIZE);
-    this.startLineX = Math.floor(Math.random() * SIZE) - SIZE;
+    const half = SIZE / 2 ;
+    // 2 - 7
+    this.startLineY = Math.floor(Math.random() * half) + half;
+    // (-2) - 2
+    this.startLineX = Math.floor(Math.random() * half) - half;
 
     // POS
     this._camera.position.x = this.startLineX;
@@ -527,7 +532,7 @@ class World {
       let yDiff = this.startLineY - this._camera.position.y ;
       let xDiff = this.startLineX - this._camera.position.x ;
       //console.log('returnToStart zDiff', zDiff);
-      if(Math.abs(zDiff) <= 0.05){
+      if(Math.abs(zDiff) <= 0.2){
         console.log('DONE!', zDiff);
         this._camera.position.z = this.startLineZ;
         this._camera.position.y = this.startLineY;
