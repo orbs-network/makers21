@@ -51,7 +51,7 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   addSound(sound){
-    sound.add('fly-by.wav', this.obj, true);
+    sound.add('fly-by.wav', this.obj, true, config.size/5);
     sound.add('explode.wav', this.obj, false, config.size, 1);
     sound.add('laser.wav', this.obj, false, config.size, 1);
   }
@@ -301,7 +301,7 @@ class Players{
     p.copy(this.model);
 
     // scale
-    const s = SIZE/6;// was2
+    const s = SIZE/4;// was2
     //const s = SIZE/2;// was4
     p.scale.set(s,s,s);
 
