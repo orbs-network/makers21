@@ -14,7 +14,7 @@ window.config = {
   //speed: SIZE/400,
   //speed: BASE_SIZE/500,
   //speed: 0,
-  distancePerMS : 1.5/1000,
+  distancePerMS : 0.8/1000,
   gateTurnPerSec : 0.2,
   //ctrlHeightLimit: (20 * toRad)
   // steerReleaseFactor: 0.95,
