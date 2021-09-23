@@ -164,39 +164,42 @@ class World {
       this.players.initShooting(true);
     }
     console.log('shooting is ' + (this.shooting? 'enabled':'disabled'));
+
+    // Deddy
+    this.createSpace();
   }
   createSpace(){
-    // Add Sky
-    const sky = new Sky();
-    sky.scale.setScalar( 1000 );
-    this.scene.add( sky );
+    // // Add Sky
+    // const sky = new Sky();
+    // sky.scale.setScalar( 1000 );
+    // this.scene.add( sky );
 
-    const sun = new THREE.Vector3();
+    // const sun = new THREE.Vector3();
 
-    const effectController = {
-      turbidity: 20,
-      rayleigh: 0.122,
-      mieCoefficient: 0.01,
-      mieDirectionalG: 0.9999,
-      elevation: 15,
-      azimuth: 90,
-      exposure: 100
-    };
+    // const effectController = {
+    //   turbidity: 20,
+    //   rayleigh: 0.122,
+    //   mieCoefficient: 0.01,
+    //   mieDirectionalG: 0.9999,
+    //   elevation: 15,
+    //   azimuth: 90,
+    //   exposure: 100
+    // };
 
-    const uniforms = sky.material.uniforms;
-    uniforms[ 'turbidity' ].value = effectController.turbidity;
-    uniforms[ 'rayleigh' ].value = effectController.rayleigh;
-    uniforms[ 'mieCoefficient' ].value = effectController.mieCoefficient;
-    uniforms[ 'mieDirectionalG' ].value = effectController.mieDirectionalG;
+    // const uniforms = sky.material.uniforms;
+    // uniforms[ 'turbidity' ].value = effectController.turbidity;
+    // uniforms[ 'rayleigh' ].value = effectController.rayleigh;
+    // uniforms[ 'mieCoefficient' ].value = effectController.mieCoefficient;
+    // uniforms[ 'mieDirectionalG' ].value = effectController.mieDirectionalG;
 
-    const phi = THREE.MathUtils.degToRad( 90 - effectController.elevation );
-    const theta = THREE.MathUtils.degToRad( effectController.azimuth );
+    // const phi = THREE.MathUtils.degToRad( 90 - effectController.elevation );
+    // const theta = THREE.MathUtils.degToRad( effectController.azimuth );
 
-    sun.setFromSphericalCoords( 1, phi, theta );
+    // sun.setFromSphericalCoords( 1, phi, theta );
 
-    uniforms[ 'sunPosition' ].value.copy( sun );
+    // uniforms[ 'sunPosition' ].value.copy( sun );
 
-    this._renderer.toneMappingExposure = effectController.exposure;
+    // this._renderer.toneMappingExposure = effectController.exposure;
 
     // stars
     let starGeo = new THREE.Geometry();
@@ -226,51 +229,48 @@ class World {
 
     this.scene.add(stars);
 
-     starGeo = new THREE.Geometry();
+    // starGeo = new THREE.Geometry();
+    // for(let i=0;i<1000;i++) {
+    //   const star = new THREE.Vector3(
+    //       Math.random() * 60 - 30,
+    //       Math.random() * 60 - 30,
+    //       Math.random() * 60 - 30
+    //   );
 
-    for(let i=0;i<1000;i++) {
-      const star = new THREE.Vector3(
-          Math.random() * 60 - 30,
-          Math.random() * 60 - 30,
-          Math.random() * 60 - 30
-      );
+    //   starGeo.vertices.push(star);
+    // }
 
-      starGeo.vertices.push(star);
+    // starMaterial = new THREE.PointsMaterial({
+    //   opacity: 0.5,
+    //   transparent: true,
+    //   color: 0xaaaaaa,
+    //   size: 0.08,
+    //   map: sprite
+    // });
 
-    }
+    //  stars = new THREE.Points(starGeo,starMaterial);
 
-
-    starMaterial = new THREE.PointsMaterial({
-      opacity: 0.5,
-      transparent: true,
-      color: 0xaaaaaa,
-      size: 0.08,
-      map: sprite
-    });
-
-     stars = new THREE.Points(starGeo,starMaterial);
-
-    this.scene.add(stars);
+    // this.scene.add(stars);
 
 
     // lensflares
-    const textureLoader = new THREE.TextureLoader();
+    // const textureLoader = new THREE.TextureLoader();
 
-    const textureFlare0 = textureLoader.load( '../static/texture/lensflare/lensflare0_alpha.png' );
-    const textureFlare3 = textureLoader.load( '../static/texture/lensflare/lensflare3.png' );
+    // const textureFlare0 = textureLoader.load( '../static/texture/lensflare/lensflare0_alpha.png' );
+    // const textureFlare3 = textureLoader.load( '../static/texture/lensflare/lensflare3.png' );
 
-    light = new THREE.PointLight( 0xFFFFFF, 1.5, 2000 );
-    light.color.setHSL( 0, 0, 0.1 );
-    light.position.set( 800, 250, 0 );
-    this.scene.add( light );
+    // let light = new THREE.PointLight( 0xFFFFFF, 1.5, 2000 );
+    // light.color.setHSL( 0, 0, 0.1 );
+    // light.position.set( 800, 250, 0 );
+    // this.scene.add( light );
 
-    const lensflare = new Lensflare();
-    lensflare.addElement( new LensflareElement( textureFlare0, 700, 0, light.color ) );
-    lensflare.addElement( new LensflareElement( textureFlare3, 60, 0.6 ) );
-    lensflare.addElement( new LensflareElement( textureFlare3, 70, 0.7 ) );
-    lensflare.addElement( new LensflareElement( textureFlare3, 120, 0.9 ) );
-    lensflare.addElement( new LensflareElement( textureFlare3, 70, 1 ) );
-    light.add( lensflare );
+    // const lensflare = new Lensflare();
+    // lensflare.addElement( new LensflareElement( textureFlare0, 700, 0, light.color ) );
+    // lensflare.addElement( new LensflareElement( textureFlare3, 60, 0.6 ) );
+    // lensflare.addElement( new LensflareElement( textureFlare3, 70, 0.7 ) );
+    // lensflare.addElement( new LensflareElement( textureFlare3, 120, 0.9 ) );
+    // lensflare.addElement( new LensflareElement( textureFlare3, 70, 1 ) );
+    // light.add( lensflare );
   }
   //////////////////////////////////////////////////////////
   createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos){
@@ -404,17 +404,8 @@ class World {
   ////////////////////////////////////////////////////////
   // AMI rename to also obstacles
   checkColissionGate(){
-    // update the picking ray with the camera and mouse position
-    // this._camera.getWorldPosition(this.worldPos);
-    // this._camera.getWorldDirection(this.worldDir);
-    // this.raycaster.set(this.worldPos, this.worldDir );
-
     this.raycaster.near = config.colideNear;
     this.raycaster.far = config.colideFar;
-
-    // const dis = this.raycaster.ray.origin.distanceTo( this.blueGate.position );
-    // console.log('distance = ',dis);
-    // return ;
 
     // calculate objects intersecting the picking ray
     const intersects = this.raycaster.intersectObjects( [this.redGate, this.blueGate] );
@@ -426,25 +417,8 @@ class World {
       if (intersects[0].distance < config.colideDistance){
         return true;
       }
-
-      //   }
-      // }
     }
-    // const recursive = false;
-    // const intersects = this.raycaster.intersectObject( this.blueGate, recursive );
-    //const intersects = this.raycaster.intersectObjects( all );
-
-    //for ( let i = 0; i < intersects.length; i ++ ) {
-    // if(intersects && intersects.length){
-    //   if (intersects[ 0 ].distance < 0.001){
-    //     console.log('raycast', intersects[ 0 ].object.id, intersects[ 0 ].object.name, intersects[ 0 ].distance, intersects[ 0 ].face, intersects[ 0 ].faceIndex );
-    //     console.log(intersects[0]);
-    //     return true;
-    //   }
-    // }
     return false;
-      //intersects[ i ].object.material.color.set( 0xffffff );
-    //}
   }
   //////////////////////////////////////////////////////////
   doExplode(){
