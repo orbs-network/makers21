@@ -64,7 +64,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     // update world
     this.world.setNick(this.localState.nick);
-    this.world.setTeamPos(null);
+    this.world.setTeamPos(null, null);
     this.world._camera.rotation.set(0,0,0);
     if(this.controls){
       this.controls.lookAt(this.world.redGate.position);
@@ -304,8 +304,6 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
       this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
 
-      // init controls
-      this.initControls(false);
       // start broadcast interval
       this.startUpdateLoop(true);
       // to enable start stop
@@ -654,7 +652,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.playAudio('explode');
     // look at oposite gate
     const gate = this.localState.isRed? this.world.redGate : this.world.blueGate;
-    this.controls.lookAt(gate.position);
+    //this.controls.lookAt(gate.position);
     // event explosion
     deepStream.sendEvent('player',{
       type:"explode",
@@ -664,7 +662,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     });
 
     // return to start
-    this.world.returnToStart(()=>{
+    this.world.return2Start(()=>{
       this.controls.lookAt(gate.position);
       this.exploding = false;
       // broadcast final pos
@@ -837,7 +835,10 @@ window.onload = function(){
     console.log('All models have been loaded');
     game.uxInit();
     //game.createWorld();
+    // init controls
+
     game.world.createScene();
+    game.initControls(false);
     game.connect();
 
     function animate() {

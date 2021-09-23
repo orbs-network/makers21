@@ -117,19 +117,20 @@ class World {
 
     const gateY = SIZE/2 + GATE_SIZE;
 
+    const gatePosFactor = 1.4;//almost at border
     // move front and up
-    this.redGate.position.z = -SIZE;
+    this.redGate.position.z = -SIZE * gatePosFactor;
     this.redGate.position.y = gateY;
     this.scene.add( this.redGate );
     // pass
-    this.redGate.passSphere = new THREE.Sphere(this.redGate.position, GATE_SIZE/1.5);
+    this.redGate.passSphere = new THREE.Sphere(this.redGate.position, GATE_SIZE/gatePosFactor);
 
     // blue gate
     this.blueGate = this.createGate(BLUE2, GATE_SIZE);
     this.blueGate.name = "blueGate";
 
     // move back and up
-    this.blueGate.position.z = SIZE;
+    this.blueGate.position.z = SIZE * gatePosFactor;
     this.blueGate.position.y = gateY;
     this.scene.add( this.blueGate );
     // pass
@@ -377,9 +378,11 @@ class World {
     // cube.position.set( 0, 0, -30 );
     this.scene.add(this._camera); //TODO: resume
 
+    // middle
     this._camera.position.y = SIZE/2 ;
-    this.startLineZ = this._camera.position.z;
-    this.startLineY = this._camera.position.y;
+
+    // this.startLineZ = this._camera.position.z;
+    // this.startLineY = this._camera.position.y;
   }
   //////////////////////////////////////////////////////////
   checkGatePass(){
@@ -445,7 +448,8 @@ class World {
       return;
     }
     // set start line
-    this.startLineZ = SIZE * (isRed? 1.3 : -1.3);
+    const myGate = isRed? this.blueGate : this.redGate;
+    this.startLineZ = myGate.position.z;
     const half = SIZE / 2 ;
     // 2 - 7
     this.startLineY = Math.floor(Math.random() * half) + half;
@@ -458,7 +462,17 @@ class World {
     this._camera.position.z = this.startLineZ
 
     // Look at the other gate
-    this._camera.rotation.y = isRed? 0 : Math.PI //* (360 / 360);
+    // this._camera.rotation.y = isRed? 0 : Math.PI //* (360 / 360);
+    if(game.controls){
+      let target = isRed? this.redGate : this.blueGate;
+      if(target){
+        game.controls.lookAt(target.position);
+      }//else{
+      //   this._camera.rotation.y = isRed? 0 : Math.PI //* (360 / 360);
+      // }
+    }
+
+    //this.startLineRot = this._camera.rotation.clone()
 
     if(this.shooting){
       this.shooting.isRed = isRed;
@@ -507,31 +521,54 @@ class World {
     }
   }
   //////////////////////////////////////////////////////////
-  returnToStart(cb, controls, targetGate){
-    this.tidReturn = setInterval(()=>{
-      let zDiff = this.startLineZ - this._camera.position.z ;
-      let yDiff = this.startLineY - this._camera.position.y ;
-      let xDiff = this.startLineX - this._camera.position.x ;
-      //console.log('returnToStart zDiff', zDiff);
-      if(Math.abs(zDiff) <= 0.2){
-        console.log('DONE!', zDiff);
-        this._camera.position.z = this.startLineZ;
-        this._camera.position.y = this.startLineY;
-        this._camera.position.x = this.startLineX;
-        clearInterval(this.tidReturn);
-        this.tidReturn = null;
-        return cb();
-      }
-      zDiff *= 0.02;
-      yDiff *= 0.02;
-      xDiff *= 0.02;
-      this._camera.position.z += zDiff;
-      this._camera.position.y += yDiff;
-      this._camera.position.x += xDiff;
-      //this._camera.lookAt(this.redGate);
-      controls.lookAt(targetGate.position);
-    },30);
+  return2Start(cb, controls, targetGate){
+    // target ts
+    let dt = new Date();
+    dt.setSeconds( dt.getSeconds() + config.return2startSec, 0 );
 
+    let denom = config.return2startSec * 1000;
+
+    this.returnObj = {
+      cb:cb,
+      tsFinish:dt.getTime(),
+      // delta pos
+      xDiff : (this.startLineX - this._camera.position.x) / denom,
+      yDiff : (this.startLineY - this._camera.position.y) / denom,
+      zDiff : (this.startLineZ - this._camera.position.z) / denom,
+      controls: controls,
+      targetGate: targetGate,
+      // delta rot
+      xLook : (targetGate.position.x - this._camera.position.x) / denom,
+      yLook : (targetGate.position.y - this._camera.position.y) / denom,
+      zLook : (targetGate.position.z - this._camera.position.z) / denom,
+      lookPos: this._camera.position.clone()
+    };
+  }
+  //////////////////////////////////////////////////////////
+  updateReturn2Start(delta){
+    if(Date.now() >= this.returnObj.tsFinish){
+      this._camera.position.x = this.startLineX;
+      this._camera.position.y = this.startLineY;
+      this._camera.position.z = this.startLineZ;
+      //this._camera.rotation.copy(this.startLineRot);
+
+      this.returnObj.cb();
+      this.returnObj = null;
+      return;
+    }
+
+    let returnObj = this.returnObj;
+    this._camera.position.x += returnObj.xDiff * delta;
+    this._camera.position.y += returnObj.yDiff * delta;
+    this._camera.position.z += returnObj.zDiff * delta;
+
+    // // shift looks pos towards gate
+    returnObj.lookPos.x += returnObj.xLook * delta;
+    returnObj.lookPos.y += returnObj.yLook * delta;
+    returnObj.lookPos.z += returnObj.zLook * delta;
+
+    // look at target
+    returnObj.controls.lookAt(returnObj.lookPos);
   }
   //////////////////////////////////////////////////////////
   get camera(){
@@ -589,6 +626,10 @@ class World {
       if(this.shooting){
         this.shooting.update(this.raycaster, this.players);
       }
+    }
+    // return to start
+    if(this.returnObj){
+      this.updateReturn2Start(delta);
     }
 
     // scene 3d 2d rendering
