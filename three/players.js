@@ -56,7 +56,7 @@ class Player{
     sound.add('laser.wav', this.obj, false, config.size, 1);
   }
   //////////////////////////////////////////////////////////
-  update(delta, now){
+  update(delta){
     if(this.moving){
       // NEW
       if(this.go2Target){
@@ -90,14 +90,16 @@ class Player{
     // OLD
     this.obj.lookAt(data.dir.x * lookDistance, data.dir.y*lookDistance, data.dir.z*lookDistance);
 
+
     // position if not moving
     this.moving = data.moving;
     if(!this.moving){
-      this.obj.position.x = data.targetPos.x;
-      this.obj.position.y = data.targetPos.y;
-      this.obj.position.z = data.targetPos.z;
+      // this.obj.position.x = data.targetPos.x;
+      // this.obj.position.y = data.targetPos.y;
+      // this.obj.position.z = data.targetPos.z;
       return;
     }
+    this.show();
 
     // First time pos
     // if(isNaN(this.obj.position.x)){
@@ -119,6 +121,17 @@ class Player{
     // this.targetPos = data.targetPos;
     //this.targetTS = data.targetTS;
     // NEW 2
+
+    // filter old messages
+    // doesnt happen
+    // if(!this.targetTS){
+    //   this.targetTS = data.targetTS;
+    // }else{
+    //   if(data.targetTS < this.targetTS){
+    //     console.error('pos message too old');
+    //     return;
+    //   }
+    // }
 
 
     const timeToTarget = data.targetTS - Date.now();
@@ -147,17 +160,18 @@ class Player{
   //////////////////////////////////////////////////////////
   onExplode(data, explode){
     // hide exploding airplaine
-    this.obj.visible = false;
     this.moving = false;
+    this.show(false);
 
     // create explosition attached to player
-    explode.create(this.obj.position.x, this.obj.position.y, this.obj.position.z);
+    explode.create(this.obj.position.x, this.obj.position.y, this.obj.position.z, this.isRed);
+
+    // for positional sound
+    this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
 
     // play already installed sound
     let sound = this.obj.getObjectByName('sound_explode.wav');
     if(sound) sound.play();
-
-    this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
   }
   //////////////////////////////////////////////////////////
   onFire(data){
@@ -178,14 +192,21 @@ class Player{
 
   }
   //////////////////////////////////////////////////////////
+  show(flag) {
+    // explicit hide
+    if (flag !== false) flag = true;
+    this.obj.visible = flag;
+    this.playerLabelObj.visible = flag;
+  }
+  //////////////////////////////////////////////////////////
   _initLabel(nick, isRed) {
     const playerLabelDiv = document.createElement( 'div' );
     playerLabelDiv.className = 'player-label';
     playerLabelDiv.textContent = nick || "WHO DIS?";
     playerLabelDiv.style.color = isRed ? '#F33':'33F';
-    const playerLabelObj = new THREE.CSS2DObject( playerLabelDiv );
-    playerLabelObj.position.set( 0, 0, 0 );
-    this.obj.add( playerLabelObj );
+    this.playerLabelObj = new THREE.CSS2DObject( playerLabelDiv );
+    this.playerLabelObj.position.set( 0, 0, 0 );
+    this.obj.add( this.playerLabelObj );
   }
 }
 
@@ -218,6 +239,7 @@ class Players{
     // hide objects from scene
     for(let p of this.all()){
       p.visible = false;
+      p.playerLabelObj.visible = false;
       // THREE.SceneUtils.detach(p, this.world.scene, this.world.scene);
       // this.world.scene.remove(p);
       // p.clear();
@@ -247,10 +269,8 @@ class Players{
     switch(data.type){
       case "start":
         p.onStart(data);
-        p.obj.visible = true;
         break;
       case "pos":
-        p.obj.visible = true;
         p.onPos(data);
         break;
       case "explode":
@@ -301,15 +321,16 @@ class Players{
     p.copy(this.model);
 
     // scale
-    const s = SIZE/4;// was2
-    //const s = SIZE/2;// was4
+    const s = SIZE/5;// was4
     p.scale.set(s,s,s);
 
     p.name = nick;
 
     this.world.scene.add(p);
     p.castShadow = true;
+    //p.visible = false; // until positioned
     let newPlayer = new Player(p, nick, (isRed===1), this.sound, this.useShooting);
+    newPlayer.show(false);
 
     this.dict[nick] = newPlayer;
     console.log('create player',nick);

@@ -184,7 +184,7 @@ class Shooting {
 
     const spheres = players.boundSpheres();
     const intersections = raycaster.intersectObjects(spheres);
-    let target;
+    let target = null;
     if(intersections.length){
       target = intersections[0].object;
       //console.log(this.target.name, intersections[0].distance);//, dis);
@@ -192,6 +192,10 @@ class Shooting {
     }
 
     if(target != this.target){
+      // ignore invisible
+      if(target !==null && !target.visible){
+        return;
+      }
       this.onNewTarget(target, players);
       this.changeHudState();
     }
