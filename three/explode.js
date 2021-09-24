@@ -1,12 +1,12 @@
 
 function ExplodeMngr(scene){
   //////////////settings/////////
-  const SECONDS = 3;
-  var movementSpeed = 0.5;
+  const SECONDS = 2;
+  var movementSpeed = 0.05;
   var totalObjects = 1000;
-  var objectSize = 0.03;
+  //var objectSize = 0.03;
   //var sizeRandomness = 4000;
-  var colors = [0xFF0FFF, 0xCCFF00, 0xFF000F, 0x996600, 0xFFFFFF];
+  //var colors = [0xFF0FFF, 0xCCFF00, 0xFF000F, 0x996600, 0xFFFFFF];
   /////////////////////////////////
   var dirs = [];
   var parts = [];
@@ -14,7 +14,7 @@ function ExplodeMngr(scene){
   // document.body.appendChild( container );
 
   //////////////////////////////////////////////////////////////////////
-  function ExplodeAnimation(x,y,z)
+  function ExplodeAnimation(x,y,z, isRed)
   {
     var geometry = new THREE.BufferGeometry();
 
@@ -38,17 +38,17 @@ function ExplodeMngr(scene){
       dirs.push({x:(Math.random() * movementSpeed)-(movementSpeed/2),y:(Math.random() * movementSpeed)-(movementSpeed/2),z:(Math.random() * movementSpeed)-(movementSpeed/2)});
       this.particles = positions;
     }
-    var material = new THREE.PointsMaterial( {
-      size: objectSize,
-      color: colors[Math.round(Math.random() * colors.length)]
-      // transparent: true,
-      // opacity:1,
-      // blending: THREE.multiplyBlending,
-      // flatShading: true,
-      // depthTest: true,
-      // sizeAttenuation: true
-    });
-    var particles = new THREE.Points( geometry, material );
+    // var material = new THREE.PointsMaterial( {
+    //   size: objectSize//,
+    //   //color: colors[Math.round(Math.random() * colors.length)]
+    //   // transparent: true,
+    //   // opacity:1,
+    //   // blending: THREE.multiplyBlending,
+    //   // flatShading: true,
+    //   // depthTest: true,
+    //   // sizeAttenuation: true
+    // });
+    var particles = new THREE.Points( geometry, isRed? materials.redExplode : materials.blueExplode);
 
     this.object = particles;
     this.status = true;
@@ -113,8 +113,8 @@ function ExplodeMngr(scene){
     //renderer.render( scene, camera );
   }
   //////////////////////////////////////////////////////////////////////
-  function create(x, y, z) {
-    const part = new ExplodeAnimation(x, y, z);
+  function create(x, y, z, isRed) {
+    const part = new ExplodeAnimation(x, y, z, isRed);
 
     // sound
     // if(this.sound){
@@ -136,19 +136,3 @@ function ExplodeMngr(scene){
     create:create
   }
 }
-
-// window.addEventListener( 'mousedown', onclick, false );
-// window.addEventListener( 'resize', onWindowResize, false );
-
-// function onclick(){
-//   event.preventDefault();
-//   parts.push(new ExplodeAnimation((Math.random() * sizeRandomness)-(sizeRandomness/2), (Math.random() * sizeRandomness)-(sizeRandomness/2)));
-// }
-
-// function onWindowResize() {
-// 				camera.aspect = window.innerWidth / window.innerHeight;
-// 				camera.updateProjectionMatrix();
-
-// 				renderer.setSize( window.innerWidth, window.innerHeight );
-
-// 			}

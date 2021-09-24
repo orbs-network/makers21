@@ -14,15 +14,16 @@ window.config = {
   //speed: SIZE/400,
   //speed: BASE_SIZE/500,
   //speed: 0,
-  distancePerMS : 3/1000,
-  gateTurnPerSec : 0.2,
+  distancePerMS : 1.6/1000,
+  gateTurnPerSec : 0.1,
   //ctrlHeightLimit: (20 * toRad)
   // steerReleaseFactor: 0.95,
   // horizLimit:0.02,
   vertLimit:0.60,
   updateInterval:100,
   playerSphereSize: 0.1,
-  return2startSec: 5
+  return2startSec: 5,
+  explodePartSize: 0.05
   // rotUnit:0.001,
 };
 
