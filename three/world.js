@@ -81,6 +81,15 @@ class World {
     this._renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( this._renderer.domElement );
 
+    // postprocessing
+    this.composer = new THREE.EffectComposer( this._renderer );
+    this.composer.addPass( new THREE.RenderPass( this.scene, this.camera ) );
+
+    this.afterImagePass= new THREE.AfterimagePass();
+
+    this.composer.addPass(this.afterImagePass);
+    this.turnExplosionEffect(false);
+
     // for colision and shooting
     this.raycaster = new THREE.Raycaster();
     //this.raycaster.layers.set( 1 );
@@ -430,6 +439,25 @@ class World {
     //let sound = this._camera.getObjectByName('sound_explode.wav');
     //if(sound) sound.play();
   }
+  turnExplosionEffect(on){
+    this.afterImagePass.enabled = on;
+    // if(!this.effect1){
+    //   this.effect1 = new THREE.ShaderPass( THREE.DotScreenShader );
+    //   this.effect1.uniforms[ 'scale' ].value = 40;
+    // }
+    // if(!this.effect2){
+    //   this.effect2 = new THREE.ShaderPass( THREE.RGBShiftShader );
+    //   this.effect2.uniforms[ 'amount' ].value = 0.015;
+    // }
+    // if(on){
+    //   this.composer.addPass( this.effect1 );
+    //   this.composer.addPass( this.effect2 );
+    // }else{
+    //   this.composer.removePass( this.effect1 );
+    //   this.composer.removePass( this.effect2 );
+
+    // }
+  }
   //////////////////////////////////////////////////////////
   // set this player's team
   setNick(nick){
@@ -588,9 +616,10 @@ class World {
     // 3D
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(window.innerWidth, window.innerHeight)
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.composer.setSize( window.innerWidth, window.innerHeight );
     // 2D
-    this.renderer2d.setSize(window.innerWidth, window.innerHeight)
+    this.renderer2d.setSize(window.innerWidth, window.innerHeight);
     // this.renderer2d.domElement.style.width = window.innerWidth;
     // this.renderer2d.domElement.style.height = window.innerHeight;
   }
@@ -633,7 +662,9 @@ class World {
     }
 
     // scene 3d 2d rendering
-    this._renderer.render(this.scene, this._camera);
+    //this._renderer.render(this.scene, this._camera);
+    this.composer.render();
+
     this.renderer2d.render(this.scene, this._camera);
 
     return false; //not exploding

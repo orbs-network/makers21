@@ -21,7 +21,24 @@
 		<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/face_mesh.js" crossorigin="anonymous"></script>
+
 		<script type="module">
+			import { EffectComposer } from 'https://threejs.org/examples/jsm/postprocessing/EffectComposer.js';
+			import { RenderPass } from 'https://threejs.org/examples/jsm/postprocessing/RenderPass.js';
+			import { AfterimagePass } from 'https://threejs.org/examples/jsm/postprocessing/AfterimagePass.js';
+			// import { ShaderPass } from 'https://threejs.org/examples/jsm/postprocessing/ShaderPass.js';
+			// import { RGBShiftShader } from 'https://threejs.org/examples/jsm/shaders/RGBShiftShader.js';
+			// import { DotScreenShader } from 'https://threejs.org/examples/jsm/shaders/DotScreenShader.js';
+
+			THREE.EffectComposer = EffectComposer;
+			THREE.RenderPass = RenderPass;
+			THREE.AfterimagePass = AfterimagePass;
+			// THREE.ShaderPass = ShaderPass;
+			// THREE.RGBShiftShader = RGBShiftShader;
+			// THREE.DotScreenShader = DotScreenShader;
+
+
+
 			//window.iso
 			// import { FirstPersonControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/FirstPersonControls.js';
 			// import {CSS2DRenderer, CSS2DObject} from 'https://unpkg.com/three@0.126.1/examples/jsm/renderers/CSS2DRenderer.js';

@@ -648,6 +648,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     let cam = this.world.camera;
     let direction = new THREE.Vector3();
     // visual
+    this.world.turnExplosionEffect(true);
     this.world.doExplode();
     this.playAudio('explode');
     // look at oposite gate
@@ -663,6 +664,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     // return to start
     this.world.return2Start(()=>{
+      this.world.turnExplosionEffect(false);
       this.controls.lookAt(gate.position);
       this.exploding = false;
       // broadcast final pos
