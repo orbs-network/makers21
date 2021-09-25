@@ -88,7 +88,7 @@ class World {
     this.afterImagePass= new THREE.AfterimagePass();
 
     this.composer.addPass(this.afterImagePass);
-    this.turnExplosionEffect(false);
+    this.turnWarningEffect(false);
 
     // for colision and shooting
     this.raycaster = new THREE.Raycaster();
@@ -439,7 +439,7 @@ class World {
     //let sound = this._camera.getObjectByName('sound_explode.wav');
     //if(sound) sound.play();
   }
-  turnExplosionEffect(on){
+  turnWarningEffect(on){
     this.afterImagePass.enabled = on;
     // if(!this.effect1){
     //   this.effect1 = new THREE.ShaderPass( THREE.DotScreenShader );

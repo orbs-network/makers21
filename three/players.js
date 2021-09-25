@@ -52,8 +52,10 @@ class Player{
   //////////////////////////////////////////////////////////
   addSound(sound){
     sound.add('fly-by.wav', this.obj, true, config.size/5);
-    sound.add('explode.wav', this.obj, false, config.size, 1);
-    sound.add('laser.wav', this.obj, false, config.size, 1);
+    sound.add('explode.wav', this.obj, false, config.size/2, 1);
+    sound.add('laser.wav', this.obj, false, config.size/5, 1);
+    sound.add('laser_up.wav', this.obj, false, config.size/5, 1);
+    sound.add('laser_down.wav', this.obj, false, config.size/5, 1);
   }
   //////////////////////////////////////////////////////////
   update(delta){
@@ -154,11 +156,23 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   onStart(data){
+    // abort future lockOff
+    if(this.tidLockOff){
+      clearTimeout(this.tidLock);
+      this.tidLock = 0;
+    }
+
     this.moving = data.moving;
     this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
   }
   //////////////////////////////////////////////////////////
   onExplode(data, explode){
+    // abort future lockOff
+    if(this.tidLockOff){
+      clearTimeout(this.tidLock);
+      this.tidLock = 0;
+    }
+
     // hide exploding airplaine
     this.moving = false;
     this.show(false);
@@ -175,10 +189,15 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   onFire(data){
+    // abort future lockOff
+    if(this.tidLockOff){
+      clearTimeout(this.tidLock);
+      this.tidLock = 0;
+    }
     // play already installed sound
     let sound = this.obj.getObjectByName('sound_laser.wav');
-
     if(sound) sound.play();
+
     this.laserBeam.object3d.visible = true;
     // auto hide
     if(this.tidHideFire){
@@ -188,8 +207,33 @@ class Player{
       this.laserBeam.object3d.visible = false;
       this.tidHideFire = null;
     },200);
+  }
+  //////////////////////////////////////////////////////////
+  onLockOn(data, target){
+    // play already installed sound
+    let sound = this.obj.getObjectByName('laser_up.wav');
+    if(sound) sound.play();
 
+    // timer for lock off
+    this.tidLockOff = setTimeout(() =>{
+      this.onLockOff(data, target);
+      this.tidLockOff = 0;
+    }, config.targetLockMs)
 
+  }
+  //////////////////////////////////////////////////////////
+  onLockOff(data, target){
+    // play already installed sound
+    let sound = this.obj.getObjectByName('laser_down.wav');
+    if(sound) sound.play();
+  }
+  //////////////////////////////////////////////////////////
+  onLock(data, target){
+    if(data.on){
+      onLockOn(data,target);
+    }else{
+      onLockOff(data,target);
+    }
   }
   //////////////////////////////////////////////////////////
   show(flag) {
@@ -240,6 +284,12 @@ class Players{
     for(let p of this.all()){
       p.visible = false;
       p.playerLabelObj.visible = false;
+
+      // abort future lockOff
+      if(p.tidLockOff){
+        clearTimeout(this.tidLock);
+        p.tidLock = 0;
+      }
       // THREE.SceneUtils.detach(p, this.world.scene, this.world.scene);
       // this.world.scene.remove(p);
       // p.clear();
@@ -280,6 +330,11 @@ class Players{
         p.onFire(data);
         // explode myself if im the target
         game.checkFireTarget(data);
+        break;
+      case "lockOn":
+        p.onLock(data, getPlayer(data.targetNick));
+        // warn myself if im the target
+        game.checkLockOnTarget(data);
         break;
 
     }
@@ -361,6 +416,10 @@ class Players{
   }
   //////////////////////////////////////////////////////////
   getPlayer(nick){
+    // this player
+    if(nick === game.localState.nick)
+      return null;
+
     const p = this.dict[nick];
     if(p){
       return p;

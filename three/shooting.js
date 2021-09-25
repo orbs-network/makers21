@@ -81,14 +81,27 @@ class Shooting {
     }
   }
   //////////////////////////////////////////////
+  broadcastLockOn(flag) {
+    deepStream.sendEvent('player',{
+      type:"lockOn",
+      on:flag,
+      nick: game.localState.nick,
+      targetNick: this.target.nick,
+      // new
+      targetTS: Date.now()
+    });
+  }
+  //////////////////////////////////////////////
   onNewTarget(target, players) {
     // reset locking
     const wasLocked = this.locked;
     this.locked = false;
 
+    // locking off
     if(this.target){
       // hide bounding sphere
       this.target.material.opacity = 0;
+      this.broadcastLockOn(false);
     }
     this.target = target;
 
@@ -127,12 +140,14 @@ class Shooting {
       return;
     }
 
+    // PASS THE FLAG
     // lock for pass the flag
     if(this.friend && game.holdingFlag){
       game.playAudio('locked');
       return; // no need to continue for enemy locking
     }
 
+    // LOCKING
     // play load laser sound
     if(this.tsEnemyLock){
       // target bounding sphere visible
@@ -140,6 +155,8 @@ class Shooting {
 
       game.stopAudio('laser_down');
       game.playAudio('laser_up');
+
+      this.broadcastLockOn(true);
     }
   }
   //////////////////////////////////////////////

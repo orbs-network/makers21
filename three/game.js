@@ -636,7 +636,28 @@ class Game /*extends THREE.EventDispatcher*/ {
     return false;
   }
   //////////////////////////////////////////////////////////
+  startWarning(msg){
+    if(msg) this.setGameMsg(msg);
+    this.playAudio('alarm');
+    this.world.turnWarningEffect(true);
+    this.tidWarning = setTimeout(() => this.stopWarning(),config.targetLockMs);
+  }
+  //////////////////////////////////////////////////////////
+  stopWarning(){
+    this.setGameMsg('');
+    this.stopAudio('alarm');
+    this.world.turnWarningEffect(false);
+    if(this.tidWarning){
+      clearTimeout(this.tidWarning);
+      this.tidWarning = 0;
+    }
+
+  }
+  //////////////////////////////////////////////////////////
   doExplode(){
+    this.stopWarning();
+    this.setGameMsg('BOOM!!!');
+
     // return flag if holders
     this.checkFlagDrop();
 
@@ -648,7 +669,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     let cam = this.world.camera;
     let direction = new THREE.Vector3();
     // visual
-    this.world.turnExplosionEffect(true);
+    this.world.turnWarningEffect(true);
     this.world.doExplode();
     this.playAudio('explode');
     // look at oposite gate
@@ -664,7 +685,8 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     // return to start
     this.world.return2Start(()=>{
-      this.world.turnExplosionEffect(false);
+      this.setGameMsg('Let us start again');
+      this.world.turnWarningEffect(false);
       this.controls.lookAt(gate.position);
       this.exploding = false;
       // broadcast final pos
@@ -679,18 +701,19 @@ class Game /*extends THREE.EventDispatcher*/ {
     }, this.controls, gate);
   }
   //////////////////////////////////////////////////////////
-  // checkCollision(){
-  //   // collision detection
-  //   if(this.exploding = this.world.checkColission()){
-  //     this.doExplode();
-  //     return true;
-  //   }
-  //   return false;
-  // }
-  //////////////////////////////////////////////////////////
   checkFireTarget(data) {
     if(data.targetNick == this.localState.nick){
       this.doExplode();
+    }
+  }
+  checkLockOnTarget(data){
+    if(data.targetNick == this.localState.nick){
+      if(data.on){
+        this.startWarning(`WARNING! ${data.nick} is locking on you!`);
+      }else{
+        this.stopWarning();
+        this.setGameMsg('');
+      }
     }
   }
   //////////////////////////////////////////////////////////
