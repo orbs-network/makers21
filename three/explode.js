@@ -2,7 +2,7 @@
 function ExplodeMngr(scene){
   //////////////settings/////////
   const SECONDS = 2;
-  var movementSpeed = 0.05;
+  var movementSpeed = 0.08;
   var totalObjects = 1000;
   //var objectSize = 0.03;
   //var sizeRandomness = 4000;

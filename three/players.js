@@ -230,9 +230,9 @@ class Player{
   //////////////////////////////////////////////////////////
   onLock(data, target){
     if(data.on){
-      onLockOn(data,target);
+      this.onLockOn(data,target);
     }else{
-      onLockOff(data,target);
+      this.onLockOff(data,target);
     }
   }
   //////////////////////////////////////////////////////////
@@ -332,7 +332,7 @@ class Players{
         game.checkFireTarget(data);
         break;
       case "lockOn":
-        p.onLock(data, getPlayer(data.targetNick));
+        p.onLock(data, this.getPlayer(data.targetNick));
         // warn myself if im the target
         game.checkLockOnTarget(data);
         break;
