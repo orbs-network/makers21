@@ -416,8 +416,8 @@ class World {
   ////////////////////////////////////////////////////////
   // AMI rename to also obstacles
   checkColissionGate(){
-    this.raycaster.near = config.colideNear;
-    this.raycaster.far = config.colideFar;
+    this.raycaster.near = config.raycastNear;
+    this.raycaster.far = config.raycastFar;
 
     // calculate objects intersecting the picking ray
     const intersects = this.raycaster.intersectObjects( [this.redGate, this.blueGate] );

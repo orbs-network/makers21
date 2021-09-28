@@ -23,16 +23,19 @@ window.config = {
   updateInterval:100,
   playerSphereSize: 0.1,
   return2startSec: 5,
-  explodePartSize: 0.05
+  explodePartSize: 0.05,
   // rotUnit:0.001,
+  raycastNear:0,
+  raycastFar:SIZE*2
 };
 
 
-config.targetNear = SIZE /10;
-config.targetFar = config.targetNear + 2*SIZE;
+config.shootNear = 1;
+config.shootFar = config.shootNear + SIZE * 1.3;
+config.passNear = 0;
+config.passFar = config.shootFar + 2;
+
 config.targetLockMs = 2000;
 
-config.colideNear = 0;
-config.colideFar= SIZE/10;
 config.colideDistance= config.distancePerMS * 500;
 config.lookSpeed = config.distancePerMS * 0.1;//0.0005,

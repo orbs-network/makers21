@@ -764,12 +764,13 @@ class Game /*extends THREE.EventDispatcher*/ {
     });
 
     this.playAudio('laser',()=>{
-      this.world.shooting.firing = false;
+      this.firing = false;
+      //this.world.shooting.firing = false;
     });
     // hide player TODO: ???
 
     // reset shooting
-    this.world.shooting.onNewTarget(null,null);
+    //this.world.shooting.onFire();
   }
   //////////////////////////////////////////////////////////
   keydown(e){

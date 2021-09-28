@@ -92,11 +92,16 @@ class Shooting {
       targetTS: Date.now()
     });
   }
+  isInRange(dis, min, max){
+    return(dis >= min && dis <= max);
+  }
   //////////////////////////////////////////////
   onNewTarget(target, players) {
     // reset locking
     const wasLocked = this.locked;
     this.locked = false;
+
+    // REMINDER 'target' is the sphere THREEJS mesh object
 
     // locking off
     if(this.target){
@@ -126,41 +131,6 @@ class Shooting {
 
     // set friend
     this.friend = this.isRed === this.targetPlayer.isRed;
-
-    // start locking if enemy
-    this.tsEnemyLock = this.friend? 0 : Date.now();
-
-
-    // update hud
-    //console.log('on new target:', this.targetPlayer.nick);
-    // dont lock on exploding target (or not moving TODO:)
-    // not moving or exploding - DO NOTHING
-    //console.log(`target moving: ${this.targetPlayer.moving}`)
-    if(false){
-      if(!this.targetPlayer.moving || this.targetPlayer.exploding){
-        this.tsEnemyLock = 0;
-        return;
-      }
-    }
-
-    // PASS THE FLAG
-    // lock for pass the flag
-    if(this.friend && game.holdingFlag){
-      game.playAudio('locked');
-      return; // no need to continue for enemy locking
-    }
-
-    // LOCKING
-    // play load laser sound
-    if(this.tsEnemyLock){
-      // target bounding sphere visible
-      this.target.material.opacity = 0.5;
-
-      game.stopAudio('laser_down');
-      game.playAudio('laser_up');
-
-      this.broadcastLockOn(true);
-    }
   }
   //////////////////////////////////////////////
   updateLock() {
@@ -194,19 +164,68 @@ class Shooting {
     }
   }
   //////////////////////////////////////////////
+  checkTargetRange(){
+    ////////////////////////////////
+    // handle ranges and lockTS
+
+    // pass flag
+    if(this.friend){
+      this.tsEnemyLock = 0; // no lock
+      this.targetPlayer.inRange = this.isInRange(this.target.distance, config.passNear, config.passFar);
+    }
+    // shooting
+    else {
+      this.targetPlayer.inRange = this.isInRange(this.target.distance, config.shootNear, config.shootFar);
+      if(this.targetPlayer.inRange){
+        this.tsEnemyLock = Date.now();
+      }
+    }
+
+    // dont lock on exploding target (or not moving TODO:)
+    // not moving or exploding - DO NOTHING
+    //console.log(`target moving: ${this.targetPlayer.moving}`)
+    if(false){
+      if(!this.targetPlayer.moving || this.targetPlayer.exploding){
+        this.tsEnemyLock = 0;
+        return;
+      }
+    }
+
+    // PASS THE FLAG
+    // lock for pass the flag
+    if(this.friend && game.holdingFlag && this.targetPlayer.inRange){
+      game.playAudio('locked');
+      return; // no need to continue for enemy locking
+    }
+
+    // LOCKING
+    // play load laser sound
+    if(this.tsEnemyLock){
+      // target bounding sphere visible
+      this.target.material.opacity = 0.5;
+
+      game.stopAudio('laser_down');
+      game.playAudio('laser_up');
+
+      this.broadcastLockOn(true);
+    }
+  }
+  //////////////////////////////////////////////
   update(raycaster, players) {
     if(!game.moving) return;
     if(game.exploding) return;
     if(this.firing) return;
 
-    raycaster.near = config.targetNear;
-    raycaster.far = config.targetFar;
+    // use those later
+    // raycaster.near = config.targetNear;
+    // raycaster.far = config.targetFar;
 
     const spheres = players.boundSpheres();
     const intersections = raycaster.intersectObjects(spheres);
     let target = null;
     if(intersections.length){
       target = intersections[0].object;
+      target.distance = intersections[0].distance;
       //console.log(this.target.name, intersections[0].distance);//, dis);
       // target changed
     }
@@ -219,11 +238,14 @@ class Shooting {
       this.onNewTarget(target, players);
       this.changeHudState();
     }
-
-    if(target){
+    // same target
+    else if(target){
       // locking
       if(this.tsEnemyLock){
         this.updateLock();
+      } // ceck if either pass or shoot target in range
+      else if (!this.targetPlayer.inRange){
+        this.checkTargetRange();
       }
     }
   }
