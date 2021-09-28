@@ -61,7 +61,7 @@ class Shooting {
     }
     else{
       // cant lock on none moving targets
-      if(!this.targetPlayer.moving){
+      if(false &&!this.targetPlayer.moving){
         this.setHudColor("#FFFFFF");
         // SIZE
         this.hud.position.z = HUD_Z_NEUTRAL;
@@ -82,11 +82,12 @@ class Shooting {
   }
   //////////////////////////////////////////////
   broadcastLockOn(flag) {
+    console.log('broadcastLockOn');
     deepStream.sendEvent('player',{
       type:"lockOn",
       on:flag,
       nick: game.localState.nick,
-      targetNick: this.target.nick,
+      targetNick: this.targetPlayer.nick,
       // new
       targetTS: Date.now()
     });
@@ -135,9 +136,11 @@ class Shooting {
     // dont lock on exploding target (or not moving TODO:)
     // not moving or exploding - DO NOTHING
     //console.log(`target moving: ${this.targetPlayer.moving}`)
-    if(!this.targetPlayer.moving || this.targetPlayer.exploding){
-      this.tsEnemyLock = 0;
-      return;
+    if(false){
+      if(!this.targetPlayer.moving || this.targetPlayer.exploding){
+        this.tsEnemyLock = 0;
+        return;
+      }
     }
 
     // PASS THE FLAG

@@ -43,6 +43,10 @@ class Player{
     }
   }
   //////////////////////////////////////////////////////////
+  showBoundingSphere(show){
+    this.boundSphere.material.opacity = show? 0.5 : 0;
+  }
+  //////////////////////////////////////////////////////////
   setMaterialColor(matterial){
     this.obj.traverse(child=> {
       if(child instanceof THREE.Mesh) {
@@ -233,6 +237,9 @@ class Player{
       this.onLockOn(data,target);
     }else{
       this.onLockOff(data,target);
+    }
+    if(target){
+      target.showBoundingSphere(data.on);
     }
   }
   //////////////////////////////////////////////////////////
