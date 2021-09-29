@@ -99,7 +99,6 @@ class Shooting {
     this.target = target;
 
 		if(target){
-			this.target.material.opacity = 0.5;
 			// get wrapping player class
 			this.targetPlayer = players.getPlayer(this.target.parent.name);
 			// set friend
@@ -121,9 +120,6 @@ class Shooting {
     //   return;
     // }
   }
-	//////////////////////////////////////////////
-	updateFriendTarget(){
-	}
   //////////////////////////////////////////////
   updateLock() {
     // target locking
@@ -234,12 +230,24 @@ class Shooting {
 				return;
 			}
 
+			// already locked (on friend only)
+			if(this.locked) return;
+
 			// set inRange for both friend or enemy
 			this.checkTargetRange();
 			if(this.inRange){
+				// show sphere (hide upon new target)
+				this.target.material.opacity = 0.5;
 				// update enemy/friend
 				if(this.friend){
-					this.updateFriendTarget();
+					if(game.holdingFlag){
+						this.locked = true;
+						this.hudLabel.textContent = `Pass the flag to ${this.targetPlayer.nick}`
+						game.stopAudio('laser_up');
+						game.stopAudio('laser_down');
+						game.playAudio('locked');
+
+					}
 				}
 				else{
 					// start locking for next time
