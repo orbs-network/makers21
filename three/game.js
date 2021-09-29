@@ -686,6 +686,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     // return to start
     this.world.return2Start(()=>{
       this.setGameMsg('Let us start again');
+      this.playAudio('locked');
       this.world.turnWarningEffect(false);
       this.controls.lookAt(gate.position);
       this.exploding = false;
@@ -718,10 +719,6 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   doPassFlag(target){
-    this.playAudio('laser',()=>{
-      this.world.shooting.firing = false;
-    });
-    //
     deepStream.client.rpc.make('client',{
       type:"passFlag",
       isRed: this.localState.isRed,
@@ -743,12 +740,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(!this.world.shooting) return;
     if(this.world.shooting.firing) return;
 
-    // pass the flag to friend
-    if(this.world.shooting.friend && this.holdingFlag){
-      this.doPassFlag(this.world.shooting.targetPlayer);
-      return;
-    }
-
     // shooting an enemy
     if(!this.world.shooting.locked){
       this.setGameMsg('lock target before fire');
@@ -756,17 +747,26 @@ class Game /*extends THREE.EventDispatcher*/ {
       return;
     }
 
+    // firing
     this.firing = true;
+    this.playAudio('laser',()=>{
+      this.firing = false;
+      //this.world.shooting.firing = false;
+    });
+
+    // pass the flag to friend
+    if(this.world.shooting.friend && this.holdingFlag){
+      this.doPassFlag(this.world.shooting.targetPlayer);
+      return;
+    }
+
+    // fire enemy
     deepStream.sendEvent('player',{
       type:"fire",
       nick: this.localState.nick,
       targetNick: this.world.shooting.targetPlayer.nick
     });
 
-    this.playAudio('laser',()=>{
-      this.firing = false;
-      //this.world.shooting.firing = false;
-    });
     // hide player TODO: ???
 
     // reset shooting

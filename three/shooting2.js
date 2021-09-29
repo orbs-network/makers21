@@ -48,7 +48,6 @@ class Shooting {
   }
   //////////////////////////////////////////////
   broadcastLock(flag) {
-    console.log('broadcastLock');
     deepStream.sendEvent('player',{
       type:"lockOn",
       on:flag,
@@ -160,38 +159,6 @@ class Shooting {
       // }
     }
 	}
-	//////////////////////////////////////////////
-	xxxxxxxUsefulCode(){
-
-    // dont lock on exploding target (or not moving TODO:)
-    // not moving or exploding - DO NOTHING
-    //console.log(`target moving: ${this.targetPlayer.moving}`)
-    if(false){
-      if(!this.targetPlayer.moving || this.targetPlayer.exploding){
-        this.tsEnemyLock = 0;
-        return;
-      }
-    }
-
-    // PASS THE FLAG
-    // lock for pass the flag
-    if(this.friend && game.holdingFlag && this.inRange){
-      game.playAudio('locked');
-      return; // no need to continue for enemy locking
-    }
-
-    // LOCKING
-    // play load laser sound
-    if(this.tsEnemyLock){
-      // target bounding sphere visible
-      this.target.material.opacity = 0.5;
-
-      game.stopAudio('laser_down');
-      game.playAudio('laser_up');
-
-      this.broadcastLock(true);
-    }
-  }
   //////////////////////////////////////////////
   update(raycaster, players) {
     if(!game.moving) return;
@@ -220,9 +187,17 @@ class Shooting {
 				this.changeHudState();
 			}
     }
+		// same target as before
 		else{
 			// No target do nothing
 			if(!target) return;
+			// ignore exploding targets
+			if(this.targetPlayer.exploding) return;
+			// ignore still targets
+			if(false && !this.targetPlayer.moving){
+				this.hudLabel.textContent = `can't lock on still target`;
+				return;
+			}
 
 			// already locking on enemy? continue
 			if(this.tsEnemyLock){
@@ -246,7 +221,9 @@ class Shooting {
 						game.stopAudio('laser_up');
 						game.stopAudio('laser_down');
 						game.playAudio('locked');
-
+					}
+					else{
+						this.hudLabel.textContent = `friendly fire is disabled!`;
 					}
 				}
 				else{
@@ -254,6 +231,8 @@ class Shooting {
 					this.tsEnemyLock = Date.now();
 					game.stopAudio('laser_down');
 					game.playAudio('laser_up');
+
+					this.broadcastLock(true);
 				}
 			}else{
 				// set out of range message
@@ -274,24 +253,14 @@ class Shooting {
       this.hudLabel.textContent = game.localState.nick;
     }
     else{
-      // cant lock on none moving targets
-      if(false &&!this.targetPlayer.moving){
-        this.setHudColor("#FFFFFF");
-        // SIZE
-        this.hud.position.z = HUD_Z_NEUTRAL;
-        // TEXT
-        this.hudLabel.textContent = `can't lock on still target`;
-      }else{
-        this.setHudOpacity(1);
-        // red if emnemy
-        // green if pass the flag
-        this.setHudColor(this.friend? "#00FF00": "#FF0000");
-        // SIZE
-        this.hud.position.z = HUD_Z_ACTIVE;
-        // TEXT
-        const targetName =  this.targetPlayer.nick;
-        this.hudLabel.textContent = this.friend? (game.holdingFlag? `Pass the flag to ${targetName}`:"Friendly fire is disabled"): `Locking laser at ${targetName}`;
-      }
+			this.setHudOpacity(1);
+			// red if emnemy
+			// green if pass the flag
+			this.setHudColor(this.friend? "#00FF00": "#FF0000");
+			// SIZE
+			this.hud.position.z = HUD_Z_ACTIVE;
+			// TEXT
+			const targetName =  this.targetPlayer.nick;
     }
   }
 }
