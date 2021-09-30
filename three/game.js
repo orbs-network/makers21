@@ -4,6 +4,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.resetMembers();
     this.loadLocalState();
     this.useNeck = localStorage.getItem('disableNeck') !== 'true';
+    this.stillTargetEnabled = localStorage.getItem('stillTargetEnabled') == 'true';
   }
   //////////////////////////////////////////////////////////
   resetMembers(){
