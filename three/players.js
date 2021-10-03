@@ -1,5 +1,5 @@
 let v3 = new THREE.Vector3(0,0,0);
-const lookDistance = -1000;
+const lookDistance = 1000;
 
 //////////////////////////////////////////////////////////
 class Player{
@@ -12,26 +12,45 @@ class Player{
     this.nick = nick;
     this.go2Target = false;
 
+    obj.rotation.y = -1;
+
     this._initLabel(nick, isRed);
+
+
+    // SUPER SIMPLE GLOW EFFECT
+    // use sprite because it appears the same from all angles
+    const spriteMaterial = new THREE.SpriteMaterial(
+        {
+          map: new THREE.ImageUtils.loadTexture( 'images/nova_1.png' ),
+          depthWrite: false, opacity: 0.8,
+          color: isRed? 0xffaaaa:0x9999ff , transparent: true, blending: THREE.AdditiveBlending
+        });
+
+    const sprite = new THREE.Sprite( spriteMaterial );
+    sprite.scale.set(300, 300, 1.0);
+    sprite.position.z  = -170;
+    sprite.position.x  = -30;
+    obj.add(sprite);
+
 
     // create sounds
     if(sound){ // might be undefined when players added before user started flying
       this.addSound(sound);
     }
     // DO BEFORE SHOOTING SO IT DOESNT REPLACE ADDED SPHERE MATTERIAL
-    this.setMaterialColor(isRed? materials.redPhong : materials.bluePhong);
+    this.setMaterialColor(isRed);
 
     // useShooting
     this.useShooting = useShooting;
     if(useShooting){
-      // bounding sphere
+            // bounding sphere
       const geometry = new THREE.SphereGeometry( config.playerSphereSize, 16, 8 );
       // create new matterial per sphere so opacity can be changed individually
       this.boundSphere = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: isRed? 0xFF0000:0x0000FF } ) );
       this.boundSphere.layers.enable(1); // MUST
       this.boundSphere.material.transparent = true;
       this.boundSphere.name = nick + '_bound_sphere';
-      this.boundSphere.material.opacity = 0; // invisible
+      // this.boundSphere.material.opacity = 0; // invisible
       this.obj.add(this.boundSphere);
       // lasser beam
       var laserBeam	= new THREEx.LaserBeam();
@@ -47,11 +66,8 @@ class Player{
     this.boundSphere.material.opacity = show? 0.5 : 0;
   }
   //////////////////////////////////////////////////////////
-  setMaterialColor(matterial){
-    this.obj.traverse(child=> {
-      if(child instanceof THREE.Mesh) {
-        child.material = matterial;
-      }});
+  setMaterialColor(red){
+    this.obj.children[0].material.emissive.set(red  ? 0x170000 :  0x000017);
   }
   //////////////////////////////////////////////////////////
   addSound(sound){
@@ -268,17 +284,6 @@ class Players{
     this.world= world;
     this.model = world.models['airplane'];
 
-    this.blueMaterial = new THREE.MeshPhongMaterial({
-      color: 0x0000FF,    // red (can also use a CSS color string here)
-      flatShading: true,
-      side: THREE.DoubleSide
-    });
-    //const material = new THREE.MeshPhongMaterial();
-    //const material = THREE.MeshToonMaterial();
-    //const material = THREE.MeshBasicMaterial();
-    //material.flatShading = false;
-    //material.flatShading = true;
-    //this.matter = material;
     this.useShooting = false;
 
 		deepStream.subscribe("player", this.onEvent.bind(this));
@@ -381,7 +386,7 @@ class Players{
     p.copy(this.model);
 
     // scale
-    const s = SIZE/5;// was4
+    const s = SIZE/30000;// was4
     p.scale.set(s,s,s);
 
     p.name = nick;

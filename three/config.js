@@ -1,10 +1,10 @@
 const BASE_SIZE = 10;
 const SIZE = BASE_SIZE;
-const BLUE = 0x000055;
-const RED = 0x550000;
+const BLUE = 0x111155;
+const RED = 0x551111;
 const BLUE2 = 0x000088;
 const RED2 = 0x880000;
-const GREY = 0x331133;
+const GREY = 0x333344;
 const WHITE = 0xFFFFFF;
 
 const toRad = (Math.PI/180);
@@ -37,5 +37,5 @@ config.passFar = config.shootFar + 2;
 
 config.targetLockMs = 2000;
 
-config.colideDistance= config.distancePerMS * 500;
+config.colideDistance= config.distancePerMS * 50;
 config.lookSpeed = config.distancePerMS * 0.1;//0.0005,

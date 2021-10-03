@@ -1,5 +1,6 @@
 const { DeepstreamClient } = window.DeepstreamClient
 //const client = new DeepstreamClient('10.11.11.4:6020')
+// const client = new DeepstreamClient('10.11.11.32:6020')
 const client = new DeepstreamClient('localhost:6020')
 
 
