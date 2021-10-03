@@ -590,6 +590,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       cam.getWorldDirection(this.direction);
       //let quaternion = new THREE.Quaternion();
       //cam.getWorldQuaternion(quaternion);
+      const targetPos = this.moving? this.calcTargetPos(cam.position, this.direction) : cam.position;
       deepStream.sendEvent('player',{
         type:"pos",
         // old
@@ -598,8 +599,12 @@ class Game /*extends THREE.EventDispatcher*/ {
         nick: this.localState.nick,
         moving: this.moving,
         // new
-        targetPos: this.moving? this.calcTargetPos(cam.position, this.direction) : cam.position,
-        targetTS: Date.now() + config.updateInterval
+        targetPos: {
+          x:targetPos.x,
+          y:targetPos.y,
+          z:targetPos.z
+        },
+        targetTS: Date.now() + config.updateInterval,
         //quaternion: quaternion
       });
 
