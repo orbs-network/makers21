@@ -119,12 +119,12 @@ class World {
     this.players = new Players(this);
 
     // GATES
-    const GATE_SIZE = config.size / 30;
+    const GATE_SIZE = 0.4;//config.size / 30;
     // red gate
     this.redGate = this.createGate(RED2, GATE_SIZE);
     this.redGate.name = "redGate";
 
-    const gateY = SIZE/2 + GATE_SIZE;
+    const gateY = HEIGHT/2 + GATE_SIZE;
 
     const gatePosFactor = 1.4;//almost at border
     // move front and up
@@ -214,8 +214,8 @@ class World {
     // stars
     let starGeo = new THREE.Geometry();
 
-    const starDis = 1000;
-    for(let i=0;i<1000;i++) {
+    const starDis = SIZE*30;
+    for(let i=0;i<2000;i++) {
       const star = new THREE.Vector3(
           Math.random() * starDis - starDis/2,
           Math.random() * starDis - starDis/2,
@@ -320,7 +320,7 @@ class World {
   }
   //////////////////////////////////////////////////////////
   createBorders(color, zDir){
-    const divisions = 30;
+    const divisions = config.division;
 
     this.border.east =  SIZE ;
     this.border.west = -SIZE ;
@@ -330,7 +330,7 @@ class World {
     this.createHoriz(divisions, color, zDir, this.border.floor);
 
     // create ceiling
-    this.border.ceiling = SIZE;
+    this.border.ceiling = HEIGHT;
     this.createHoriz(divisions, color, zDir, this.border.ceiling);
 
     this.border.north =  -SIZE * 1.5;
@@ -377,7 +377,7 @@ class World {
   // }
   //////////////////////////////////////////////////////////
   createCamera(){
-    this._camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    this._camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, SIZE * 10 );
 
     // aim and dashboard
     // var cubeGeometry = new THREE.CircleGeometry( 0.2, 32);
@@ -470,7 +470,7 @@ class World {
     if(isRed == null){
       this._camera.position.z = 0;
       this._camera.position.x = 0;
-      this._camera.position.y = SIZE/2 ;
+      this._camera.position.y = HEIGHT/2 ;
       // not joined-
       this.players.gameJoined = false;
       return;
@@ -478,7 +478,7 @@ class World {
     // set start line
     const myGate = isRed? this.blueGate : this.redGate;
     this.startLineZ = myGate.position.z;
-    const half = SIZE / 2 ;
+    const half = HEIGHT / 2 ;
     // 2 - 7
     this.startLineY = Math.floor(Math.random() * half) + half;
     // (-2) - 2

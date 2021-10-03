@@ -1,5 +1,6 @@
-const BASE_SIZE = 10;
-const SIZE = BASE_SIZE;
+
+const SIZE = 20;
+const HEIGHT = 10;
 const BLUE = 0x000055;
 const RED = 0x550000;
 const BLUE2 = 0x000088;
@@ -11,10 +12,9 @@ const toRad = (Math.PI/180);
 
 window.config = {
   size:SIZE ,
-  //speed: SIZE/400,
-  //speed: BASE_SIZE/500,
+  division:30,
   //speed: 0,
-  distancePerMS : 1.6/1000,
+  distancePerMS : 1.5/1000,
   gateTurnPerSec : 0.1,
   //ctrlHeightLimit: (20 * toRad)
   // steerReleaseFactor: 0.95,
