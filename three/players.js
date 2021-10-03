@@ -110,51 +110,19 @@ class Player{
     //   z: data.dir.z * lookDistance
     // }
     // OLD
-    this.obj.lookAt(data.dir.x * lookDistance, data.dir.y*lookDistance, data.dir.z*lookDistance);
+    this.obj.lookAt(data.dir.x * lookDistance, data.dir.y * lookDistance, data.dir.z * lookDistance);
 
 
     // position if not moving
     this.moving = data.moving;
     if(!this.moving){
-      // this.obj.position.x = data.targetPos.x;
+      this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
       // this.obj.position.y = data.targetPos.y;
       // this.obj.position.z = data.targetPos.z;
       return;
     }
+    this.exploding = false; // necesseraly
     this.show();
-
-    // First time pos
-    // if(isNaN(this.obj.position.x)){
-    //   this.obj.position.x = data.targetPos.x;
-    //   this.obj.position.y = data.targetPos.y;
-    //   this.obj.position.z = data.targetPos.z;
-    //   this.go2Target = false;
-    //   return;
-    // }
-
-    // OLD
-    // this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
-    // //this.rotation.set(data.rx, data.ry, data.rz);
-    // // since camera is oposite- we look backward negative sign
-
-    // this.moveForward();
-    // NEW
-    // this.targetDir = data.dir;
-    // this.targetPos = data.targetPos;
-    //this.targetTS = data.targetTS;
-    // NEW 2
-
-    // filter old messages
-    // doesnt happen
-    // if(!this.targetTS){
-    //   this.targetTS = data.targetTS;
-    // }else{
-    //   if(data.targetTS < this.targetTS){
-    //     console.error('pos message too old');
-    //     return;
-    //   }
-    // }
-
 
     const timeToTarget = data.targetTS - Date.now();
     if(timeToTarget > 0){
@@ -187,6 +155,16 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   onExplode(data, explode){
+    this.exploding = data.flag;
+
+    // finished exploding
+    if(!this.exploding){
+      this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
+      this.obj.rotation.set(data.dir.x, data.dir.y, data.dir.z);
+      this.show(true);
+      return;
+    }
+
     // abort future lockOff
     if(this.tidLockOff){
       clearTimeout(this.tidLock);
@@ -195,7 +173,16 @@ class Player{
 
     // hide exploding airplaine
     this.moving = false;
+    // hide exploding
     this.show(false);
+    // show again after return to start
+    if(this.tidWaitReturn){
+      clearTimeout(this.tidWaitReturn);
+    }
+    // this.tidWaitReturn = setTimeout(()=>{
+    //   this.tidWaitReturn = 0;
+    //   this.show(true)
+    // },config.return2startSec * 1000)
 
     // create explosition attached to player
     explode.create(this.obj.position.x, this.obj.position.y, this.obj.position.z, this.isRed);
@@ -270,7 +257,7 @@ class Player{
     const playerLabelDiv = document.createElement( 'div' );
     playerLabelDiv.className = 'player-label';
     playerLabelDiv.textContent = nick || "WHO DIS?";
-    playerLabelDiv.style.color = isRed ? '#F33':'33F';
+    playerLabelDiv.style.color = isRed ? '#F33':'#33F';
     this.playerLabelObj = new THREE.CSS2DObject( playerLabelDiv );
     this.playerLabelObj.position.set( 0, 0, 0 );
     this.obj.add( this.playerLabelObj );
@@ -293,7 +280,9 @@ class Players{
     // hide objects from scene
     for(let p of this.all()){
       p.visible = false;
-      p.playerLabelObj.visible = false;
+      // if(p.playerLabelObj){
+      //   p.playerLabelObj.visible = false;
+      // }
 
       // abort future lockOff
       if(p.tidLockOff){
@@ -395,7 +384,7 @@ class Players{
     p.castShadow = true;
     //p.visible = false; // until positioned
     let newPlayer = new Player(p, nick, (isRed===1), this.sound, this.useShooting);
-    newPlayer.show(false);
+    //newPlayer.show(false);
 
     this.dict[nick] = newPlayer;
     console.log('create player',nick);
