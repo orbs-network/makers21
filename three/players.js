@@ -268,8 +268,6 @@ class Players{
     this.world= world;
     this.model = world.models['airplane'];
 
-    this.redMaterial =
-
     this.blueMaterial = new THREE.MeshPhongMaterial({
       color: 0x0000FF,    // red (can also use a CSS color string here)
       flatShading: true,
