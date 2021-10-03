@@ -122,9 +122,9 @@ class World {
         ///////////////////////////////
         // Light
         // ambient light to light all objects equally
-        const amb = new THREE.AmbientLight(0x444444); // soft white light
+        const amb = new THREE.AmbientLight(0x222222); // soft white light
         this.scene.add(amb);
-        let light = new THREE.DirectionalLight(0xffffff, 2.5, 100);
+        let light = new THREE.DirectionalLight(0xffffff, 1.5, 100);
         //let light = new THREE.HemisphereLight( 0xfffff0, 0x101020, 0.2 )
         light.position.set(1, 0.25, 0); //default; light shining from top
         light.castShadow = true; // default false
@@ -372,6 +372,14 @@ class World {
         ground.rotation.z = 0.1;
         this.scene.add(ground);
 
+
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0;
+        bloomPass.strength = 0.5;
+        bloomPass.radius = 0;
+
+        this.composer.addPass(bloomPass);
+
     }
 
     //////////////////////////////////////////////////////////
@@ -384,30 +392,23 @@ class World {
     }
 
     createBorderPads(divisions, zDir, xDir, yPos) {
-        // creae pads left
-        let zPosFactor = 0.25;
-        let xPosFactor = 0.75;
-        // side
-        this.createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos);
-        zPosFactor = 0.75;
-        this.createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos);
-        zPosFactor = 1.25;
-        this.createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos);
-        // end
-        xPosFactor = -0.25;
-        this.createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos);
+
     }
 
     //////////////////////////////////////////////////////////
     createHoriz(divisions, color, zDir, yPos) {
         let zOffset = SIZE / 2 * zDir + zDir * 0.01;// little space to avoid overlap
         // create floor
-        let grid = new THREE.GridHelper(SIZE, divisions, color, color);
+        let grid = new THREE.GridHelper(SIZE * 2, divisions, color, color);
 
         this.scene.add(grid);
-        grid.position.z = zOffset;
+        grid.position.z = zOffset * 2;
         grid.position.y = yPos;
 
+        const geometry = new THREE.BoxGeometry( SIZE * 2,0.1,SIZE * 2);
+        const material = new THREE.MeshBasicMaterial( {opacity: 0.1, transparent: true, color: color} );
+        const cube = new THREE.Mesh( geometry, material );
+        grid.add( cube );
 
         // create pads
         this.createBorderPads(divisions, zDir, 1, yPos);
@@ -416,7 +417,7 @@ class World {
 
     //////////////////////////////////////////////////////////
     createBorders(color, zDir) {
-        const divisions = 60;
+        const divisions = 20;
 
         this.border.east = SIZE;
         this.border.west = -SIZE;
@@ -745,6 +746,7 @@ class World {
     }
 
     render(delta) {
+
         // rotate gates & flags in sync with all players
         if (game.mngrState?.startTs) {
             const diff = Date.now() - game.mngrState.startTs;

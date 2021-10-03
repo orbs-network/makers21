@@ -17,21 +17,6 @@ class Player{
     this._initLabel(nick, isRed);
 
 
-    // SUPER SIMPLE GLOW EFFECT
-    // use sprite because it appears the same from all angles
-    const spriteMaterial = new THREE.SpriteMaterial(
-        {
-          map: new THREE.ImageUtils.loadTexture( 'images/nova_1.png' ),
-          depthWrite: false, opacity: 0.8,
-          color: isRed? 0xffaaaa:0x9999ff , transparent: true, blending: THREE.AdditiveBlending
-        });
-
-    const sprite = new THREE.Sprite( spriteMaterial );
-    sprite.scale.set(300, 300, 1.0);
-    sprite.position.z  = -170;
-    sprite.position.x  = -30;
-    obj.add(sprite);
-
 
     // create sounds
     if(sound){ // might be undefined when players added before user started flying
@@ -49,8 +34,10 @@ class Player{
       this.boundSphere = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: isRed? 0xFF0000:0x0000FF } ) );
       this.boundSphere.layers.enable(1); // MUST
       this.boundSphere.material.transparent = true;
+      this.boundSphere.position.z = 90;
       this.boundSphere.name = nick + '_bound_sphere';
-      // this.boundSphere.material.opacity = 0; // invisible
+      this.boundSphere.scale.set(2400,2400,2400);
+      this.boundSphere.material.opacity = 0; // invisible
       this.obj.add(this.boundSphere);
       // lasser beam
       var laserBeam	= new THREEx.LaserBeam();
@@ -60,6 +47,25 @@ class Player{
       laserBeam.object3d.position.z = -.05; // infront of airplane
       this.laserBeam = laserBeam;
     }
+
+
+
+    // SUPER SIMPLE GLOW EFFECT
+    // use sprite because it appears the same from all angles
+    const spriteMaterial = new THREE.SpriteMaterial(
+        {
+          map: new THREE.ImageUtils.loadTexture( 'images/nova_1.png' ),
+          depthWrite: false,
+          color: isRed? 0xffaaaa:0x9999ff , blending: THREE.AdditiveBlending
+        });
+
+    const sprite = new THREE.Sprite( spriteMaterial );
+    sprite.scale.set(300, 300, 1.0);
+    sprite.position.z  = -180;
+    sprite.position.x  = -30;
+    obj.add(sprite);
+
+
   }
   //////////////////////////////////////////////////////////
   showBoundingSphere(show){
@@ -67,7 +73,7 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   setMaterialColor(red){
-    this.obj.children[0].material.emissive.set(red  ? 0x170000 :  0x000017);
+    this.obj.children[0].material.emissive.set(red  ? RED_SHIP :  BLUE_SHIP);
   }
   //////////////////////////////////////////////////////////
   addSound(sound){

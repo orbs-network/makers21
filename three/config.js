@@ -1,9 +1,11 @@
 const BASE_SIZE = 10;
 const SIZE = BASE_SIZE;
-const BLUE = 0x111155;
-const RED = 0x551111;
-const BLUE2 = 0x000088;
-const RED2 = 0x880000;
+const BLUE = 0x224988;
+const RED = 0x774022;
+const BLUE2 = 0x003377;
+const BLUE_SHIP = 0x000411;
+const RED2 = 0x882200;
+const RED_SHIP = 0x110100;
 const GREY = 0x333344;
 const WHITE = 0xFFFFFF;
 
