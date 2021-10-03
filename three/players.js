@@ -105,7 +105,7 @@ class Player{
       // this.obj.position.z = data.targetPos.z;
       return;
     }
-
+    this.exploding = false; // necesseraly
     this.show();
 
     const timeToTarget = data.targetTS - Date.now();
