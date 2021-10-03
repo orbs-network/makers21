@@ -566,14 +566,14 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   startUpdateLoop(start){
-    // stop
-    if(!start){
-      if(this.updateLoopTID){
-        clearInterval(this.updateLoopTID);
-        this.updateLoopTID = 0;
-      }
-      return;
-    }
+    // stop - always tell your position
+    // if(!start){
+    //   if(this.updateLoopTID){
+    //     clearInterval(this.updateLoopTID);
+    //     this.updateLoopTID = 0;
+    //   }
+    //   return;
+    // }
     // start
     let cam = this.world.camera;
     let direction = new THREE.Vector3();
@@ -598,7 +598,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         nick: this.localState.nick,
         moving: this.moving,
         // new
-        targetPos: this.calcTargetPos(cam.position, direction),
+        targetPos: this.moving? this.calcTargetPos(cam.position, direction) : cam.position,
         targetTS: Date.now() + config.updateInterval
         //quaternion: quaternion
       });
@@ -679,6 +679,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     // event explosion
     deepStream.sendEvent('player',{
       type:"explode",
+      flag:true,
       pos:cam.position,
       dir:direction,
       nick: this.localState.nick
@@ -695,8 +696,9 @@ class Game /*extends THREE.EventDispatcher*/ {
       let cam = this.world.camera;
       cam.getWorldDirection(direction);
       deepStream.sendEvent('player',{
-        type:"pos",
-        targetPos:cam.position,
+        type:"explode",
+        flag:false,
+        pos:cam.position,
         dir:direction,
         nick: this.localState.nick
       });
