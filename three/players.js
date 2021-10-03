@@ -11,6 +11,7 @@ class Player{
     this.gameJoined = false;
     this.nick = nick;
     this.go2Target = false;
+    this.targetPos = new THREE.Vector3();
 
     this._initLabel(nick, isRed);
 
@@ -76,12 +77,13 @@ class Player{
         // this.obj.rotation.z += this.zRotPerMS * delta;
       }else{
         // OLD
-        this.obj.getWorldDirection(v3);
-        //const direction = v3.multiplyScalar(-config.speed);
-        let distance = config.distancePerMS * delta ;
-        const direction = v3.multiplyScalar(-distance);
-        this.obj.position.add(direction);
-        //console.log('passed target!!!');
+        // console.error('player::update CALL YUVAL');
+        // this.obj.position.set(this.targetPos);
+        // this.obj.getWorldDirection(v3);
+        // //const direction = v3.multiplyScalar(-config.speed);
+        // let distance = config.distancePerMS * delta ;
+        // const direction = v3.multiplyScalar(-distance);
+        // this.obj.position.add(direction);
       }
     }
   }
@@ -101,6 +103,7 @@ class Player{
     this.moving = data.moving;
     if(!this.moving){
       this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
+      // this.obj.position.x = data.targetPos.x;
       // this.obj.position.y = data.targetPos.y;
       // this.obj.position.z = data.targetPos.z;
       return;
@@ -110,11 +113,19 @@ class Player{
 
     const timeToTarget = data.targetTS - Date.now();
     if(timeToTarget > 0){
+      // for safety
+      this.targetPos.setX(data.targetPos.x);
+      this.targetPos.setY(data.targetPos.y);
+      this.targetPos.setZ(data.targetPos.z);
       // Position
       this.go2Target = true;
-      this.xPerMS = (data.targetPos.x - this.obj.position.x) / timeToTarget;
-      this.yPerMS = (data.targetPos.y - this.obj.position.y) / timeToTarget;
-      this.zPerMS = (data.targetPos.z - this.obj.position.z) / timeToTarget;
+      this.xPerMS = (this.targetPos.x - this.obj.position.x) / timeToTarget;
+      this.yPerMS = (this.targetPos.y - this.obj.position.y) / timeToTarget;
+      this.zPerMS = (this.targetPos.z - this.obj.position.z) / timeToTarget;
+      if(!this.xPerMS || !this.yPerMS || !this.zPerMS){
+        this.go2Target = false;
+        console.log('isNan happened');
+      }
       // Rotation
       //this.obj.applyQuaternion(data.quaternion);
       //this.obj.setRotationFromQuaternion(data.quaternion);
@@ -304,12 +315,15 @@ class Players{
     if(!this.gameJoined){
       return;
     }
-
     const p = this.getPlayer(data.nick);
+
     if(!p){
       console.error(`Player ${data.id} not found`);
       return;
     }
+
+    // DEBUG if(data.targetPos)    console.log(`event type:${data.type}`,data.targetPos);
+
     switch(data.type){
       case "start":
         p.onStart(data);

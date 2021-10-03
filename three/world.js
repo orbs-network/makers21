@@ -126,7 +126,7 @@ class World {
 
     const gateY = SIZE/2 + GATE_SIZE;
 
-    const gatePosFactor = 1.4;//almost at border
+    const gatePosFactor = 1.2;//almost at border
     // move front and up
     this.redGate.position.z = -SIZE * gatePosFactor;
     this.redGate.position.y = gateY;
@@ -518,7 +518,11 @@ class World {
     const flag = this.flags.detach(flagName);
     if(holderNick){ // Add to holder
       console.log('attachFlagToHolder', flagName, holderNick);
-      const holder = this.players.getPlayer(holderNick).obj;
+      const holder = this.players.getPlayer(holderNick);
+      if(!holder || !holder.obj){
+        console.error('failed to get player', holderNick);
+        return;
+      }
       this.flags.attachTo(flagName, holder);
       //this.flags.setPosPlayer(flagName);
     }
@@ -550,6 +554,8 @@ class World {
   }
   //////////////////////////////////////////////////////////
   return2Start(cb, controls, targetGate){
+
+
     // target ts
     let dt = new Date();
     dt.setSeconds( dt.getSeconds() + config.return2startSec, 0 );
@@ -559,13 +565,13 @@ class World {
     this.returnObj = {
       cb:cb,
       tsFinish:dt.getTime(),
-      // delta pos
+      //delta pos
       xDiff : (this.startLineX - this._camera.position.x) / denom,
       yDiff : (this.startLineY - this._camera.position.y) / denom,
       zDiff : (this.startLineZ - this._camera.position.z) / denom,
       controls: controls,
       targetGate: targetGate,
-      // delta rot
+      // // delta rot
       xLook : (targetGate.position.x - this._camera.position.x) / denom,
       yLook : (targetGate.position.y - this._camera.position.y) / denom,
       zLook : (targetGate.position.z - this._camera.position.z) / denom,
