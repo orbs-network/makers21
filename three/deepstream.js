@@ -1,12 +1,12 @@
 const { DeepstreamClient } = window.DeepstreamClient
 //const client = new DeepstreamClient('10.11.11.4:6020')
-const client = new DeepstreamClient('localhost:6020')
+//const client = new DeepstreamClient('localhost:6020')
 
 
 //const client = new DeepstreamClient('10.11.11.4:6020')
 //const client = new DeepstreamClient('34.134.236.209:6020')
 //const client = new DeepstreamClient('192.168.1.233:6020')
-//const client = new DeepstreamClient('192.168.1.210:6020')
+const client = new DeepstreamClient('10.11.11.32:6020')
 
 client.login()
 const uuid = window.deepStreamUUID || client.getUid();//+ "_"+ Date.now(); // TODO: remove

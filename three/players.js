@@ -241,7 +241,7 @@ class Player{
     const playerLabelDiv = document.createElement( 'div' );
     playerLabelDiv.className = 'player-label';
     playerLabelDiv.textContent = nick || "WHO DIS?";
-    playerLabelDiv.style.color = isRed ? '#F33':'33F';
+    playerLabelDiv.style.color = isRed ? '#F33':'#33F';
     this.playerLabelObj = new THREE.CSS2DObject( playerLabelDiv );
     this.playerLabelObj.position.set( 0, 0, 0 );
     this.obj.add( this.playerLabelObj );
@@ -275,7 +275,9 @@ class Players{
     // hide objects from scene
     for(let p of this.all()){
       p.visible = false;
-      p.playerLabelObj.visible = false;
+      // if(p.playerLabelObj){
+      //   p.playerLabelObj.visible = false;
+      // }
 
       // abort future lockOff
       if(p.tidLockOff){
