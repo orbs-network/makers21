@@ -80,10 +80,12 @@ class Shooting {
     if(this.target){
 			// hide sphere
 			this.target.material.opacity = 0;
+
+      // hide bounding sphere for others
+			this.broadcastLock(false);
+
 			// release lock
 			if(this.locked){
-				// hide bounding sphere
-				this.broadcastLock(false);
 				// sound
 				game.stopAudio('laser_up');
 				game.playAudio('laser_down');
