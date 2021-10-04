@@ -5,6 +5,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.loadLocalState();
     this.useNeck = localStorage.getItem('disableNeck') !== 'true';
     this.stillTargetEnabled = localStorage.getItem('stillTargetEnabled') == 'true';
+    this.disableConstantSpeed = localStorage.getItem("disableConstantSpeed") == 'true';
     this.disableSound = localStorage.getItem("disableSound");
   }
   //////////////////////////////////////////////////////////
@@ -185,7 +186,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       return;
     }
     this.moving = !this.moving;
-    this.controls.autoForward = !localStorage.getItem("disableConstantSpeed") &&  this.moving;
+    this.controls.autoForward = !this.disableConstantSpeed &&  this.moving;
     this.controls.enabled = this.moving;
     //this.controls
     // const pos = this.world.camera.position.clone();
