@@ -6,6 +6,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.useNeck = localStorage.getItem('disableNeck') !== 'true';
     this.stillTargetEnabled = localStorage.getItem('stillTargetEnabled') == 'true';
     this.disableConstantSpeed = localStorage.getItem("disableConstantSpeed") == 'true';
+    this.disableSound = localStorage.getItem("disableSound");
   }
   //////////////////////////////////////////////////////////
   resetMembers(){
@@ -203,7 +204,10 @@ class Game /*extends THREE.EventDispatcher*/ {
 
       if(this.first){
         this.first = false;
-        this.world.sound.play();
+
+        if (!this.disableSound) {
+          this.world.sound.play();
+        }
         //this.world.onFirst();
       }
     }
@@ -474,7 +478,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   stopAudio(id){
-    let sound = !localStorage.getItem("disableSound") && document.getElementById(id);
+    let sound = !this.disableSound && document.getElementById(id);
     if(sound){
       if( !sound.paused && !sound.ended && 0 < sound.currentTime){
         sound.pause();
@@ -484,7 +488,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   playAudio(id, cb){
-    let sound =  !localStorage.getItem("disableSound") && document.getElementById(id);
+    let sound =  !this.disableSound && document.getElementById(id);
     if(sound){
 
       // stop first
