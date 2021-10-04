@@ -616,6 +616,8 @@ class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   calcTargetPos(pos, worldDir){
     this.targetPos.copy(pos);
+    //return this.targetPos;
+
     const distance = config.distancePerMS * config.updateInterval;
     // move forward
     const direction = worldDir.multiplyScalar(distance);

@@ -554,8 +554,6 @@ class World {
   }
   //////////////////////////////////////////////////////////
   return2Start(cb, controls, targetGate){
-
-
     // target ts
     let dt = new Date();
     dt.setSeconds( dt.getSeconds() + config.return2startSec, 0 );
@@ -596,7 +594,7 @@ class World {
     this._camera.position.y += returnObj.yDiff * delta;
     this._camera.position.z += returnObj.zDiff * delta;
 
-    // // shift looks pos towards gate
+    // shift looks pos towards gate
     returnObj.lookPos.x += returnObj.xLook * delta;
     returnObj.lookPos.y += returnObj.yLook * delta;
     returnObj.lookPos.z += returnObj.zLook * delta;

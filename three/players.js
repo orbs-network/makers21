@@ -10,7 +10,7 @@ class Player{
     this.isRed = isRed;
     this.gameJoined = false;
     this.nick = nick;
-    this.go2Target = false;
+    //this.go2Target = false;
     //this.targetPos = new THREE.Vector3();
     this.lastPosTS = 0;
 
@@ -66,9 +66,9 @@ class Player{
   //////////////////////////////////////////////////////////
   update(delta){
     //this.obj.position.set(this.targetPos.x, this.targetPos.y, this.targetPos.z);
-    if(this.moving){
+    if(this.moving && this.go2Target){
       // NEW
-      if(this.go2Target){
+      //if(this.go2Target){
         // Position
         this.obj.position.x += this.xPerMS * delta;
         this.obj.position.y += this.yPerMS * delta;
@@ -77,7 +77,7 @@ class Player{
         // this.obj.rotation.x += this.xRotPerMS * delta;
         // this.obj.rotation.y += this.yRotPerMS * delta;
         // this.obj.rotation.z += this.zRotPerMS * delta;
-      }else{
+      //}else{
         // OLD
         // console.error('player::update CALL YUVAL');
         // this.obj.position.set(this.targetPos);
@@ -86,7 +86,7 @@ class Player{
         // let distance = config.distancePerMS * delta ;
         // const direction = v3.multiplyScalar(-distance);
         // this.obj.position.add(direction);
-      }
+      //}
     }
   }//////////////////////////////////////////////////////////
   hadPos(){
@@ -101,34 +101,27 @@ class Player{
     }
     this.lastPosTS = data.targetTS;
     // direction
-    // this.lookTarget = {
-    //   x: data.dir.x * lookDistance,
-    //   y: data.dir.y * lookDistance,
-    //   z: data.dir.z * lookDistance
-    // }
-    // OLD
     this.obj.lookAt(data.dir.x * lookDistance, data.dir.y * lookDistance, data.dir.z * lookDistance);
 
-
     // position if not moving
+    this.go2Target = false;
     this.moving = data.moving;
-    if(!this.moving || !this.hadPos()){
-      this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
-      // this.obj.position.x = data.targetPos.x;
-      // this.obj.position.y = data.targetPos.y;
-      // this.obj.position.z = data.targetPos.z;
-      return;
-    }
-    this.exploding = false; // necesseraly
+    let timeToTarget = data.targetTS - Date.now();
+
+    // necesseraly
+    this.exploding = false;
     this.show();
 
-    const timeToTarget = data.targetTS - Date.now();
-    if(timeToTarget > 0){
-      // Position
-      this.go2Target = true;
-      this.xPerMS = (data.targetPos.x - this.obj.position.x) / timeToTarget;
-      this.yPerMS = (data.targetPos.y - this.obj.position.y) / timeToTarget;
-      this.zPerMS = (data.targetPos.z - this.obj.position.z) / timeToTarget;
+    if(!this.moving || !this.hadPos() || timeToTarget <= 0){
+      this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
+      return;
+    }
+
+    // Position
+    this.go2Target = true;
+    this.xPerMS = (data.targetPos.x - this.obj.position.x) / timeToTarget;
+    this.yPerMS = (data.targetPos.y - this.obj.position.y) / timeToTarget;
+    this.zPerMS = (data.targetPos.z - this.obj.position.z) / timeToTarget;
       // if(!this.xPerMS || !this.yPerMS || !this.zPerMS){
       //   this.go2Target = false;
       //   console.log('isNan happened');
@@ -140,10 +133,10 @@ class Player{
       // this.xRotPerMS = (data.dir.x - v3.x) / timeToTarget;
       // this.yRotPerMS = (data.dir.y - v3.y) / timeToTarget;
       // this.zRotPerMS = (data.dir.z - v3.z) / timeToTarget;
-    }else{
-      this.go2Target = false;
-      this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
-    }
+    // }else{
+    //   this.go2Target = false;
+    //   //this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
+    // }
   }
   //////////////////////////////////////////////////////////
   // onStart(data){
