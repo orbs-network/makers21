@@ -10,7 +10,9 @@ class Player{
     this.isRed = isRed;
     this.gameJoined = false;
     this.nick = nick;
-    this.go2Target = false;
+    //this.go2Target = false;
+    //this.targetPos = new THREE.Vector3();
+    this.lastPosTS = 0;
 
     obj.rotation.y = -1;
 
@@ -93,9 +95,10 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   update(delta){
-    if(this.moving){
+    //this.obj.position.set(this.targetPos.x, this.targetPos.y, this.targetPos.z);
+    if(this.moving && this.go2Target){
       // NEW
-      if(this.go2Target){
+      //if(this.go2Target){
         // Position
         this.obj.position.x += this.xPerMS * delta;
         this.obj.position.y += this.yPerMS * delta;
@@ -104,47 +107,55 @@ class Player{
         // this.obj.rotation.x += this.xRotPerMS * delta;
         // this.obj.rotation.y += this.yRotPerMS * delta;
         // this.obj.rotation.z += this.zRotPerMS * delta;
-      }else{
+      //}else{
         // OLD
-        this.obj.getWorldDirection(v3);
-        //const direction = v3.multiplyScalar(-config.speed);
-        let distance = config.distancePerMS * delta ;
-        const direction = v3.multiplyScalar(-distance);
-        this.obj.position.add(direction);
-        //console.log('passed target!!!');
-      }
+        // console.error('player::update CALL YUVAL');
+        // this.obj.position.set(this.targetPos);
+        // this.obj.getWorldDirection(v3);
+        // //const direction = v3.multiplyScalar(-config.speed);
+        // let distance = config.distancePerMS * delta ;
+        // const direction = v3.multiplyScalar(-distance);
+        // this.obj.position.add(direction);
+      //}
     }
+  }//////////////////////////////////////////////////////////
+  hadPos(){
+    // return false if all zero
+    return(this.obj.position.x || this.obj.position.y || this.obj.position.z );
   }
   //////////////////////////////////////////////////////////
   onPos(data){
-    // direction
-    // this.lookTarget = {
-    //   x: data.dir.x * lookDistance,
-    //   y: data.dir.y * lookDistance,
-    //   z: data.dir.z * lookDistance
-    // }
-    // OLD
-    this.obj.lookAt(data.dir.x * lookDistance, data.dir.y * lookDistance, data.dir.z * lookDistance);
-
-
-    // position if not moving
-    this.moving = data.moving;
-    if(!this.moving){
-      this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
-      // this.obj.position.y = data.targetPos.y;
-      // this.obj.position.z = data.targetPos.z;
+    if(data.targetTS <= this.lastPosTS){
+      console.error('OLD TS MSG', data.targetTS ,this.lastPosTS);
       return;
     }
-    this.exploding = false; // necesseraly
+    this.lastPosTS = data.targetTS;
+    // direction
+    this.obj.lookAt(data.dir.x * lookDistance, data.dir.y * lookDistance, data.dir.z * lookDistance);
+
+    // position if not moving
+    this.go2Target = false;
+    this.moving = data.moving;
+    let timeToTarget = data.targetTS - Date.now();
+
+    // necesseraly
+    this.exploding = false;
     this.show();
 
-    const timeToTarget = data.targetTS - Date.now();
-    if(timeToTarget > 0){
-      // Position
-      this.go2Target = true;
-      this.xPerMS = (data.targetPos.x - this.obj.position.x) / timeToTarget;
-      this.yPerMS = (data.targetPos.y - this.obj.position.y) / timeToTarget;
-      this.zPerMS = (data.targetPos.z - this.obj.position.z) / timeToTarget;
+    if(!this.moving || !this.hadPos() || timeToTarget <= 0){
+      this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
+      return;
+    }
+
+    // Position
+    this.go2Target = true;
+    this.xPerMS = (data.targetPos.x - this.obj.position.x) / timeToTarget;
+    this.yPerMS = (data.targetPos.y - this.obj.position.y) / timeToTarget;
+    this.zPerMS = (data.targetPos.z - this.obj.position.z) / timeToTarget;
+      // if(!this.xPerMS || !this.yPerMS || !this.zPerMS){
+      //   this.go2Target = false;
+      //   console.log('isNan happened');
+      // }
       // Rotation
       //this.obj.applyQuaternion(data.quaternion);
       //this.obj.setRotationFromQuaternion(data.quaternion);
@@ -152,21 +163,22 @@ class Player{
       // this.xRotPerMS = (data.dir.x - v3.x) / timeToTarget;
       // this.yRotPerMS = (data.dir.y - v3.y) / timeToTarget;
       // this.zRotPerMS = (data.dir.z - v3.z) / timeToTarget;
-    }else{
-      this.go2Target = false;
-    }
+    // }else{
+    //   this.go2Target = false;
+    //   //this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
+    // }
   }
   //////////////////////////////////////////////////////////
-  onStart(data){
-    // abort future lockOff
-    if(this.tidLockOff){
-      clearTimeout(this.tidLock);
-      this.tidLock = 0;
-    }
+  // onStart(data){
+  //   // abort future lockOff
+  //   if(this.tidLockOff){
+  //     clearTimeout(this.tidLock);
+  //     this.tidLock = 0;
+  //   }
 
-    this.moving = data.moving;
-    this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
-  }
+  //   this.moving = data.moving;
+  //   this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
+  // }
   //////////////////////////////////////////////////////////
   onExplode(data, explode){
     this.exploding = data.flag;
@@ -324,16 +336,19 @@ class Players{
     if(!this.gameJoined){
       return;
     }
-
     const p = this.getPlayer(data.nick);
+
     if(!p){
       console.error(`Player ${data.id} not found`);
       return;
     }
+
+    //  if(data.targetPos)    console.log(`event type:${data.type}`,data.targetPos);
+
     switch(data.type){
-      case "start":
-        p.onStart(data);
-        break;
+      // case "start":
+      //   p.onStart(data);
+      //   break;
       case "pos":
         p.onPos(data);
         break;

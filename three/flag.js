@@ -96,8 +96,8 @@ class Flags  {
 		for(let flagName in this.holders){
 			const flag = this.dict[flagName];
 			const holder = this.holders[flagName];
-			if(holder){
-				flag.position.set(holder.position.x, holder.position.y + 0.05, holder.position.z);
+			if(holder && holder.obj){
+				flag.position.set(holder.obj.position.x, holder.obj.position.y + 0.05, holder.obj.position.z);
 			}
 		}
 		// rotate

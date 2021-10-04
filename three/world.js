@@ -116,6 +116,7 @@ class World {
         this.composer.addPass(new THREE.RenderPass(this.scene, this.camera));
 
         this.afterImagePass = new THREE.AfterimagePass();
+    //this.afterImagePass.uniforms.damp = 0.94 ;
 
         this.composer.addPass(this.afterImagePass);
         this.turnWarningEffect(false);
@@ -156,7 +157,7 @@ class World {
 
         const gateY = SIZE / 2 + GATE_SIZE;
 
-        const gatePosFactor = 1.4;//almost at border
+    const gatePosFactor = 1.2;//almost at border
         // move front and up
         this.redGate.position.z = -SIZE * gatePosFactor;
         this.redGate.position.y = gateY;
@@ -648,7 +649,11 @@ class World {
         const flag = this.flags.detach(flagName);
         if (holderNick) { // Add to holder
             console.log('attachFlagToHolder', flagName, holderNick);
-            const holder = this.players.getPlayer(holderNick).obj;
+      const holder = this.players.getPlayer(holderNick);
+      if(!holder || !holder.obj){
+        console.error('failed to get player', holderNick);
+        return;
+      }
             this.flags.attachTo(flagName, holder);
             //this.flags.setPosPlayer(flagName);
         } else { // return to gate
@@ -687,20 +692,29 @@ class World {
 
         let denom = config.return2startSec * 1000;
 
+    // lookAhead as a start point for rotating back to gate
+    const cam = this._camera;
+    let lookAhead = cam.position.clone();
+    let worldDir = new THREE.Vector3;
+    cam.getWorldDirection(worldDir);
+    const distance = 3 * SIZE;
+    const offset = worldDir.multiplyScalar(distance);
+    lookAhead.add(offset);
+
         this.returnObj = {
             cb: cb,
             tsFinish: dt.getTime(),
-            // delta pos
-            xDiff: (this.startLineX - this._camera.position.x) / denom,
-            yDiff: (this.startLineY - this._camera.position.y) / denom,
-            zDiff: (this.startLineZ - this._camera.position.z) / denom,
+      // delta pos
+      xDiff : (this.startLineX - cam.position.x) / denom,
+      yDiff : (this.startLineY - cam.position.y) / denom,
+      zDiff : (this.startLineZ - cam.position.z) / denom,
             controls: controls,
             targetGate: targetGate,
             // delta rot
-            xLook: (targetGate.position.x - this._camera.position.x) / denom,
-            yLook: (targetGate.position.y - this._camera.position.y) / denom,
-            zLook: (targetGate.position.z - this._camera.position.z) / denom,
-            lookPos: this._camera.position.clone()
+      xLook : (targetGate.position.x - lookAhead.x) / denom,
+      yLook : (targetGate.position.y - lookAhead.y) / denom,
+      zLook : (targetGate.position.z - lookAhead.z) / denom,
+      lookPos: lookAhead
         };
     }
 
@@ -722,7 +736,7 @@ class World {
         this._camera.position.y += returnObj.yDiff * delta;
         this._camera.position.z += returnObj.zDiff * delta;
 
-        // // shift looks pos towards gate
+    // // shift looks pos towards gate
         returnObj.lookPos.x += returnObj.xLook * delta;
         returnObj.lookPos.y += returnObj.yLook * delta;
         returnObj.lookPos.z += returnObj.zLook * delta;
@@ -786,8 +800,9 @@ class World {
 
         // check collisions & shooting not during exploding or not moving
         if (!game.exploding && game.moving) {
-            if (this.checkCrossBorders())
-                return true;// exploding
+      // check externaly on lower interval
+      // if(this.checkCrossBorders())
+      //   return true;// exploding
 
             // set raycast
             this.raycaster.setFromCamera(new THREE.Vector3(), this.camera);
