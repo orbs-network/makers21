@@ -13,6 +13,8 @@ class World {
         this.msPerTurn = (1000 / config.gateTurnPerSec);
         this.gateRad = Math.PI * 2 / this.msPerTurn;// rotation.y -= config.gateSpeed;
 
+        this.textureLoader = new THREE.TextureLoader();
+
         this.disableGateRotation = localStorage.getItem("disableGateRotation");
         this.simpleRendering = localStorage.getItem("simpleRendering");
         this.disableSound = localStorage.getItem("disableSound");
@@ -36,7 +38,7 @@ class World {
             // now we add it to the scene
 
             object3d.children[0].material = new THREE.MeshPhongMaterial({
-                map: new THREE.TextureLoader().load('models/SpaceFighter01/F01_512.jpg'),
+                map: this.textureLoader.load('models/SpaceFighter01/F01_512.jpg'),
                 // color: 0xff3333,
                 specular: 0xffffff,
                 shininess: 100,
@@ -104,6 +106,8 @@ class World {
         this.scene = new THREE.Scene();
         this.explode = new ExplodeMngr(this.scene);
 
+        this.scene.background = this.textureLoader.load('../static/texture/2k_jupiter.jpg');
+
         this.createCamera();
 
         // renderer
@@ -116,7 +120,7 @@ class World {
         this.composer.addPass(new THREE.RenderPass(this.scene, this.camera));
 
         this.afterImagePass = new THREE.AfterimagePass();
-    //this.afterImagePass.uniforms.damp = 0.94 ;
+        //this.afterImagePass.uniforms.damp = 0.94 ;
 
         this.composer.addPass(this.afterImagePass);
         this.turnWarningEffect(false);
@@ -157,7 +161,7 @@ class World {
 
         const gateY = SIZE / 2 + GATE_SIZE;
 
-    const gatePosFactor = 1.2;//almost at border
+        const gatePosFactor = 1.2;//almost at border
         // move front and up
         this.redGate.position.z = -SIZE * gatePosFactor;
         this.redGate.position.y = gateY;
@@ -212,6 +216,7 @@ class World {
         console.log('shooting is ' + (this.shooting ? 'enabled' : 'disabled'));
 
         if (!this.simpleRendering) {
+
             // Deddy
             this.createSpace();
 
@@ -273,7 +278,7 @@ class World {
             starVertices
         );
 
-        let sprite = new THREE.TextureLoader().load('../static/img/star.png');
+        let sprite = this.textureLoader.load('../static/img/star.png');
 
         let starMaterial = new THREE.PointsMaterial({
             opacity: 0.8,
@@ -317,10 +322,9 @@ class World {
 
 
         // lensflares
-        const textureLoader = new THREE.TextureLoader();
 
-        const textureFlare0 = textureLoader.load('../static/texture/lensflare/lensflare0_alpha.png');
-        const textureFlare3 = textureLoader.load('../static/texture/lensflare/lensflare3.png');
+        const textureFlare0 = this.textureLoader.load('../static/texture/lensflare/lensflare0_alpha.png');
+        const textureFlare3 = this.textureLoader.load('../static/texture/lensflare/lensflare3.png');
 
         let light = new THREE.PointLight(0xFFFFFF, 1.5, 2000);
         light.color.setHSL(0, 0, 0.1);
@@ -336,31 +340,42 @@ class World {
         light.add(lensflare);
 
 
-        const planetTexture = textureLoader.load('../static/texture/2k_jupiter.jpg');
+        const planetTexture = this.textureLoader.load('../static/texture/2k_jupiter.jpg');
 
-        const planet = new THREE.Mesh(new THREE.SphereBufferGeometry(1000, 32, 32), new THREE.MeshStandardMaterial({
+        this.planet = new THREE.Mesh(new THREE.SphereBufferGeometry(10000, 32, 32), new THREE.MeshStandardMaterial({
             map: planetTexture,
             fog: false
         }));
 
-        planet.position.x = 2000;
-        planet.position.y = 1400;
-        planet.position.z = 2000;
+        this.moonCenter = new THREE.Mesh(new THREE.SphereBufferGeometry(10, 32, 32), new THREE.MeshBasicMaterial({
+            transparent: true,
+            opacity: 0,
+            fog: false
+        }));
 
-        this.scene.add(planet);
+        this.planet.position.x = 20000;
+        this.moonCenter.position.x = 20000;
+        this.planet.position.y = 14000;
+        this.moonCenter.position.y = 14000;
+        this.planet.position.z = 20000;
+        this.moonCenter.position.z = 20000;
 
-        const moonTexture = textureLoader.load('../static/texture/2k_mercury.jpg');
+        this.moonCenter.rotation.x = -0.570;
+        this.moonCenter.rotation.y = 5.37;
 
-        const moon = new THREE.Mesh(new THREE.SphereBufferGeometry(100, 32, 32), new THREE.MeshStandardMaterial({
+        this.scene.add(this.planet);
+        this.scene.add(this.moonCenter);
+
+        const moonTexture = this.textureLoader.load('../static/texture/2k_mercury.jpg');
+
+        this.moon = new THREE.Mesh(new THREE.SphereBufferGeometry(300, 32, 32), new THREE.MeshStandardMaterial({
             map: moonTexture,
             fog: false
         }));
 
-        moon.position.x = 1000;
-        moon.position.y = 900;
-        moon.position.z = 550;
+        this.moon.position.x = -28000;
 
-        this.scene.add(moon);
+        this.moonCenter.add(this.moon);
 
         this.scene.fog = new THREE.FogExp2(0x1c222d, 0.00145);
 
@@ -378,7 +393,7 @@ class World {
 
         }
 
-        const groundTexture = textureLoader.load('../static/texture/2k_mars.jpg');
+        const groundTexture = this.textureLoader.load('../static/texture/2k_mars.jpg');
         groundTexture.wrapS = THREE.ClampToEdgeWrapping;
         groundTexture.wrapT = THREE.ClampToEdgeWrapping;
 
@@ -453,17 +468,18 @@ class World {
     //////////////////////////////////////////////////////////
     createGate(color, GATE_SIZE) {
         //const geometry = new THREE.TorusGeometry( GATE_SIZE, GATE_SIZE/3, 32, 16 );
-        let geometry = new THREE.TorusGeometry(GATE_SIZE, GATE_SIZE / 3, 32, 8);
+        let geometry = new THREE.TorusGeometry(GATE_SIZE, GATE_SIZE / 3, 32, 64);
         // red gate
         // NOT WORKING WITH RAYCAST! let material = new THREE.LineBasicMaterial({color: color /*side: THREE.DoubleSide*/  });
-        let material = new THREE.MeshStandardMaterial({color: color /*side: THREE.DoubleSide*/});
+        let material = new THREE.MeshPhongMaterial({color: color /*side: THREE.DoubleSide*/, shininess: 500, emissive: color});
         let gate = new THREE.Mesh(geometry, material);
 
         // add internal sphere for gate pass calc
-        geometry = new THREE.SphereGeometry(GATE_SIZE / 1.5, 16, 16);
-        const sColor = color === RED2 ? 0xFF0000 : 0x0000FF;
+        geometry = new THREE.SphereGeometry(GATE_SIZE / 1.5, 32, 64);
+
         material = new THREE.MeshStandardMaterial({
-            color: 0xFF00FF,
+            // emissive: 0xff00ff,
+            color: 0xff00ff,
             side: THREE.DoubleSide,
             transparent: true,
             opacity: 0.3
@@ -498,7 +514,7 @@ class World {
     // }
     //////////////////////////////////////////////////////////
     createCamera() {
-        this._camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+        this._camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100000);
 
         // aim and dashboard
         // var cubeGeometry = new THREE.CircleGeometry( 0.2, 32);
@@ -649,11 +665,11 @@ class World {
         const flag = this.flags.detach(flagName);
         if (holderNick) { // Add to holder
             console.log('attachFlagToHolder', flagName, holderNick);
-      const holder = this.players.getPlayer(holderNick);
-      if(!holder || !holder.obj){
-        console.error('failed to get player', holderNick);
-        return;
-      }
+            const holder = this.players.getPlayer(holderNick);
+            if (!holder || !holder.obj) {
+                console.error('failed to get player', holderNick);
+                return;
+            }
             this.flags.attachTo(flagName, holder);
             //this.flags.setPosPlayer(flagName);
         } else { // return to gate
@@ -692,29 +708,29 @@ class World {
 
         let denom = config.return2startSec * 1000;
 
-    // lookAhead as a start point for rotating back to gate
-    const cam = this._camera;
-    let lookAhead = cam.position.clone();
-    let worldDir = new THREE.Vector3;
-    cam.getWorldDirection(worldDir);
-    const distance = 3 * SIZE;
-    const offset = worldDir.multiplyScalar(distance);
-    lookAhead.add(offset);
+        // lookAhead as a start point for rotating back to gate
+        const cam = this._camera;
+        let lookAhead = cam.position.clone();
+        let worldDir = new THREE.Vector3;
+        cam.getWorldDirection(worldDir);
+        const distance = 3 * SIZE;
+        const offset = worldDir.multiplyScalar(distance);
+        lookAhead.add(offset);
 
         this.returnObj = {
             cb: cb,
             tsFinish: dt.getTime(),
-      // delta pos
-      xDiff : (this.startLineX - cam.position.x) / denom,
-      yDiff : (this.startLineY - cam.position.y) / denom,
-      zDiff : (this.startLineZ - cam.position.z) / denom,
+            // delta pos
+            xDiff: (this.startLineX - cam.position.x) / denom,
+            yDiff: (this.startLineY - cam.position.y) / denom,
+            zDiff: (this.startLineZ - cam.position.z) / denom,
             controls: controls,
             targetGate: targetGate,
             // delta rot
-      xLook : (targetGate.position.x - lookAhead.x) / denom,
-      yLook : (targetGate.position.y - lookAhead.y) / denom,
-      zLook : (targetGate.position.z - lookAhead.z) / denom,
-      lookPos: lookAhead
+            xLook: (targetGate.position.x - lookAhead.x) / denom,
+            yLook: (targetGate.position.y - lookAhead.y) / denom,
+            zLook: (targetGate.position.z - lookAhead.z) / denom,
+            lookPos: lookAhead
         };
     }
 
@@ -736,7 +752,7 @@ class World {
         this._camera.position.y += returnObj.yDiff * delta;
         this._camera.position.z += returnObj.zDiff * delta;
 
-    // // shift looks pos towards gate
+        // // shift looks pos towards gate
         returnObj.lookPos.x += returnObj.xLook * delta;
         returnObj.lookPos.y += returnObj.yLook * delta;
         returnObj.lookPos.z += returnObj.zLook * delta;
@@ -798,11 +814,17 @@ class World {
         // explosions
         this.explode.beforeRender();
 
+        //world
+        if (!this.simpleRendering) {
+            this.planet.rotation.y += 0.0001;
+            this.moonCenter.rotation.y += 0.00001;
+        }
+
         // check collisions & shooting not during exploding or not moving
         if (!game.exploding && game.moving) {
-      // check externaly on lower interval
-      // if(this.checkCrossBorders())
-      //   return true;// exploding
+            // check externaly on lower interval
+            // if(this.checkCrossBorders())
+            //   return true;// exploding
 
             // set raycast
             this.raycaster.setFromCamera(new THREE.Vector3(), this.camera);

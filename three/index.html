@@ -22,7 +22,26 @@
 		<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/face_mesh.js" crossorigin="anonymous"></script>
+		<!-- ---------------- Custom Shader Code ------------------------ -->
+		<script id="vertexShader" type="x-shader/x-vertex">
+varying vec3 vNormal;
+void main()
+{
+    vNormal = normalize( normalMatrix * normal );
+    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+}
+</script>
 
+		<!-- fragment shader a.k.a. pixel shader -->
+		<script id="fragmentShader" type="x-shader/x-vertex">
+varying vec3 vNormal;
+void main()
+{
+	float intensity = pow( 0.7 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), 4.0 );
+    gl_FragColor = vec4( 1.0, 0, 1.0, 1.0 ) * intensity;
+}
+</script>
+		<!-- ----------------------------------------------------------- -->
 		<script type="module">
 			import { EffectComposer } from 'https://threejs.org/examples/jsm/postprocessing/EffectComposer.js';
 			import { RenderPass } from 'https://threejs.org/examples/jsm/postprocessing/RenderPass.js';
