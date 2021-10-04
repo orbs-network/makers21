@@ -656,8 +656,9 @@ class World {
 
     // check collisions & shooting not during exploding or not moving
     if(!game.exploding && game.moving){
-      if(this.checkCrossBorders())
-        return true;// exploding
+      // check externaly on lower interval
+      // if(this.checkCrossBorders())
+      //   return true;// exploding
 
       // set raycast
       this.raycaster.setFromCamera( new THREE.Vector3() , this.camera );

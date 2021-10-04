@@ -308,6 +308,8 @@ class Game /*extends THREE.EventDispatcher*/ {
 
       // start broadcast interval
       this.startUpdateLoop(true);
+      this.startBorderLoop();
+
       // to enable start stop
       this.setGameMsg('press any key to start flying!');
 
@@ -566,6 +568,29 @@ class Game /*extends THREE.EventDispatcher*/ {
     });
   }
   //////////////////////////////////////////////////////////
+  startBorderLoop(start){
+    let outside = 0;
+    this.borderLoopTID = setInterval(()=>{
+      if(!this.moving || this.exploding) return;
+      if(outside > 30){
+        outside = 0;
+        this.doExplode();
+        return;
+      }
+      if(!this.world.checkCrossBorders()){
+        if(outside) this.stopWarning();
+        outside = 0;
+      }
+      else{
+        if(!outside) this.startWarning('dont fly outside the game boundaries', true); // for manual stop
+        outside++;
+
+      }
+    }, 100);
+
+
+  }
+  //////////////////////////////////////////////////////////
   startUpdateLoop(start){
     // stop - always tell your position
     // if(!start){
@@ -644,11 +669,13 @@ class Game /*extends THREE.EventDispatcher*/ {
     return false;
   }
   //////////////////////////////////////////////////////////
-  startWarning(msg){
+  startWarning(msg, manualStop){
     if(msg) this.setGameMsg(msg);
     this.playAudio('alarm');
     this.world.turnWarningEffect(true);
-    this.tidWarning = setTimeout(() => this.stopWarning(),config.targetLockMs);
+    if(!manualStop){
+      this.tidWarning = setTimeout(() => this.stopWarning(),config.targetLockMs);
+    }
   }
   //////////////////////////////////////////////////////////
   stopWarning(){
@@ -662,11 +689,11 @@ class Game /*extends THREE.EventDispatcher*/ {
 
   }
   //////////////////////////////////////////////////////////
-  doExplode(){
+  doExplode(msg){
     this.exploding = true;
 
     this.stopWarning();
-    this.setGameMsg('BOOM!!!');
+    this.setGameMsg(msg || 'BOOM!!!');
 
     // return flag if holders
     this.checkFlagDrop();
