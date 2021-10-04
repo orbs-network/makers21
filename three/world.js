@@ -86,6 +86,7 @@ class World {
     this.composer.addPass( new THREE.RenderPass( this.scene, this.camera ) );
 
     this.afterImagePass= new THREE.AfterimagePass();
+    //this.afterImagePass.uniforms.damp = 0.94 ;
 
     this.composer.addPass(this.afterImagePass);
     this.turnWarningEffect(false);
@@ -560,20 +561,29 @@ class World {
 
     let denom = config.return2startSec * 1000;
 
+    // lookAhead as a start point for rotating back to gate
+    const cam = this._camera;
+    let lookAhead = cam.position.clone();
+    let worldDir = new THREE.Vector3;
+    cam.getWorldDirection(worldDir);
+    const distance = 3 * SIZE;
+    const offset = worldDir.multiplyScalar(distance);
+    lookAhead.add(offset);
+
     this.returnObj = {
       cb:cb,
       tsFinish:dt.getTime(),
       //delta pos
-      xDiff : (this.startLineX - this._camera.position.x) / denom,
-      yDiff : (this.startLineY - this._camera.position.y) / denom,
-      zDiff : (this.startLineZ - this._camera.position.z) / denom,
+      xDiff : (this.startLineX - cam.position.x) / denom,
+      yDiff : (this.startLineY - cam.position.y) / denom,
+      zDiff : (this.startLineZ - cam.position.z) / denom,
       controls: controls,
       targetGate: targetGate,
-      // // delta rot
-      xLook : (targetGate.position.x - this._camera.position.x) / denom,
-      yLook : (targetGate.position.y - this._camera.position.y) / denom,
-      zLook : (targetGate.position.z - this._camera.position.z) / denom,
-      lookPos: this._camera.position.clone()
+      // delta rot
+      xLook : (targetGate.position.x - lookAhead.x) / denom,
+      yLook : (targetGate.position.y - lookAhead.y) / denom,
+      zLook : (targetGate.position.z - lookAhead.z) / denom,
+      lookPos: lookAhead
     };
   }
   //////////////////////////////////////////////////////////
