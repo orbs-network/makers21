@@ -183,7 +183,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       return;
     }
     this.moving = !this.moving;
-    this.controls.autoForward = this.moving;
+    this.controls.autoForward = !localStorage.getItem("disableConstantSpeed") &&  this.moving;
     this.controls.enabled = this.moving;
     //this.controls
     let pos = this.world.camera.position;
@@ -470,7 +470,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   stopAudio(id){
-    let sound =  document.getElementById(id);
+    let sound = !localStorage.getItem("disableSound") && document.getElementById(id);
     if(sound){
       if( !sound.paused && !sound.ended && 0 < sound.currentTime){
         sound.pause();
@@ -480,7 +480,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   playAudio(id, cb){
-    let sound =  document.getElementById(id);
+    let sound =  !localStorage.getItem("disableSound") && document.getElementById(id);
     if(sound){
 
       // stop first

@@ -35,23 +35,23 @@ AFRAME.registerComponent('move-control', {
           document.getElementById('control-panel').style.display = stop ? 'block' : 'none';
           if(!stop){
             window.GAZE_ORIENTATION.zeroX = window.GAZE_ORIENTATION.x;
-            window.GAZE_ORIENTATION.zeroY = window.GAZE_ORIENTATION.y;
+            window.GAZE_ORIENT ATION.zeroY = window.GAZE_ORIENTATION.y;
           }
           break;
-        case "ArrowRight":          
+        case "ArrowRight":
           this.cam.rotateOnWorldAxis(new THREE.Vector3(0.0, 1.0, 0.0), -0.1);
-          
+
           break
-        case "ArrowLeft":        
-          this.cam.rotateOnWorldAxis(new THREE.Vector3(0.0, 1.0, 0.0), 0.1);          
+        case "ArrowLeft":
+          this.cam.rotateOnWorldAxis(new THREE.Vector3(0.0, 1.0, 0.0), 0.1);
           break;
-        case "ArrowUp":          
-          this.cam.rotateX(0.1);          
+        case "ArrowUp":
+          this.cam.rotateX(0.1);
           break;
-        case "ArrowDown":          
-          this.cam.rotateX(-0.1);          
-          break;        
-      }      
+        case "ArrowDown":
+          this.cam.rotateX(-0.1);
+          break;
+      }
     });
     // server update position          
     let _cam = this.cam;
@@ -117,6 +117,6 @@ AFRAME.registerComponent('move-control', {
 
     this.move();
 
-    window.Game.movePlayers(speed);    
+    window.Game.movePlayers(speed);
   }
 });

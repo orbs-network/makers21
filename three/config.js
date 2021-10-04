@@ -25,7 +25,7 @@ window.config = {
   updateInterval:100,
   playerSphereSize: 0.1,
   return2startSec: 5,
-  explodePartSize: 0.05,
+  explodePartSize: 0.02,
   // rotUnit:0.001,
   raycastNear:0,
   raycastFar:SIZE*2

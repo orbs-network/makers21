@@ -12,6 +12,11 @@ class World {
 
         this.msPerTurn = (1000 / config.gateTurnPerSec);
         this.gateRad = Math.PI * 2 / this.msPerTurn;// rotation.y -= config.gateSpeed;
+
+        this.disableGateRotation = localStorage.getItem("disableGateRotation");
+        this.simpleRendering = localStorage.getItem("simpleRendering");
+        this.disableSound = localStorage.getItem("disableSound");
+
     }
 
     //////////////////////////////////////////////////////////
@@ -181,7 +186,12 @@ class World {
         // sound
         //init from user ket down in game this.initSound();
         // or is it ok to init here, and only play when user action?
-        this.initSound();
+
+        if (!this.disableSound) {
+
+            this.initSound();
+
+        }
 
         // 2d renderer
         this.renderer2d = new THREE.CSS2DRenderer();
@@ -200,8 +210,13 @@ class World {
         }
         console.log('shooting is ' + (this.shooting ? 'enabled' : 'disabled'));
 
-        // Deddy
-        this.createSpace();
+        if (!this.simpleRendering) {
+            // Deddy
+            this.createSpace();
+
+        }
+
+
     }
 
     createSpace() {
@@ -216,7 +231,7 @@ class World {
             turbidity: 20,
             rayleigh: 0.122,
             mieCoefficient: 0.01,
-            mieDirectionalG: 0.9999,
+            mieDirectionalG: 0.99996,
             elevation: 15,
             azimuth: 90,
             exposure: 100
@@ -405,10 +420,10 @@ class World {
         grid.position.z = zOffset * 2;
         grid.position.y = yPos;
 
-        const geometry = new THREE.BoxGeometry( SIZE * 2,0.1,SIZE * 2);
-        const material = new THREE.MeshBasicMaterial( {opacity: 0.1, transparent: true, color: color} );
-        const cube = new THREE.Mesh( geometry, material );
-        grid.add( cube );
+        const geometry = new THREE.BoxGeometry(SIZE * 2, 0.1, SIZE * 2);
+        const material = new THREE.MeshBasicMaterial({opacity: 0.1, transparent: true, color: color});
+        const cube = new THREE.Mesh(geometry, material);
+        grid.add(cube);
 
         // create pads
         this.createBorderPads(divisions, zDir, 1, yPos);
@@ -753,8 +768,14 @@ class World {
 
             const modMs = diff % this.msPerTurn;
             const angle = this.gateRad * modMs
-            this.redGate.rotation.y = angle;
-            this.blueGate.rotation.y = Math.PI * 2 - angle;
+
+            if (!this.disableGateRotation) {
+
+                this.redGate.rotation.y = angle;
+                this.blueGate.rotation.y = Math.PI * 2 - angle;
+
+            }
+
             this.flags.update(this.gateRad);
         }
 

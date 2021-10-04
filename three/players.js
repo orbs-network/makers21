@@ -69,7 +69,15 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   showBoundingSphere(show){
-    this.boundSphere.material.opacity = show? 0.5 : 0;
+
+    if (show) {
+      this.boundSphere.material.opacity = 0.5;
+      this.boundSphere.scale.set(24000, 24000, 24000);
+    } else {
+      this.boundSphere.material.opacity = 0;
+      this.boundSphere.scale.set(24000, 24000, 24000);
+    }
+
   }
   //////////////////////////////////////////////////////////
   setMaterialColor(red){
@@ -279,7 +287,8 @@ class Players{
 
     this.useShooting = false;
 
-		deepStream.subscribe("player", this.onEvent.bind(this));
+    deepStream.subscribe("player", this.onEvent.bind(this));
+
   }
   //////////////////////////////////////////////////////////
   reset(){
