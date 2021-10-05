@@ -32,7 +32,7 @@ class World {
 
     //////////////////////////////////////////////////////////
     loadShip(name) {
-
+      return new Promise((resolve, reject) => {
         return THREEx.SpaceShips.loadSpaceFighter01((object3d) => {
             // object3d is the loaded spacefighter
             // now we add it to the scene
@@ -46,9 +46,9 @@ class World {
             });
 
             this.models[name] = object3d;
-
-        })
-
+            resolve();
+        });
+      });
     }
 
     loadModel(name) {
@@ -106,8 +106,6 @@ class World {
         this.scene = new THREE.Scene();
         this.explode = new ExplodeMngr(this.scene);
 
-        this.scene.background = this.textureLoader.load('../static/texture/2k_jupiter.jpg');
-
         this.createCamera();
 
         // renderer
@@ -158,27 +156,26 @@ class World {
         // red gate
         this.redGate = this.createGate(RED2, GATE_SIZE);
         this.redGate.name = "redGate";
+        //this.redGatePass = this.redGate.getObjectByName('gatePass');
 
         const gateY = SIZE / 2 + GATE_SIZE;
 
         const gatePosFactor = 1.2;//almost at border
+
         // move front and up
         this.redGate.position.z = -SIZE * gatePosFactor;
         this.redGate.position.y = gateY;
         this.scene.add(this.redGate);
-        // pass
-        this.redGate.passSphere = new THREE.Sphere(this.redGate.position, GATE_SIZE / gatePosFactor);
 
         // blue gate
         this.blueGate = this.createGate(BLUE2, GATE_SIZE);
         this.blueGate.name = "blueGate";
+        //this.blueGatePass = this.redGate.getObjectByName('gatePass');
 
         // move back and up
         this.blueGate.position.z = SIZE * gatePosFactor;
         this.blueGate.position.y = gateY;
         this.scene.add(this.blueGate);
-        // pass
-        this.blueGate.passSphere = new THREE.Sphere(this.blueGate.position, GATE_SIZE / 1.5);
 
         // Flags
         this.flags.createFlag(this.createModelClone('flag'), this.scene, this.blueGate, 'red', 0xFF0000, .002, this.sound);
@@ -533,9 +530,16 @@ class World {
 
     //////////////////////////////////////////////////////////
     checkGatePass() {
-        if (this.redGate.passSphere.containsPoint(this._camera.position)) return this.redGate;
-        if (this.blueGate.passSphere.containsPoint(this._camera.position)) return this.blueGate;
-        return null
+      let dis;
+      const closeEnough = 0.15;
+      // let dis;
+      dis =  this._camera.position.distanceTo(this.redGate.position);
+      if(dis <= closeEnough) return this.redGate;
+
+      dis =  this._camera.position.distanceTo(this.blueGate.position);
+      if(dis <= closeEnough) return this.blueGate;
+
+      return null
     }
 
     //////////////////////////////////////////////////////////
@@ -555,18 +559,14 @@ class World {
 
     ////////////////////////////////////////////////////////
     // AMI rename to also obstacles
-    checkColissionGate() {
+    checkGateCollision() {
         this.raycaster.near = config.raycastNear;
         this.raycaster.far = config.raycastFar;
-
         // calculate objects intersecting the picking ray
-        const intersects = this.raycaster.intersectObjects([this.redGate, this.blueGate]);
-        //const intersects = this.raycaster.intersectObject( this.blueGate );
-
+        // false- non recursive to avoid coliding with internal sphere
+        const intersects = this.raycaster.intersectObjects([this.redGate, this.blueGate], false);
         if (intersects && intersects.length) {
-            //console.log('checkColissionGate',intersects.length, intersects[0].distance, `distance: ${config.colideDistance}`);
-            // for(let i of intersects){
-            console.log(intersects[0].distance);
+            //console.log(intersects[0].object.name, intersects[0].distance);
             if (intersects[0].distance < config.colideDistance) {
                 return true;
             }
@@ -791,28 +791,27 @@ class World {
     }
 
     render(delta) {
+      // rotate gates & flags in sync with all players
+      if (game.mngrState?.startTs) {
+          const diff = Date.now() - game.mngrState.startTs;
 
-        // rotate gates & flags in sync with all players
-        if (game.mngrState?.startTs) {
-            const diff = Date.now() - game.mngrState.startTs;
+          const modMs = diff % this.msPerTurn;
+          const angle = this.gateRad * modMs
 
-            const modMs = diff % this.msPerTurn;
-            const angle = this.gateRad * modMs
+          if (!this.disableGateRotation) {
 
-            if (!this.disableGateRotation) {
+              this.redGate.rotation.y = angle;
+              this.blueGate.rotation.y = Math.PI * 2 - angle;
 
-                this.redGate.rotation.y = angle;
-                this.blueGate.rotation.y = Math.PI * 2 - angle;
+          }
 
-            }
+          this.flags.update(this.gateRad);
+      }
 
-            this.flags.update(this.gateRad);
-        }
-
-        // players
-        this.players.update(delta);
-        // explosions
-        this.explode.beforeRender();
+      // players
+      this.players.update(delta);
+      // explosions
+      this.explode.beforeRender();
 
         //world
         if (!this.simpleRendering) {
@@ -820,35 +819,31 @@ class World {
             this.moonCenter.rotation.y += 0.00001;
         }
 
-        // check collisions & shooting not during exploding or not moving
-        if (!game.exploding && game.moving) {
-            // check externaly on lower interval
-            // if(this.checkCrossBorders())
-            //   return true;// exploding
 
-            // set raycast
-            this.raycaster.setFromCamera(new THREE.Vector3(), this.camera);
+      // return to start
+      if (this.returnObj) {
+          this.updateReturn2Start(delta);
+      }
+      else{
+        // set raycast
+        this.raycaster.setFromCamera(new THREE.Vector3(), this.camera);
 
-            if (this.checkColissionGate())
-                return true; // exploding
+        if (this.checkGateCollision())
+            return true; // exploding
 
-            // shooting
-            if (this.shooting) {
-                this.shooting.update(this.raycaster, this.players);
-            }
+        // shooting
+        if (this.shooting) {
+            this.shooting.update(this.raycaster, this.players);
         }
-        // return to start
-        if (this.returnObj) {
-            this.updateReturn2Start(delta);
-        }
+      }
 
-        // scene 3d 2d rendering
-        //this._renderer.render(this.scene, this._camera);
-        this.composer.render();
+      // scene 3d 2d rendering
+      //this._renderer.render(this.scene, this._camera);
+      this.composer.render();
 
-        this.renderer2d.render(this.scene, this._camera);
+      this.renderer2d.render(this.scene, this._camera);
 
-        return false; //not exploding
+      return false; //not exploding
     }
 
 
