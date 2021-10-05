@@ -839,16 +839,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     //return false;
   }
   //////////////////////////////////////////////////////////
-  // render2dOverlay(){
-  //   const c = this.renderer.domElement;
-  //   var ctx = c.getContext("2d");
-  //   if(ctx){
-  //     ctx.beginPath();
-  //     ctx.arc(100, 75, 50, 0, 2 * Math.PI);
-  //     ctx.stroke();
-  //   }
-  // }
-  //////////////////////////////////////////////////////////
   render(){
     // FPS measure
     this.frames++;
@@ -871,7 +861,8 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(this.exploding){
       return;
     }
-    if(!this.moving){
+    // TODO:remove debug
+    if(this.moving){
       return;
     }
 
@@ -879,10 +870,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(this.checkGatePass()){
       return;
     };
-    // collisions and gate pass
-    // if(this.checkCollision()){
-    //   return;
-    // }
   }
   //////////////////////////////////////////////////////////
   onresize(e){
