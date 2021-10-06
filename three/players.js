@@ -10,15 +10,14 @@ class Player{
     this.isRed = isRed;
     this.gameJoined = false;
     this.nick = nick;
+    this.verticalLookRatio = Math.PI / ( game.controls.verticalMax - game.controls.verticalMin );
     //this.go2Target = false;
     //this.targetPos = new THREE.Vector3();
     this.lastPosTS = 0;
 
-    obj.rotation.y = -1;
+    //obj.rotation.y = -1;
 
     this._initLabel(nick, isRed);
-
-
 
     // create sounds
     if(sound){ // might be undefined when players added before user started flying
@@ -26,30 +25,6 @@ class Player{
     }
     // DO BEFORE SHOOTING SO IT DOESNT REPLACE ADDED SPHERE MATTERIAL
     this.setMaterialColor(isRed);
-
-    // useShooting
-    this.useShooting = useShooting;
-    if(useShooting){
-            // bounding sphere
-      const geometry = new THREE.SphereGeometry( config.playerSphereSize, 16, 8 );
-      // create new matterial per sphere so opacity can be changed individually
-      this.boundSphere = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: isRed? 0xFF0000:0x0000FF } ) );
-      this.boundSphere.layers.enable(1); // MUST
-      this.boundSphere.material.transparent = true;
-      this.boundSphere.position.z = 90;
-      this.boundSphere.name = nick + '_bound_sphere';
-      this.boundSphere.scale.set(2400,2400,2400);
-      this.boundSphere.material.opacity = 0; // invisible
-      this.obj.add(this.boundSphere);
-      // lasser beam
-      var laserBeam	= new THREEx.LaserBeam();
-      this.obj.add(laserBeam.object3d);
-      laserBeam.object3d.visible = false;
-      laserBeam.object3d.rotateY(THREE.MathUtils.degToRad(90));
-      laserBeam.object3d.position.z = -.05; // infront of airplane
-      this.laserBeam = laserBeam;
-    }
-
 
 
     // SUPER SIMPLE GLOW EFFECT
@@ -67,19 +42,35 @@ class Player{
     sprite.position.x  = -30;
     obj.add(sprite);
 
+    // useShooting
+    this.useShooting = useShooting;
+    if(useShooting){
+      // bounding sphere
+      const geometry = new THREE.SphereGeometry( 320, 16, 8 );
+      // create new matterial per sphere so opacity can be changed individually
+      this.boundSphere = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: isRed? 0xFF0000:0x0000FF } ) );
+      this.boundSphere.layers.enable(1); // MUST
+      this.boundSphere.material.transparent = true;
+      //this.boundSphere.position.z = 90;
+      this.boundSphere.name = nick + '_bound_sphere';
+      //this.boundSphere.scale.set(2400,2400,2400);
+      this.boundSphere.material.opacity = 0;
+      //this.boundSphere.visible = false;// invisible
+      this.obj.add(this.boundSphere);
+      // lasser beam
+      var laserBeam	= new THREEx.LaserBeam();
+      this.obj.add(laserBeam.object3d);
+      laserBeam.object3d.visible = false;
+      laserBeam.object3d.rotateY(THREE.MathUtils.degToRad(90));
+      laserBeam.object3d.position.z = -.05; // infront of airplane
+      this.laserBeam = laserBeam;
+    }
+
 
   }
   //////////////////////////////////////////////////////////
   showBoundingSphere(show){
-
-    if (show) {
-      this.boundSphere.material.opacity = 0.5;
-      this.boundSphere.scale.set(24000, 24000, 24000);
-    } else {
-      this.boundSphere.material.opacity = 0;
-      this.boundSphere.scale.set(24000, 24000, 24000);
-    }
-
+    this.boundSphere.material.opacity = show? 0.3 : 0;
   }
   //////////////////////////////////////////////////////////
   setMaterialColor(red){
@@ -104,7 +95,11 @@ class Player{
         this.obj.position.y += this.yPerMS * delta;
         this.obj.position.z += this.zPerMS * delta;
         // Rotation
-        // this.obj.rotation.x += this.xRotPerMS * delta;
+        //this.obj.rotation.set(direction);
+        this.obj.rotateOnAxis(new THREE.Vector3(0,1,0), this.xRadMS * delta);
+        this.obj.rotateOnAxis(new THREE.Vector3(1,0,0), this.yRadMS * delta);
+
+        //this.obj.rotateX(this.mouseX/100);
         // this.obj.rotation.y += this.yRotPerMS * delta;
         // this.obj.rotation.z += this.zRotPerMS * delta;
       //}else{
@@ -132,6 +127,8 @@ class Player{
     this.lastPosTS = data.targetTS;
     // direction
     this.obj.lookAt(data.dir.x * lookDistance, data.dir.y * lookDistance, data.dir.z * lookDistance);
+    this.mouseX = data.mouseX;
+    this.mouseY = data.mouseY;
 
     // position if not moving
     this.go2Target = false;
@@ -152,33 +149,14 @@ class Player{
     this.xPerMS = (data.targetPos.x - this.obj.position.x) / timeToTarget;
     this.yPerMS = (data.targetPos.y - this.obj.position.y) / timeToTarget;
     this.zPerMS = (data.targetPos.z - this.obj.position.z) / timeToTarget;
-      // if(!this.xPerMS || !this.yPerMS || !this.zPerMS){
-      //   this.go2Target = false;
-      //   console.log('isNan happened');
-      // }
-      // Rotation
-      //this.obj.applyQuaternion(data.quaternion);
-      //this.obj.setRotationFromQuaternion(data.quaternion);
-      // this.obj.getWorldDirection(v3);
-      // this.xRotPerMS = (data.dir.x - v3.x) / timeToTarget;
-      // this.yRotPerMS = (data.dir.y - v3.y) / timeToTarget;
-      // this.zRotPerMS = (data.dir.z - v3.z) / timeToTarget;
-    // }else{
-    //   this.go2Target = false;
-    //   //this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
-    // }
-  }
-  //////////////////////////////////////////////////////////
-  // onStart(data){
-  //   // abort future lockOff
-  //   if(this.tidLockOff){
-  //     clearTimeout(this.tidLock);
-  //     this.tidLock = 0;
-  //   }
 
-  //   this.moving = data.moving;
-  //   this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
-  // }
+    // rotation
+    let lon = -data.mouseX * game.controls.lookSpeed;
+    let lat = data.mouseY * game.controls.lookSpeed;
+    this.xRadMS = THREE.MathUtils.degToRad( lon );
+    this.yRadMS = THREE.MathUtils.degToRad( lat );
+
+  }
   //////////////////////////////////////////////////////////
   onExplode(data, explode){
     this.exploding = data.flag;
@@ -283,7 +261,7 @@ class Player{
     const playerLabelDiv = document.createElement( 'div' );
     playerLabelDiv.className = 'player-label';
     playerLabelDiv.textContent = nick || "WHO DIS?";
-    playerLabelDiv.style.color = isRed ? '#F33':'#33F';
+    playerLabelDiv.style.color = isRed ? '#F00':'#00F';
     this.playerLabelObj = new THREE.CSS2DObject( playerLabelDiv );
     this.playerLabelObj.position.set( 0, 0, 0 );
     this.obj.add( this.playerLabelObj );
@@ -405,7 +383,7 @@ class Players{
     p.copy(this.model);
 
     // scale
-    const s = SIZE/30000;// was4
+    const s = 0.001;// was 30000 but adjusted to ship model
     p.scale.set(s,s,s);
 
     p.name = nick;

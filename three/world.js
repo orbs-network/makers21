@@ -477,7 +477,7 @@ class World {
     //////////////////////////////////////////////////////////
     initSound() {
         this.sound = new Sound(this._camera);
-        // TODO: resume
+
         this.sound.add('gate.wav', this.redGate, true, SIZE);
         // delay sound so both gates wont sync souds
         setTimeout(() => this.sound.add('gate.wav', this.blueGate, true, SIZE), 500);
@@ -505,7 +505,7 @@ class World {
         // var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         // this._camera.add(cube);
         // cube.position.set( 0, 0, -30 );
-        this.scene.add(this._camera); //TODO: resume
+        this.scene.add(this._camera);
 
         // middle
         this._camera.position.y = HEIGHT / 2;
@@ -529,7 +529,6 @@ class World {
 
     //////////////////////////////////////////////////////////
     checkCrossBorders() {
-        return false; //TODO:
         // X axis
         if (this._camera.position.x < this.border.west) return true;
         if (this._camera.position.x > this.border.east) return true;
