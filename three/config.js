@@ -1,5 +1,6 @@
-const BASE_SIZE = 10;
-const SIZE = BASE_SIZE;
+
+const SIZE = 30;
+const HEIGHT = 10;
 const BLUE = 0x224988;
 const RED = 0x774022;
 const BLUE2 = 0x003377;
@@ -13,17 +14,14 @@ const toRad = (Math.PI/180);
 
 window.config = {
   size:SIZE ,
-  //speed: SIZE/400,
-  //speed: BASE_SIZE/500,
-  //speed: 0,
-  distancePerMS : 1.8/1000,
+  distancePerMS : 3/1000,
   gateTurnPerSec : 0.1,
   //ctrlHeightLimit: (20 * toRad)
   // steerReleaseFactor: 0.95,
   // horizLimit:0.02,
   vertLimit:0.60,
-  updateInterval:500,
-  playerSphereSize: 0.1,
+  updateInterval:300,
+  playerSphereSize: 0.15,
   return2startSec: 5,
   explodePartSize: 0.02,
   // rotUnit:0.001,
@@ -41,3 +39,5 @@ config.targetLockMs = 1000;
 
 config.colideDistance= config.distancePerMS * 50;
 config.lookSpeed = config.distancePerMS * 0.1;//0.0005,
+
+config.gateCloseEnough = config.distancePerMS * 50;
