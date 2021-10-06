@@ -634,6 +634,8 @@ class Game /*extends THREE.EventDispatcher*/ {
           y:targetPos.y,
           z:targetPos.z
         },
+        mouseX: this.controls.mouseX,
+        mouseY: this.controls.mouseY,
         targetTS: Date.now() + config.updateInterval,
         //quaternion: quaternion
       });
@@ -643,6 +645,11 @@ class Game /*extends THREE.EventDispatcher*/ {
       }
     }, config.updateInterval);
   }
+  //////////////////////////////////////////////////////////
+  // obj - your object (THREE.Object3D or derived)
+  // point - the point of rotation (THREE.Vector3)
+  // axis - the axis of rotation (normalized THREE.Vector3)
+  // theta - radian value of rotation
   //////////////////////////////////////////////////////////
   calcTargetPos(pos, worldDir){
     this.targetPos.copy(pos);
@@ -861,8 +868,8 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(this.exploding){
       return;
     }
-    // TODO:remove debug
-    if(this.moving){
+
+    if(!this.moving){
       return;
     }
 
