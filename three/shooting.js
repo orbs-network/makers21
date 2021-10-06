@@ -77,9 +77,9 @@ class Shooting {
 		this.tsEnemyLock = 0;
 
     // locking off old target
-    if(this.target){
+    if(this.targetPlayer){
 			// hide sphere
-			this.target.material.opacity = 0;
+			this.targetPlayer.showBoundingSphere(false);
 
       // hide bounding sphere for others
 			this.broadcastLock(false);
@@ -145,20 +145,13 @@ class Shooting {
   }
   //////////////////////////////////////////////
   checkTargetRange(){
-    ////////////////////////////////
-    // handle ranges and lockTS
-
     // pass flag
     if(this.friend){
-      //this.tsEnemyLock = 0; // no lock
       this.inRange = this.isInRange(this.target.distance, config.passNear, config.passFar);
     }
     // shooting
     else {
       this.inRange = this.isInRange(this.target.distance, config.shootNear, config.shootFar);
-      // if(this.targetPlayer.inRange){
-      //   this.tsEnemyLock = Date.now();
-      // }
     }
 	}
   //////////////////////////////////////////////
@@ -214,7 +207,7 @@ class Shooting {
 			this.checkTargetRange();
 			if(this.inRange){
 				// show sphere (hide upon new target)
-				this.target.material.opacity = 0.5;
+				this.targetPlayer.showBoundingSphere(true);
 				// update enemy/friend
 				if(this.friend){
 					if(game.holdingFlag){
