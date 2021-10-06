@@ -128,7 +128,7 @@ class World {
         ///////////////////////////////
         // Light
         // ambient light to light all objects equally
-        const amb = new THREE.AmbientLight(0x222222); // soft white light
+        const amb = new THREE.AmbientLight(0x505050); // soft white light
         this.scene.add(amb);
         let light = new THREE.DirectionalLight(0xffffff, 1.5, 100);
         //let light = new THREE.HemisphereLight( 0xfffff0, 0x101020, 0.2 )
@@ -150,15 +150,15 @@ class World {
         this.players = new Players(this);
 
         // GATES
-        const GATE_SIZE = config.size / 30;
+        const GATE_SIZE = SIZE / 40;
         // red gate
         this.redGate = this.createGate(RED2, GATE_SIZE);
         this.redGate.name = "redGate";
         //this.redGatePass = this.redGate.getObjectByName('gatePass');
 
-        const gateY = SIZE / 2 + GATE_SIZE;
+        const gateY = HEIGHT / 2 + GATE_SIZE;
 
-        const gatePosFactor = 1.2;//almost at border
+        const gatePosFactor = 1.8;//almost at border (2)
 
         // move front and up
         this.redGate.position.z = -SIZE * gatePosFactor;
@@ -176,8 +176,9 @@ class World {
         this.scene.add(this.blueGate);
 
         // Flags
-        this.flags.createFlag(this.createModelClone('flag'), this.scene, this.blueGate, 'red', 0xFF0000, .002, this.sound);
-        this.flags.createFlag(this.createModelClone('flag'), this.scene, this.redGate, 'blue', 0x0000FF, .002, this.sound);
+        const flagSize = GATE_SIZE / 200;
+        this.flags.createFlag(this.createModelClone('flag'), this.scene, this.blueGate, 'red', 0xFF0000, flagSize, this.sound);
+        this.flags.createFlag(this.createModelClone('flag'), this.scene, this.redGate, 'blue', 0x0000FF, flagSize, this.sound);
 
         // create red+blue borders & ceeling
         this.createBorders(RED, 1);
@@ -286,7 +287,7 @@ class World {
 
         this.scene.add(stars);
 
-        starVertices = [];
+        /*starVertices = [];
 
         for (let i = 0; i < 1000; i++) {
             const star = new THREE.Vector3(
@@ -312,8 +313,7 @@ class World {
 
         stars = new THREE.Points(starGeo, starMaterial);
 
-        this.scene.add(stars);
-
+        this.scene.add(stars);*/
 
         // lensflares
         const textureLoader = new THREE.TextureLoader();
@@ -398,17 +398,17 @@ class World {
     }
 
     //////////////////////////////////////////////////////////
-    createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos) {
-        let grid = new THREE.GridHelper(SIZE / 2, divisions / 2, GREY, GREY);
-        this.scene.add(grid);
-        grid.position.z = SIZE * zPosFactor * zDir;
-        grid.position.x -= SIZE * xPosFactor * xDir;
-        grid.position.y = yPos;
-    }
+    // createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos) {
+    //     let grid = new THREE.GridHelper(SIZE / 2, divisions / 2, GREY, GREY);
+    //     this.scene.add(grid);
+    //     grid.position.z = SIZE * zPosFactor * zDir;
+    //     grid.position.x -= SIZE * xPosFactor * xDir;
+    //     grid.position.y = yPos;
+    // }
 
-    createBorderPads(divisions, zDir, xDir, yPos) {
+    // createBorderPads(divisions, zDir, xDir, yPos) {
 
-    }
+    // }
 
     //////////////////////////////////////////////////////////
     createHoriz(divisions, color, zDir, yPos) {
@@ -426,8 +426,8 @@ class World {
         grid.add(cube);
 
         // create pads
-        this.createBorderPads(divisions, zDir, 1, yPos);
-        this.createBorderPads(divisions, zDir, -1, yPos);
+        //this.createBorderPads(divisions, zDir, 1, yPos);
+        //this.createBorderPads(divisions, zDir, -1, yPos);
     }
 
     //////////////////////////////////////////////////////////
@@ -442,11 +442,11 @@ class World {
         this.createHoriz(divisions, color, zDir, this.border.floor);
 
         // create ceiling
-        this.border.ceiling = SIZE;
+        this.border.ceiling = HEIGHT;
         this.createHoriz(divisions, color, zDir, this.border.ceiling);
 
-        this.border.north = -SIZE * 1.5;
-        this.border.south = SIZE * 1.5;
+        this.border.north = -SIZE * 2 ;
+        this.border.south = SIZE * 2;
     }
 
     //////////////////////////////////////////////////////////
@@ -508,7 +508,7 @@ class World {
         this.scene.add(this._camera); //TODO: resume
 
         // middle
-        this._camera.position.y = SIZE / 2;
+        this._camera.position.y = HEIGHT / 2;
 
         // this.startLineZ = this._camera.position.z;
         // this.startLineY = this._camera.position.y;
@@ -517,19 +517,19 @@ class World {
     //////////////////////////////////////////////////////////
     checkGatePass() {
       let dis;
-      const closeEnough = 0.15;
-      // let dis;
+
       dis =  this._camera.position.distanceTo(this.redGate.position);
-      if(dis <= closeEnough) return this.redGate;
+      if(dis <= config.colideDistance) return this.redGate;
 
       dis =  this._camera.position.distanceTo(this.blueGate.position);
-      if(dis <= closeEnough) return this.blueGate;
+      if(dis <= config.colideDistance) return this.blueGate;
 
       return null
     }
 
     //////////////////////////////////////////////////////////
     checkCrossBorders() {
+        return false; //TODO:
         // X axis
         if (this._camera.position.x < this.border.west) return true;
         if (this._camera.position.x > this.border.east) return true;
@@ -609,7 +609,7 @@ class World {
         // set start line
         const myGate = isRed ? this.blueGate : this.redGate;
         this.startLineZ = myGate.position.z;
-        const half = SIZE / 2;
+        const half = HEIGHT / 2;
         // 2 - 7
         this.startLineY = Math.floor(Math.random() * half) + half;
         // (-2) - 2
@@ -694,29 +694,29 @@ class World {
 
         let denom = config.return2startSec * 1000;
 
-    // lookAhead as a start point for rotating back to gate
-    const cam = this._camera;
-    let lookAhead = cam.position.clone();
-    let worldDir = new THREE.Vector3;
-    cam.getWorldDirection(worldDir);
-    const distance = 3 * SIZE;
-    const offset = worldDir.multiplyScalar(distance);
-    lookAhead.add(offset);
+        // lookAhead as a start point for rotating back to gate
+        const cam = this._camera;
+        let lookAhead = cam.position.clone();
+        let worldDir = new THREE.Vector3;
+        cam.getWorldDirection(worldDir);
+        const distance = 3 * SIZE;
+        const offset = worldDir.multiplyScalar(distance);
+        lookAhead.add(offset);
 
         this.returnObj = {
             cb: cb,
             tsFinish: dt.getTime(),
-      // delta pos
-      xDiff : (this.startLineX - cam.position.x) / denom,
-      yDiff : (this.startLineY - cam.position.y) / denom,
-      zDiff : (this.startLineZ - cam.position.z) / denom,
-            controls: controls,
-            targetGate: targetGate,
-            // delta rot
-      xLook : (targetGate.position.x - lookAhead.x) / denom,
-      yLook : (targetGate.position.y - lookAhead.y) / denom,
-      zLook : (targetGate.position.z - lookAhead.z) / denom,
-      lookPos: lookAhead
+          // delta pos
+          xDiff : (this.startLineX - cam.position.x) / denom,
+          yDiff : (this.startLineY - cam.position.y) / denom,
+          zDiff : (this.startLineZ - cam.position.z) / denom,
+                controls: controls,
+                targetGate: targetGate,
+                // delta rot
+          xLook : (targetGate.position.x - lookAhead.x) / denom,
+          yLook : (targetGate.position.y - lookAhead.y) / denom,
+          zLook : (targetGate.position.z - lookAhead.z) / denom,
+          lookPos: lookAhead
         };
     }
 
