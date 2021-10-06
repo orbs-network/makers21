@@ -1,6 +1,6 @@
 
 const SIZE = 30;
-const HEIGHT = 10;
+const HEIGHT = 20;
 const BLUE = 0x224988;
 const RED = 0x774022;
 const BLUE2 = 0x003377;
@@ -21,7 +21,6 @@ window.config = {
   // horizLimit:0.02,
   vertLimit:0.60,
   updateInterval:300,
-  playerSphereSize: 0.15,
   return2startSec: 5,
   explodePartSize: 0.02,
   // rotUnit:0.001,
@@ -37,7 +36,5 @@ config.passFar = config.shootFar + 2;
 
 config.targetLockMs = 1000;
 
-config.colideDistance= config.distancePerMS * 50;
+config.colideDistance = config.distancePerMS * 50;
 config.lookSpeed = config.distancePerMS * 0.1;//0.0005,
-
-config.gateCloseEnough = config.distancePerMS * 50;
