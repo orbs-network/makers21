@@ -150,15 +150,15 @@ class World {
         this.players = new Players(this);
 
         // GATES
-        const GATE_SIZE = SIZE / 40;
+        const GATE_SIZE = SIZE / 20;
         // red gate
         this.redGate = this.createGate(RED2, GATE_SIZE);
         this.redGate.name = "redGate";
         //this.redGatePass = this.redGate.getObjectByName('gatePass');
 
-        const gateY = HEIGHT / 2 + GATE_SIZE;
+        const gateY = HEIGHT / 2 + GATE_SIZE / 2;
 
-        const gatePosFactor = 1.8;//almost at border (2)
+        const gatePosFactor = 1.95;//almost at border (2)
 
         // move front and up
         this.redGate.position.z = -SIZE * gatePosFactor;
@@ -790,7 +790,7 @@ class World {
 
           }
 
-          this.flags.update(this.gateRad);
+          this.flags.update(this.gateRad * delta / 2 );
       }
 
       // players

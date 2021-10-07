@@ -1,9 +1,9 @@
 
 const SIZE = 30;
-const HEIGHT = 20;
+const HEIGHT = 15;
 const BLUE = 0x224988;
-const RED = 0x774022;
-const BLUE2 = 0x003377;
+const RED = 0x703020;
+const BLUE2 = 0x003070;
 const BLUE_SHIP = 0x000411;
 const RED2 = 0x882200;
 const RED_SHIP = 0x110100;

@@ -16,11 +16,11 @@ body {
 .player-label{
     background-color: transparent;
     text-shadow:0 0 7px #FFF;
-    margin-top: 1em;
+    margin-top: 1.5em;
 }
 .hud-label{
     background-color: transparent;
-    text-shadow:0 0 7px #FFF;
+    text-shadow:1 1 3px #000;
     margin-top: 5em;
     opacity: 0.3;
 }
