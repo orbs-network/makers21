@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="utf-8">
@@ -6,14 +7,14 @@
 	</head>
 	<body>
 		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js"></script> -->
-		<script src="https://unpkg.com/three@0.122/build/three.min.js"></script>
+		<script src="https://unpkg.com/three/build/three.min.js"></script>
 		<script src="https://cdn.deepstream.io/js/client/latest/ds.min.js"></script>
 		<!-- <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/OBJLoader.js"></script> -->
 		<script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script>
 		<script src="https://threejs.org/examples/js/renderers/CSS2DRenderer.js"></script>
 		<!-- <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/renderers/CSS2DRenderer.js"></script> -->
-		<!-- <script src="https://threejs.org/examples/js/loaders/MTLLoader.js"></script>
-		<script src="https://threejs.org/examples/js/loaders/OBJMTLLoader.js"></script> -->
+		<script src="https://threejs.org/examples/js/loaders/MTLLoader.js"></script>
+		<!--		<script src="https://threejs.org/examples/js/loaders/OBJMTLLoader.js"></script> -->
 
 		<!-- <script src="https://threejs.org/examples/js/controls/FlyControls.js"></script> -->
 		<!-- <script src="https://threejs.org/examples/js/controls/PointerLockControls.js"></script>		 -->
@@ -86,7 +87,7 @@
 		<script src="factory.js"></script>
 		<script src="materials.js"></script>
 		<script src="laser.js"></script>
-		<script src="shooting2.js"></script>
+		<script src="shooting.js"></script>
 		<script src="flag.js"></script>
 		<script src="deepstream.js"></script>
 		<script src="physics.js"></script>
@@ -97,7 +98,13 @@
 		<script src="neckControls.js"></script>
 		<script src="/static/jsm/obejcts/Sky.js"></script>
 		<script src="/static/jsm/obejcts/Lensflare.js"></script>
-    <script src="game.js"></script>
+		<script src="/static/jsm/ImprovedNoise.js"></script>
+		<script src='threex.spaceships.js'></script>
+		<script src='/static/jsm/postprocessing/Pass.js'></script>
+		<script src='/static/jsm/shaders/CopyShader.js'></script>
+		<script src='/static/jsm/shaders/LuminosityHighPassShader.js'></script>
+		<script src='/static/jsm/postprocessing/UnrealBloomPass.js'></script>
+		<script src="game.js"></script>
 
 		<!-- HTML SOUNDS -->
 		<audio id="ping" src="./sound/ping.mp3"></audio>
@@ -109,7 +116,7 @@
 		<audio id="locked"  src="./sound/locked.wav"></audio>
 		<audio id="locked-on" begin="0.3" src="./sound/locked_on.mp3"></audio>
 		<audio id="explode" src="./sound/explode.wav"></audio>
-		<audio id="alarm" src="./sound/alarm.wav"></audio>
+		<audio id="alarm" src="./sound/alarm.wav" loop></audio>
 		<!-- welcome -->
 		<div id="welcome">
 			<h1>Makers2021 welcome</h1>

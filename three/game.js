@@ -4,6 +4,9 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.resetMembers();
     this.loadLocalState();
     this.useNeck = localStorage.getItem('disableNeck') !== 'true';
+    this.stillTargetEnabled = localStorage.getItem('stillTargetEnabled') == 'true';
+    this.disableConstantSpeed = localStorage.getItem("disableConstantSpeed") == 'true';
+    this.disableSound = localStorage.getItem("disableSound");
   }
   //////////////////////////////////////////////////////////
   resetMembers(){
@@ -14,6 +17,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.passingGate = null;
     this.gameOver = false;
     this.targetPos = new THREE.Vector3();
+    this.direction = new THREE.Vector3();
     // NEED THIS! this.mngrState = null;
   }
   //////////////////////////////////////////////////////////
@@ -182,16 +186,16 @@ class Game /*extends THREE.EventDispatcher*/ {
       return;
     }
     this.moving = !this.moving;
-    this.controls.autoForward = this.moving;
+    this.controls.autoForward = !this.disableConstantSpeed &&  this.moving;
     this.controls.enabled = this.moving;
     //this.controls
-    let pos = this.world.camera.position;
-    deepStream.sendEvent('player',{
-      type:"start",
-      moving:this.moving,
-      pos:pos,
-      nick:this.localState.nick
-    });
+    // const pos = this.world.camera.position.clone();
+    // deepStream.sendEvent('player',{
+    //   type:"start",
+    //   moving:this.moving,
+    //   pos:pos,
+    //   nick:this.localState.nick
+    // });
     // start
     if(this.moving){
       if(this.useNeck){
@@ -200,7 +204,10 @@ class Game /*extends THREE.EventDispatcher*/ {
 
       if(this.first){
         this.first = false;
-        this.world.sound.play();
+
+        if (!this.disableSound) {
+          this.world.sound.play();
+        }
         //this.world.onFirst();
       }
     }
@@ -306,6 +313,8 @@ class Game /*extends THREE.EventDispatcher*/ {
 
       // start broadcast interval
       this.startUpdateLoop(true);
+      this.startBorderLoop();
+
       // to enable start stop
       this.setGameMsg('press any key to start flying!');
 
@@ -469,7 +478,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   stopAudio(id){
-    let sound =  document.getElementById(id);
+    let sound = !this.disableSound && document.getElementById(id);
     if(sound){
       if( !sound.paused && !sound.ended && 0 < sound.currentTime){
         sound.pause();
@@ -479,7 +488,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   playAudio(id, cb){
-    let sound =  document.getElementById(id);
+    let sound =  !this.disableSound && document.getElementById(id);
     if(sound){
 
       // stop first
@@ -564,18 +573,40 @@ class Game /*extends THREE.EventDispatcher*/ {
     });
   }
   //////////////////////////////////////////////////////////
-  startUpdateLoop(start){
-    // stop
-    if(!start){
-      if(this.updateLoopTID){
-        clearInterval(this.updateLoopTID);
-        this.updateLoopTID = 0;
+  startBorderLoop(start){
+    let outside = 0;
+    this.borderLoopTID = setInterval(()=>{
+      if(!this.moving || this.exploding) return;
+      if(outside > 30){
+        outside = 0;
+        this.doExplode();
+        return;
       }
-      return;
-    }
+      if(!this.world.checkCrossBorders()){
+        if(outside) this.stopWarning();
+        outside = 0;
+      }
+      else{
+        if(!outside) this.startWarning('dont fly outside the game boundaries', true); // for manual stop
+        outside++;
+
+      }
+    }, 100);
+
+
+  }
+  //////////////////////////////////////////////////////////
+  startUpdateLoop(start){
+    // stop - always tell your position
+    // if(!start){
+    //   if(this.updateLoopTID){
+    //     clearInterval(this.updateLoopTID);
+    //     this.updateLoopTID = 0;
+    //   }
+    //   return;
+    // }
     // start
     let cam = this.world.camera;
-    let direction = new THREE.Vector3();
 
     this.updateLoopTID = setInterval(()=>{
       // conditions
@@ -586,19 +617,26 @@ class Game /*extends THREE.EventDispatcher*/ {
       //   return;
       // }
       // broadcast position
-      cam.getWorldDirection(direction);
+      cam.getWorldDirection(this.direction);
       //let quaternion = new THREE.Quaternion();
       //cam.getWorldQuaternion(quaternion);
+      const targetPos = this.moving? this.calcTargetPos(cam.position, this.direction) : cam.position;
       deepStream.sendEvent('player',{
         type:"pos",
         // old
         //pos:cam.position,
-        dir:direction,
+        dir:this.direction,
         nick: this.localState.nick,
         moving: this.moving,
         // new
-        targetPos: this.calcTargetPos(cam.position, direction),
-        targetTS: Date.now() + config.updateInterval
+        targetPos: {
+          x:targetPos.x,
+          y:targetPos.y,
+          z:targetPos.z
+        },
+        mouseX: this.controls.mouseX,
+        mouseY: this.controls.mouseY,
+        targetTS: Date.now() + config.updateInterval,
         //quaternion: quaternion
       });
 
@@ -608,8 +646,15 @@ class Game /*extends THREE.EventDispatcher*/ {
     }, config.updateInterval);
   }
   //////////////////////////////////////////////////////////
+  // obj - your object (THREE.Object3D or derived)
+  // point - the point of rotation (THREE.Vector3)
+  // axis - the axis of rotation (normalized THREE.Vector3)
+  // theta - radian value of rotation
+  //////////////////////////////////////////////////////////
   calcTargetPos(pos, worldDir){
     this.targetPos.copy(pos);
+    //return this.targetPos;
+
     const distance = config.distancePerMS * config.updateInterval;
     // move forward
     const direction = worldDir.multiplyScalar(distance);
@@ -636,11 +681,13 @@ class Game /*extends THREE.EventDispatcher*/ {
     return false;
   }
   //////////////////////////////////////////////////////////
-  startWarning(msg){
+  startWarning(msg, manualStop){
     if(msg) this.setGameMsg(msg);
     this.playAudio('alarm');
     this.world.turnWarningEffect(true);
-    this.tidWarning = setTimeout(() => this.stopWarning(),config.targetLockMs);
+    if(!manualStop){
+      this.tidWarning = setTimeout(() => this.stopWarning(),config.targetLockMs);
+    }
   }
   //////////////////////////////////////////////////////////
   stopWarning(){
@@ -654,9 +701,11 @@ class Game /*extends THREE.EventDispatcher*/ {
 
   }
   //////////////////////////////////////////////////////////
-  doExplode(){
+  doExplode(msg){
+    this.exploding = true;
+
     this.stopWarning();
-    this.setGameMsg('BOOM!!!');
+    this.setGameMsg(msg || 'BOOM!!!');
 
     // return flag if holders
     this.checkFlagDrop();
@@ -678,13 +727,15 @@ class Game /*extends THREE.EventDispatcher*/ {
     // event explosion
     deepStream.sendEvent('player',{
       type:"explode",
-      pos:cam.position,
+      flag:true,
+      pos:cam.position.clone(),
       dir:direction,
       nick: this.localState.nick
     });
 
     // return to start
     this.world.return2Start(()=>{
+      console.log("FINISH RETURN TO START");
       this.setGameMsg('Let us start again');
       this.playAudio('locked');
       this.world.turnWarningEffect(false);
@@ -694,8 +745,9 @@ class Game /*extends THREE.EventDispatcher*/ {
       let cam = this.world.camera;
       cam.getWorldDirection(direction);
       deepStream.sendEvent('player',{
-        type:"pos",
-        targetPos:cam.position,
+        type:"explode",
+        flag:false,
+        pos:cam.position.clone(),
         dir:direction,
         nick: this.localState.nick
       });
@@ -794,22 +846,13 @@ class Game /*extends THREE.EventDispatcher*/ {
     //return false;
   }
   //////////////////////////////////////////////////////////
-  // render2dOverlay(){
-  //   const c = this.renderer.domElement;
-  //   var ctx = c.getContext("2d");
-  //   if(ctx){
-  //     ctx.beginPath();
-  //     ctx.arc(100, 75, 50, 0, 2 * Math.PI);
-  //     ctx.stroke();
-  //   }
-  // }
-  //////////////////////////////////////////////////////////
   render(){
     // FPS measure
     this.frames++;
 
     const now = Date.now();
     const delta = (now - this.tsRender);
+    this.tsRender = now;
 
     // fly controls
     if(this.controls){
@@ -818,16 +861,14 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     const collision = this.world.render(delta);
     if(collision){
-      this.exploding = true;
       this.doExplode();
     }
-
-    this.tsRender = now;
 
     // conditions
     if(this.exploding){
       return;
     }
+
     if(!this.moving){
       return;
     }
@@ -836,10 +877,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(this.checkGatePass()){
       return;
     };
-    // collisions and gate pass
-    // if(this.checkCollision()){
-    //   return;
-    // }
   }
   //////////////////////////////////////////////////////////
   onresize(e){
