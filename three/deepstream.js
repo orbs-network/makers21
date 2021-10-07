@@ -1,5 +1,5 @@
 const { DeepstreamClient } = window.DeepstreamClient
-const client = new DeepstreamClient('wss://ws-makers.orbs.com:6020')
+const client = new DeepstreamClient('wss://ws-makers.orbs.com:6021')
 
 
 client.login()
