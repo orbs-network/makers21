@@ -65,7 +65,7 @@ body {
     /*font-size: 26px;*/
     /*height: 48px;*/
     color:silver;
-    background-color: black;
+    background-color: #0004;
     border: 1px solid silver;
 }
 #nick {
@@ -90,10 +90,10 @@ div{
 #game-display{
     display:none;
     position: absolute;
-    top: 0;
+    top: 2%;
     right: 25%;
     width: 50%;
-    background-color:black;
+    background-color:#0004;
     color:silver;
     border: 1px solid silver;
     text-align: center;
