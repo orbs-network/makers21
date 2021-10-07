@@ -1,7 +1,10 @@
 const { DeepstreamClient } = window.DeepstreamClient
 //const client = new DeepstreamClient('10.11.11.4:6020')
 // const client = new DeepstreamClient('10.11.11.32:6020')
-const client = new DeepstreamClient('localhost:6020')
+const options = {
+    subscriptionTimeout: 1000
+}
+const client = new DeepstreamClient('wss://ws-makers.orbs.com:6021', options)
 
 
 //const client = new DeepstreamClient('10.11.11.4:6020')
