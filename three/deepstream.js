@@ -1,6 +1,15 @@
 const { DeepstreamClient } = window.DeepstreamClient
-const client = new DeepstreamClient('wss://ws-makers.orbs.com:6021')
 
+const options = {
+    subscriptionTimeout: 1000
+}
+const client = new DeepstreamClient('wss://ws-makers.orbs.com:6021', options)
+
+
+//const client = new DeepstreamClient('10.11.11.4:6020')
+//const client = new DeepstreamClient('34.134.236.209:6020')
+//const client = new DeepstreamClient('192.168.1.233:6020')
+//const client = new DeepstreamClient('192.168.1.209:6020')
 
 client.login()
 const uuid = window.deepStreamUUID || client.getUid();//+ "_"+ Date.now(); // TODO: remove
