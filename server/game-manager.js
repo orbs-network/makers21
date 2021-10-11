@@ -272,7 +272,7 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       if(this.state[flagHolder] === data.nick){
         this.setFlagHolder(flagHolder, null, res);
       }else{
-        res.send(`${this.state[flagHolder]} the flag is not held by [${data.nick}] to drop`);
+        res.send(`The flag is not held by [${data.nick}] to drop`);
       }
     }
     //////////////////////////////////////////////////////////
