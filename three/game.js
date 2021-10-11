@@ -315,7 +315,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
       // drop flag if has it after reloading
       if(this.holdingFlag){
-        this.checkFlagDrop(this.holdingFlag);
+        this.tellDropFlag(this.holdingFlag);
         this.setGameMsg('Flag was dropped during game page reload');
       }
 
@@ -402,7 +402,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
         // drop flag if exploding during this update from nanager
         if(this.exploding){
-          this.checkFlagDrop();
+          this.tellDropFlag();
         }
 
         document.getElementById('inputs').style.display = "none";
@@ -568,10 +568,10 @@ class Game /*extends THREE.EventDispatcher*/ {
       }
     }
   }
-  checkFlagDrop(){
-    if(!this.holdingFlag){
-      return;
-    }
+  tellDropFlag(){
+    // if(!this.holdingFlag){
+    //   return;
+    // }
     //this.world.setFlagHolders(); - let mngr state take care of this
 
     deepStream.client.rpc.make('client',{
@@ -584,7 +584,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         return;
       }
       if(result!='ok'){
-        this.setGameMsg('flagDrop: '+result);
+        console.log('flagDrop: '+result);
       }
     });
   }
@@ -731,7 +731,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.setGameMsg(msg || 'BOOM!!!');
 
     // return flag if holders
-    this.checkFlagDrop();
+    this.tellDropFlag();
 
     // STOP FLYING!
     if(this.moving){
