@@ -118,7 +118,7 @@
 		<audio id="explode" src="./sound/explode.wav"></audio>
 		<audio id="alarm" src="./sound/alarm.wav" loop></audio>
 		<!-- welcome -->
-		<div id="welcome">
+		<div id="welcome" style="display: none;">
 			<h1>Makers2021 welcome</h1>
 			<div id="online">please wait...</div>
 			<div id="started"></div>
@@ -163,15 +163,14 @@
 		</div>
 		<!-- welcome END -->
 		<div id="game-display">
-			<div>game display</div>
-			<div>msg: <span id="msg"></span></div>
+			<span id="msg"></span>
 		</div>
 		<!-- GAVE OVER -->
 		<div id="game-over" style="display:none">
 			<h1>GAME OVER!</h1>
 			<p id="winnerNick"></p>
 			<p id="winnerIsRed"></p>
-			<input type="button" id="reset"  value="reset">
+			<input type="button" id="reset"  value="reset" class="btn">
 		</div>
 		<!-- GAVE OVER -->
 		<div id="flag-holder" class="red">

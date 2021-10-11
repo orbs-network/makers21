@@ -86,7 +86,6 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   update(delta){
-    //this.obj.position.set(this.targetPos.x, this.targetPos.y, this.targetPos.z);
     if(this.moving && this.go2Target){
       // NEW
       //if(this.go2Target){
@@ -98,10 +97,6 @@ class Player{
         //this.obj.rotation.set(direction);
         this.obj.rotateOnAxis(new THREE.Vector3(0,1,0), this.xRadMS * delta);
         this.obj.rotateOnAxis(new THREE.Vector3(1,0,0), this.yRadMS * delta);
-
-        //this.obj.rotateX(this.mouseX/100);
-        // this.obj.rotation.y += this.yRotPerMS * delta;
-        // this.obj.rotation.z += this.zRotPerMS * delta;
       //}else{
         // OLD
         // console.error('player::update CALL YUVAL');
@@ -135,11 +130,16 @@ class Player{
     this.moving = data.moving;
     let timeToTarget = data.targetTS - Date.now();
 
+    // zlotin bug
+    if(timeToTarget <= 500){
+      timeToTarget = 500;
+    }
+
     // necesseraly
     this.exploding = false;
     this.show();
 
-    if(!this.moving || !this.hadPos() || timeToTarget <= 0){
+    if(!this.moving || !this.hadPos() ){
       this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
       return;
     }
@@ -383,7 +383,7 @@ class Players{
     p.copy(this.model);
 
     // scale
-    const s = 0.003;// was 30000 but adjusted to ship model
+    const s = SIZE/10000;// was 30000 but adjusted to ship model
     p.scale.set(s,s,s);
 
     p.name = nick;
