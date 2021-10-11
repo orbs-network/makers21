@@ -123,6 +123,8 @@ class World {
 
         // for colision and shooting
         this.raycaster = new THREE.Raycaster();
+        this.raycaster.near = config.raycastNear;
+        this.raycaster.far = config.raycastFar;
         //this.raycaster.layers.set( 1 );
 
         ///////////////////////////////
@@ -383,7 +385,7 @@ class World {
 
         const ground = new THREE.Mesh(groundGeometry, new THREE.MeshStandardMaterial({map: groundTexture}));
         // ground.position.x = -10;
-        ground.position.y = -100;
+        ground.position.y = -HEIGHT;
         ground.rotation.z = 0.1;
         this.scene.add(ground);
 
@@ -519,10 +521,10 @@ class World {
       let dis;
 
       dis =  this._camera.position.distanceTo(this.redGate.position);
-      if(dis <= config.colideDistance) return this.redGate;
+      if(dis <= config.gatePassDistance) return this.redGate;
 
       dis =  this._camera.position.distanceTo(this.blueGate.position);
-      if(dis <= config.colideDistance) return this.blueGate;
+      if(dis <= config.gatePassDistance) return this.blueGate;
 
       return null
     }
@@ -545,8 +547,6 @@ class World {
     ////////////////////////////////////////////////////////
     // AMI rename to also obstacles
     checkGateCollision() {
-        this.raycaster.near = config.raycastNear;
-        this.raycaster.far = config.raycastFar;
         // calculate objects intersecting the picking ray
         // false- non recursive to avoid coliding with internal sphere
         const intersects = this.raycaster.intersectObjects([this.redGate, this.blueGate], false);
