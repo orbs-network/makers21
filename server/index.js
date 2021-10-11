@@ -34,6 +34,6 @@ client.login(null , ()=>{
 
 
 
-    client.event.subscribe('heartbeat', (data)=>{
-        console.log('====== heartbeat ========= ', data);
-     });
+    // client.event.subscribe('heartbeat', (data)=>{
+    //     console.log('====== heartbeat ========= ', data);
+    //  });

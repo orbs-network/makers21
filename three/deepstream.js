@@ -4,10 +4,8 @@ const options = {
     subscriptionTimeout: 3000
 }
 
-//const client = new DeepstreamClient('wss://ws-makers.orbs.com:6021', options)
-const client = new DeepstreamClient('localhost:6020', options)
-
-
+//const client = new DeepstreamClient('localhost:6020', options)
+const client = new DeepstreamClient('wss://ws-makers.orbs.com:6021', options)
 //const client = new DeepstreamClient('10.11.11.4:6020')
 //const client = new DeepstreamClient('34.134.236.209:6020')
 //const client = new DeepstreamClient('192.168.1.233:6020')
@@ -75,9 +73,9 @@ function throttle(func, wait, options) {
 };
 
 // heartbit every 5 min
-setInterval(() => {
-    client.event.emit('heartbeat', 'v2_'+uuid);
-}, 5000);
+// setInterval(() => {
+//     client.event.emit('heartbeat', 'v2_'+uuid);
+// }, 5000);
 
 
 client.presence.subscribe((username, login)=> {
