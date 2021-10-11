@@ -151,8 +151,6 @@ class World {
         // create players
         this.players = new Players(this);
 
-        // GATES
-        const GATE_SIZE = SIZE / 20;
         // red gate
         this.redGate = this.createGate(RED2, GATE_SIZE);
         this.redGate.name = "redGate";
@@ -598,21 +596,29 @@ class World {
     setTeamPos(isRed) {
         // no team - set center
         if (isRed == null) {
-            this._camera.position.z = 0;
-            this._camera.position.x = 0;
-            this._camera.position.y = SIZE / 2;
+            this._camera.position.z = -2 * SIZE;
+            this._camera.position.x = SIZE * -1.8; // look at the sun
+            this._camera.position.y = HEIGHT / 2;
+            // rotate - look at center
+            this._camera.updateWorldMatrix();
+            game.controls.lookAt(new THREE.Vector3(0,0,0));
+
             // not joined-
             this.players.gameJoined = false;
+
             return;
         }
         // set start line
         const myGate = isRed ? this.blueGate : this.redGate;
         this.startLineZ = myGate.position.z;
-        const half = HEIGHT / 2;
-        // 2 - 7
-        this.startLineY = Math.floor(Math.random() * half) + half;
-        // (-2) - 2
-        this.startLineX = Math.floor(Math.random() * half) - half;
+        const hHalf = HEIGHT / 2;
+        this.startLineY = Math.floor(Math.random() * hHalf) + hHalf;        // (-2) - 2
+        // avoid start x axis on gate
+        const wHalf = SIZE / 2;
+        let startX = Math.floor(Math.random() * (SIZE - 2*GATE_SIZE)) + GATE_SIZE; // (-2) - 2half;
+        startX += startX > wHalf ? GATE_SIZE : -GATE_SIZE;
+        this.startLineX = startX;
+
 
         // POS
         this._camera.position.x = this.startLineX;
