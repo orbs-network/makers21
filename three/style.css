@@ -51,7 +51,8 @@ body {
     text-align: center;
     color: silver;
     left: calc(50% - 400px);
-    top: calc(50% - 400px);
+    top: 4%;
+    background-color: #0004;
 }
 .team-label {
     width: 200px;
@@ -88,7 +89,9 @@ div{
 
 
 #game-display{
+    padding:1em;
     display:none;
+    font-size: larger;
     position: absolute;
     top: 2%;
     right: 25%;
@@ -106,6 +109,7 @@ div{
     right: 25%;
     width: 50%;
     border: 1px solid silver;
+    background-color: #0004;
     text-align: center;
     font-size: xx-large;
 }

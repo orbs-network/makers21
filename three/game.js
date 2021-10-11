@@ -88,7 +88,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     // init controls
     this.initControls(false);
-    // start broadcast interval
+    // stop broadcast interval
     this.startUpdateLoop(false);
     // to enable start stop
     this.setGameMsg('game has been reset!');
@@ -185,6 +185,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       console.log('cant start while exploding')
       return;
     }
+    this.stopWarning();
     this.moving = !this.moving;
     this.controls.autoForward = !this.disableConstantSpeed &&  this.moving;
     this.controls.enabled = this.moving;
@@ -257,6 +258,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   setGameMsg(html){
+    document.getElementById('game-display').style.display = html? "block":"none";
     document.getElementById('msg').innerHTML = html;
   }
   //////////////////////////////////////////////////////////
@@ -300,7 +302,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.show321();
       //this.setGameMsg('game begins in:');
       return;
-    }else{
+    }else{ // happens after Reload
       // update world
       this.world.setNick(this.localState.nick);
       this.world.setTeamPos(this.localState.isRed);
@@ -311,9 +313,15 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
       this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
 
+      // drop flag if has it after reloading
+      if(this.holdingFlag){
+        this.checkFlagDrop(this.holdingFlag);
+        this.setGameMsg('Flag was dropped during game page reload');
+      }
+
       // start broadcast interval
       this.startUpdateLoop(true);
-      this.startBorderLoop();
+      this.startBorderLoop(true);
 
       // to enable start stop
       this.setGameMsg('press any key to start flying!');
@@ -336,6 +344,8 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('winnerIsRed').innerHTML =`${winnerTeam} TEAM IS THE WINNER`;
     this.moving = false;
     this.startUpdateLoop(false);
+    this.startBorderLoop(false);
+    this.stopWarning();
   }
   //////////////////////////////////////////////////////////
   onMngrState(state){
@@ -380,6 +390,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
         // Handle Flags
         const holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
+
         this.world.setFlagHolders(holdingFlag, this.localState, this.mngrState);
 
         // play success if it was flag got captured
@@ -389,12 +400,19 @@ class Game /*extends THREE.EventDispatcher*/ {
         }
         this.holdingFlag = holdingFlag;
 
+        // drop flag if exploding during this update from nanager
+        if(this.exploding){
+          this.checkFlagDrop();
+        }
+
         document.getElementById('inputs').style.display = "none";
         document.getElementById('teams').style.display = "none";
         document.getElementById('started').innerText = "game has started - please wait for next game to start";
       }
       return;
     }
+    // show welcome as game isnt over and hasnt started yet
+    document.getElementById('welcome').style.display = "block";
 
     // ready to start
     document.getElementById('ready-text').innerText = state.ready? "ready to start": "waiting for more players to join";
@@ -440,7 +458,6 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   onEvent(data){
-    console.log('onEvent manager', data);
     switch(data.type){
       case "state":
         this.onMngrState(data.state);
@@ -539,7 +556,6 @@ class Game /*extends THREE.EventDispatcher*/ {
       const team = this.localState.isRed?'red':'blue';
       // return to home gate - Game Won?
       if(this.holdingFlag){
-        console.log('WIN - tell manager!!!!!!!!!!!!!!!!!')
         this.setGameMsg(`<span class="${team}">${team} TEAM</span> WINS thanks to you!`);
         this.playAudio('success');
         this.tellGatePass(true);
@@ -574,9 +590,17 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   startBorderLoop(start){
+    // ignore when game is over.
+    if(!start){
+      clearInterval(this.borderLoopTID);
+      this.borderLoopTID = 0;
+      return;
+    }
+
+
     let outside = 0;
     this.borderLoopTID = setInterval(()=>{
-      if(!this.moving || this.exploding) return;
+      if(!this.moving || this.exploding || this.gameOver) return;
       if(outside > 30){
         outside = 0;
         this.doExplode();
@@ -598,19 +622,22 @@ class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   startUpdateLoop(start){
     // stop - always tell your position
-    // if(!start){
-    //   if(this.updateLoopTID){
-    //     clearInterval(this.updateLoopTID);
-    //     this.updateLoopTID = 0;
-    //   }
-    //   return;
-    // }
+    if(!start){
+      if(this.updateLoopTID){
+        clearInterval(this.updateLoopTID);
+        this.updateLoopTID = 0;
+      }
+      return;
+    }
     // start
     let cam = this.world.camera;
 
     this.updateLoopTID = setInterval(()=>{
       // conditions
       if(this.exploding){
+        return;
+      }
+      if(this.gameOver){
         return;
       }
       // if(!this.moving){
@@ -639,10 +666,6 @@ class Game /*extends THREE.EventDispatcher*/ {
         targetTS: Date.now() + config.updateInterval,
         //quaternion: quaternion
       });
-
-      if(this.gameOver){
-        return;
-      }
     }, config.updateInterval);
   }
   //////////////////////////////////////////////////////////
@@ -765,7 +788,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.startWarning(`WARNING! ${data.nick} is locking on you!`);
       }else{
         this.stopWarning();
-        this.setGameMsg('');
+        this.setGameMsg(`${data.nick} lost aim on you`);
       }
     }
   }
