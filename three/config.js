@@ -22,7 +22,7 @@ window.config = {
   // steerReleaseFactor: 0.95,
   // horizLimit:0.02,
   vertLimit:0.60,
-  updateInterval:300,
+  updateInterval:100,
   return2startSec: 5,
   explodePartSize: 0.02,
   // rotUnit:0.001,

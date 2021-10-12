@@ -86,6 +86,7 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   update(delta){
+    return;
     if(this.moving && this.go2Target){
       // NEW
       //if(this.go2Target){
@@ -122,39 +123,42 @@ class Player{
     this.lastPosTS = data.targetTS;
     // direction
     this.obj.lookAt(data.dir.x * lookDistance, data.dir.y * lookDistance, data.dir.z * lookDistance);
-    this.mouseX = data.mouseX;
-    this.mouseY = data.mouseY;
+    this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
+    // this.mouseX = data.mouseX;
+    // this.mouseY = data.mouseY;
 
     // position if not moving
-    this.go2Target = false;
-    this.moving = data.moving;
-    let timeToTarget = data.targetTS - Date.now();
+    // this.go2Target = false;
+    // this.moving = data.moving;
+    // let timeToTarget = data.targetTS - Date.now();
 
-    // zlotin bug
-    if(timeToTarget <= 500){
-      timeToTarget = 500;
-    }
+    // // zlotin bug
+    // if(timeToTarget <= 500){
+    //   timeToTarget = 500;
+    // }
 
     // necesseraly
     this.exploding = false;
     this.show();
 
-    if(!this.moving || !this.hadPos() ){
-      this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
-      return;
-    }
+    // return;
 
-    // Position
-    this.go2Target = true;
-    this.xPerMS = (data.targetPos.x - this.obj.position.x) / timeToTarget;
-    this.yPerMS = (data.targetPos.y - this.obj.position.y) / timeToTarget;
-    this.zPerMS = (data.targetPos.z - this.obj.position.z) / timeToTarget;
+    // if(!this.moving || !this.hadPos() ){
+    //   this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
+    //   return;
+    // }
 
-    // rotation
-    let lon = -data.mouseX * game.controls.lookSpeed;
-    let lat = data.mouseY * game.controls.lookSpeed;
-    this.xRadMS = THREE.MathUtils.degToRad( lon );
-    this.yRadMS = THREE.MathUtils.degToRad( lat );
+    // // Position
+    // this.go2Target = true;
+    // this.xPerMS = (data.targetPos.x - this.obj.position.x) / timeToTarget;
+    // this.yPerMS = (data.targetPos.y - this.obj.position.y) / timeToTarget;
+    // this.zPerMS = (data.targetPos.z - this.obj.position.z) / timeToTarget;
+
+    // // rotation
+    // let lon = -data.mouseX * game.controls.lookSpeed;
+    // let lat = data.mouseY * game.controls.lookSpeed;
+    // this.xRadMS = THREE.MathUtils.degToRad( lon );
+    // this.yRadMS = THREE.MathUtils.degToRad( lat );
 
   }
   //////////////////////////////////////////////////////////

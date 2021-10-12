@@ -645,9 +645,10 @@ class Game /*extends THREE.EventDispatcher*/ {
       // }
       // broadcast position
       cam.getWorldDirection(this.direction);
+      cam.getWorldPosition(this.targetPos);
       //let quaternion = new THREE.Quaternion();
       //cam.getWorldQuaternion(quaternion);
-      const targetPos = this.moving? this.calcTargetPos(cam.position, this.direction) : cam.position;
+      //const targetPos = this.moving? this.calcTargetPos(cam.position, this.direction) : cam.position;
       deepStream.sendEvent('player',{
         type:"pos",
         // old
@@ -657,13 +658,13 @@ class Game /*extends THREE.EventDispatcher*/ {
         moving: this.moving,
         // new
         targetPos: {
-          x:targetPos.x,
-          y:targetPos.y,
-          z:targetPos.z
+          x:this.targetPos.x,
+          y:this.targetPos.y,
+          z:this.targetPos.z
         },
-        mouseX: this.controls.mouseX,
-        mouseY: this.controls.mouseY,
-        targetTS: Date.now() + config.updateInterval,
+        //mouseX: this.controls.mouseX,
+        //mouseY: this.controls.mouseY,
+        //targetTS: Date.now() + config.updateInterval,
         //quaternion: quaternion
       });
     }, config.updateInterval);
@@ -674,16 +675,16 @@ class Game /*extends THREE.EventDispatcher*/ {
   // axis - the axis of rotation (normalized THREE.Vector3)
   // theta - radian value of rotation
   //////////////////////////////////////////////////////////
-  calcTargetPos(pos, worldDir){
-    this.targetPos.copy(pos);
-    //return this.targetPos;
+  // calcTargetPos(pos, worldDir){
+  //   this.targetPos.copy(pos);
+  //   //return this.targetPos;
 
-    const distance = config.distancePerMS * config.updateInterval;
-    // move forward
-    const direction = worldDir.multiplyScalar(distance);
-    this.targetPos.add(direction);
-    return this.targetPos;
-  }
+  //   const distance = config.distancePerMS * config.updateInterval;
+  //   // move forward
+  //   const direction = worldDir.multiplyScalar(distance);
+  //   this.targetPos.add(direction);
+  //   return this.targetPos;
+  // }
   //////////////////////////////////////////////////////////
   checkGatePass(){
     // always check (even when passing to know if exited)
