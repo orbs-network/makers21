@@ -21,10 +21,7 @@ class World {
 
     //////////////////////////////////////////////////////////
     reset() {
-        if (this.tidReturn) {
-            clearInterval(this.tidReturn);
-            this.tidReturn = null;
-        }
+        this.returnObj = null;
         this.players.reset();
     }
 

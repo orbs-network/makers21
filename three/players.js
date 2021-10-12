@@ -115,7 +115,8 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   onPos(data){
-    if(data.targetTS <= this.lastPosTS){
+    let msSinceLast = data.targetTS - this.lastPosTS;
+    if(msSinceLast < 0){
       console.error('OLD TS MSG', data.targetTS ,this.lastPosTS);
       return;
     }
@@ -131,8 +132,8 @@ class Player{
     let timeToTarget = data.targetTS - Date.now();
 
     // zlotin bug
-    if(timeToTarget <= 500){
-      timeToTarget = 500;
+    if(timeToTarget <= msSinceLast){ // was 500ms
+      timeToTarget = msSinceLast;
     }
 
     // necesseraly
