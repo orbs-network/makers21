@@ -139,12 +139,6 @@ class World {
         // const axesHelper = new THREE.AxesHelper( SIZE );
         // this.scene.add( axesHelper );
 
-
-        // // const skyColor = 0xB1E1FF;  // light blue
-        // // const groundColor = 0xB97A20;  // brownish orange
-        // // const intensity = 1;
-
-
         // create players
         this.players = new Players(this);
 
@@ -155,7 +149,7 @@ class World {
 
         const gateY = HEIGHT / 2 + GATE_SIZE / 2;
 
-        const gatePosFactor = 1.95;//almost at border (2)
+        const gatePosFactor = 0.95;//almost at border (2)
 
         // move front and up
         this.redGate.position.z = -SIZE * gatePosFactor;
@@ -409,18 +403,18 @@ class World {
 
     //////////////////////////////////////////////////////////
     createHoriz(divisions, color, zDir, yPos) {
-        let zOffset = SIZE / 2 * zDir + zDir * 0.01;// little space to avoid overlap
+        //let zOffset = SIZE / 2 * zDir + zDir * 0.01;// little space to avoid overlap
         // create floor
-        let grid = new THREE.GridHelper(SIZE * 2, divisions, color, color);
+        let grid = new THREE.GridHelper(SIZE, divisions, color, color);
 
         this.scene.add(grid);
-        grid.position.z = zOffset * 2;
+        grid.position.z = SIZE/2 * zDir;
         grid.position.y = yPos;
 
-        const geometry = new THREE.BoxGeometry(SIZE * 2, 0.1, SIZE * 2);
-        const material = new THREE.MeshBasicMaterial({opacity: 0.1, transparent: true, color: color});
-        const cube = new THREE.Mesh(geometry, material);
-        grid.add(cube);
+        // const geometry = new THREE.BoxGeometry(SIZE, 0.1, SIZE);
+        // const material = new THREE.MeshBasicMaterial({opacity: 0.1, transparent: true, color: color});
+        // const cube = new THREE.Mesh(geometry, material);
+        // grid.add(cube);
 
         // create pads
         //this.createBorderPads(divisions, zDir, 1, yPos);
@@ -431,8 +425,8 @@ class World {
     createBorders(color, zDir) {
         const divisions = 20;
 
-        this.border.east = SIZE;
-        this.border.west = -SIZE;
+        this.border.east = SIZE/2;
+        this.border.west = -SIZE/2;
 
         // create floor
         this.border.floor = 0;
@@ -442,8 +436,8 @@ class World {
         this.border.ceiling = HEIGHT;
         this.createHoriz(divisions, color, zDir, this.border.ceiling);
 
-        this.border.north = -SIZE * 2 ;
-        this.border.south = SIZE * 2;
+        this.border.north = -SIZE;
+        this.border.south = SIZE;
     }
 
     //////////////////////////////////////////////////////////
@@ -506,9 +500,6 @@ class World {
 
         // middle
         this._camera.position.y = HEIGHT / 2;
-
-        // this.startLineZ = this._camera.position.z;
-        // this.startLineY = this._camera.position.y;
     }
 
     //////////////////////////////////////////////////////////
@@ -593,9 +584,10 @@ class World {
     setTeamPos(isRed) {
         // no team - set center
         if (isRed == null) {
-            this._camera.position.z = -2 * SIZE;
-            this._camera.position.x = SIZE * -1.8; // look at the sun
-            this._camera.position.y = HEIGHT / 2;
+            this._camera.position.z = -SIZE;
+            this._camera.position.x = SIZE * -1; // look at the sun
+            this._camera.position.y = HEIGHT * 1.2;
+
             // rotate - look at center
             this._camera.updateWorldMatrix();
             game.controls.lookAt(new THREE.Vector3(0,0,0));
@@ -611,9 +603,14 @@ class World {
         const hHalf = HEIGHT / 2;
         this.startLineY = Math.floor(Math.random() * hHalf) + hHalf;        // (-2) - 2
         // avoid start x axis on gate
-        const wHalf = SIZE / 2;
-        let startX = Math.floor(Math.random() * (SIZE - 2*GATE_SIZE)) + GATE_SIZE; // (-2) - 2half;
-        startX += startX > wHalf ? GATE_SIZE : -GATE_SIZE;
+        const width = ( SIZE / 3 );
+        let startX = Math.floor(Math.random() * width);
+        const toEast = (startX % 2) == 0;
+        if(toEast) {
+            startX = this.border.east - startX;
+        }else{
+            startX = this.border.west + startX;
+        }
         this.startLineX = startX;
 
 
