@@ -501,7 +501,7 @@ class World {
 
     //////////////////////////////////////////////////////////
     checkCrossBorders() {
-        return;
+
         // X axis
         if (this._camera.position.x < this.border.west) return true;
         if (this._camera.position.x > this.border.east) return true;
