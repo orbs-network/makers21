@@ -263,27 +263,32 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   show321(){
-    let sec = 0;
     this.playAudio('ping');
+    let first = true;
     this.tid321 = setInterval(() =>{
       const diff = this.mngrState.startTs - Date.now();
-      if(diff < 0 ){
+      if(diff > 0){
+        var seconds = Math.floor(diff / 1000);
+        var mili  = parseInt((new Date(diff)).getMilliseconds() / 100);
+        this.setGameMsg(`GAME BEGINS IN ${seconds}:${mili}`);
+
+        if(mili === 0){
+          // ping
+          if(!first){
+            this.playAudio((seconds > 0 )? 'ping':'locked');
+          }else{
+            first = false;
+          }
+        }
+      }
+      // end
+      else{
         if(this.tid321){
           clearInterval(this.tid321);
           this.tid321 = null;
         }
         // resume
         this.onGameStarted();
-        return;
-      }
-      var seconds = parseInt(diff / 1000);
-      var mili  = (new Date(diff)).getMilliseconds();
-      this.setGameMsg(`GAME BEGINS IN ${seconds}:${mili}`);
-      // ping
-      sec +=1;
-      if(!(sec % 15)){
-        //this.ping.stop();
-        this.playAudio('ping');
       }
     },100);
   }
@@ -324,7 +329,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.startBorderLoop(true);
 
       // to enable start stop
-      this.setGameMsg('press any key to start flying!');
+      this.setGameMsg('press any key to start');
 
       // start FPS loop
       const fps = document.getElementById('fps');
@@ -399,12 +404,14 @@ class Game /*extends THREE.EventDispatcher*/ {
         // play success if it was flag got captured
         if(holdingFlag && !this.holdingFlag){
           // SUCCESS - you are the holder of the flag
-          game.playAudio('success');
+          this.setGameMsg('return the flag to you home gate');
+          this.playAudio('success');
         }
         this.holdingFlag = holdingFlag;
 
         // drop flag if exploding during this update from nanager
         if(this.exploding){
+          this.setGameMsg('flag was dropped during explosion');
           this.tellDropFlag();
         }
 
@@ -646,11 +653,17 @@ class Game /*extends THREE.EventDispatcher*/ {
       // if(!this.moving){
       //   return;
       // }
+      cam.updateMatrixWorld();
+
       // broadcast position
       cam.getWorldDirection(this.direction);
       //let quaternion = new THREE.Quaternion();
       //cam.getWorldQuaternion(quaternion);
-      const targetPos = this.moving? this.calcTargetPos(cam.position, this.direction) : cam.position;
+      const targetPos = this.moving? this.calcTargetPos(cam, this.direction) : cam.position.clone();
+      //const targetPos = cam.position.clone();
+      //const targetPos = cam.position;
+      //let targetPos = cam.position.clone();
+      //console.log('sending pos', targetPos);
       deepStream.sendEvent('player',{
         type:"pos",
         // old
@@ -677,8 +690,8 @@ class Game /*extends THREE.EventDispatcher*/ {
   // axis - the axis of rotation (normalized THREE.Vector3)
   // theta - radian value of rotation
   //////////////////////////////////////////////////////////
-  calcTargetPos(pos, worldDir){
-    this.targetPos.copy(pos);
+  calcTargetPos(cam, worldDir){
+    this.targetPos = cam.position.clone();
     //return this.targetPos;
     const turnFactor = 0.8;
     const distance = config.distancePerMS * config.updateInterval * turnFactor;
@@ -724,7 +737,6 @@ class Game /*extends THREE.EventDispatcher*/ {
       clearTimeout(this.tidWarning);
       this.tidWarning = 0;
     }
-
   }
   //////////////////////////////////////////////////////////
   doExplode(msg){
@@ -791,7 +803,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.startWarning(`WARNING! ${data.nick} is locking on you!`);
       }else{
         this.stopWarning();
-        this.setGameMsg(`${data.nick} lost aim on you`);
+        //this.setGameMsg(`${data.nick} lost aim on you`);
       }
     }
   }
@@ -928,6 +940,7 @@ window.onload = function(){
 
     game.world.createScene();
     game.initControls(false);
+    game.world.setTeamPos(null);
     game.connect();
 
     function animate() {

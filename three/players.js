@@ -144,6 +144,10 @@ class Player{
       this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
       return;
     }
+    console.log(this.nick, this.obj.position);
+
+    // important??? or time?
+    game.world.camera.updateMatrixWorld();
 
     // Position
     this.go2Target = true;
@@ -171,7 +175,7 @@ class Player{
     }
 
     // abort future lockOff
-    if(this.tidLockOff){
+    if(this.tidLock){
       clearTimeout(this.tidLock);
       this.tidLock = 0;
     }
@@ -202,7 +206,7 @@ class Player{
   //////////////////////////////////////////////////////////
   onFire(data){
     // abort future lockOff
-    if(this.tidLockOff){
+    if(this.tidLock){
       clearTimeout(this.tidLock);
       this.tidLock = 0;
     }
@@ -227,9 +231,9 @@ class Player{
     if(sound) sound.play();
 
     // timer for lock off
-    this.tidLockOff = setTimeout(() =>{
+    this.tidLock = setTimeout(() =>{
       this.onLockOff(data, target);
-      this.tidLockOff = 0;
+      this.tidLock = 0;
     }, config.targetLockMs)
 
   }
@@ -291,7 +295,7 @@ class Players{
       // }
 
       // abort future lockOff
-      if(p.tidLockOff){
+      if(p.tidLock){
         clearTimeout(this.tidLock);
         p.tidLock = 0;
       }
@@ -318,7 +322,7 @@ class Players{
     const p = this.getPlayer(data.nick);
 
     if(!p){
-      console.error(`Player ${data.id} not found`);
+      console.log(`Player ${data.id} ${data.nick} not in this game`); // ignore
       return;
     }
 
@@ -333,6 +337,7 @@ class Players{
         break;
       case "explode":
         p.onExplode(data, this.world.explode);
+        game.setGameMsg(`${data.nick} got exploded}`);
         break;
       case "fire":
         p.onFire(data);
