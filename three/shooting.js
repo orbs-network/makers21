@@ -73,7 +73,15 @@ class Shooting {
     return true;
   }
   //////////////////////////////////////////////
+  // onNewTarget(target, players) {
+  //   if(this.tidNewTarget) clearTimeout(this.tidNewTarget);
+  //   this.tidNewTarget = setTimeout(()=>{
+  //     this.onNewTargetDly(target, players);
+  //   }, 50);
+  // }
+  //////////////////////////////////////////////
   onNewTarget(target, players) {
+    this.tidNewTarget = null;
     // REMINDER 'target' is the sphere THREEJS mesh object
 
     // reset locking
