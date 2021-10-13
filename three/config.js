@@ -23,7 +23,7 @@ window.config = {
   vertLimit: 0.60,
   updateInterval: 300,
   return2startSec: 5,
-  explodePartSize: 0.02,
+  explodePartSize: 2,
   // rotUnit:0.001,
   raycastNear:0,
   raycastFar:2*SIZE

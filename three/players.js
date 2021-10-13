@@ -144,10 +144,11 @@ class Player{
       this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
       return;
     }
-    console.log(this.nick, this.obj.position);
 
     // important??? or time?
-    game.world.camera.updateMatrixWorld();
+    //game.world.camera.updateMatrixWorld();
+    //this.obj.updateMatrixWorld();
+    this.obj.updateMatrix();
 
     // Position
     this.go2Target = true;
@@ -337,7 +338,7 @@ class Players{
         break;
       case "explode":
         p.onExplode(data, this.world.explode);
-        game.setGameMsg(`${data.nick} got exploded}`);
+        game.setGameMsg(`${data.nick} got exploded`);
         break;
       case "fire":
         p.onFire(data);

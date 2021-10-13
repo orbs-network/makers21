@@ -390,31 +390,36 @@ class Game /*extends THREE.EventDispatcher*/ {
     // game already started
     if(state.started){
       // first means hasnt moved, after reload
-      if(joined && this.first){
-        // return/start game
-        this.onGameStarted();
-      }else{
-        // Ongoing game update (not first since reload)
+      if(joined){
+        if(this.first){
+          // return/start game
+          this.onGameStarted();
+        }else{
+          // Ongoing game update (not first since reload)
 
-        // Handle Flags
-        const holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
+          // Handle Flags
+          const holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
 
-        this.world.setFlagHolders(holdingFlag, this.localState, this.mngrState);
+          this.world.setFlagHolders(holdingFlag, this.localState, this.mngrState);
 
-        // play success if it was flag got captured
-        if(holdingFlag && !this.holdingFlag){
-          // SUCCESS - you are the holder of the flag
-          this.setGameMsg('return the flag to you home gate');
-          this.playAudio('success');
+          // play success if it was flag got captured
+          if(holdingFlag && !this.holdingFlag){
+            // SUCCESS - you are the holder of the flag
+            this.setGameMsg('return the flag to you home gate');
+            this.playAudio('success');
+          }
+          this.holdingFlag = holdingFlag;
+
+          // drop flag if exploding during this update from nanager
+          if(this.exploding){
+            this.setGameMsg('flag was dropped during explosion');
+            this.tellDropFlag();
+          }
         }
-        this.holdingFlag = holdingFlag;
-
-        // drop flag if exploding during this update from nanager
-        if(this.exploding){
-          this.setGameMsg('flag was dropped during explosion');
-          this.tellDropFlag();
-        }
-
+      }
+      // game started but not joined
+      else {
+        document.getElementById('welcome').style.display = "block";
         document.getElementById('inputs').style.display = "none";
         document.getElementById('teams').style.display = "none";
         document.getElementById('started').innerText = "game has started - please wait for next game to start";
