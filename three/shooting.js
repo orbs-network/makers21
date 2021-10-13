@@ -174,7 +174,7 @@ class Shooting {
     if (intersections.length) {
       target = intersections[0].object;
       target.distance = intersections[0].distance;
-      console.log('raycase', target.name, intersections[0].distance); //, dis);
+      //console.log('raycase', target.name, intersections[0].distance); //, dis);
       // target changed
     }
 
