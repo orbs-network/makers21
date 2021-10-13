@@ -178,11 +178,8 @@ class World {
         // sound
         //init from user ket down in game this.initSound();
         // or is it ok to init here, and only play when user action?
-
         if (!this.disableSound) {
-
             this.initSound();
-
         }
 
         // 2d renderer
@@ -205,10 +202,7 @@ class World {
         if (!this.simpleRendering) {
             // Deddy
             this.createSpace();
-
         }
-
-
     }
 
     createSpace() {
@@ -489,17 +483,7 @@ class World {
     //////////////////////////////////////////////////////////
     createCamera() {
         this._camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
-
-        // aim and dashboard
-        // var cubeGeometry = new THREE.CircleGeometry( 0.2, 32);
-        // var cubeMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, side: THREE.DoubleSide, transparent: false, opacity: 0.5, depthTest: false});
-        // var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-        // this._camera.add(cube);
-        // cube.position.set( 0, 0, -30 );
         this.scene.add(this._camera);
-
-        // middle
-        this._camera.position.y = HEIGHT / 2;
     }
 
     //////////////////////////////////////////////////////////
@@ -517,6 +501,7 @@ class World {
 
     //////////////////////////////////////////////////////////
     checkCrossBorders() {
+        return;
         // X axis
         if (this._camera.position.x < this.border.west) return true;
         if (this._camera.position.x > this.border.east) return true;
@@ -586,7 +571,7 @@ class World {
         if (isRed == null) {
             this._camera.position.z = -SIZE;
             this._camera.position.x = SIZE * -1; // look at the sun
-            this._camera.position.y = HEIGHT * 1.2;
+            this._camera.position.y = HEIGHT * 0.7;
 
             // rotate - look at center
             this._camera.updateWorldMatrix();
