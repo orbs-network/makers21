@@ -30,13 +30,13 @@ window.config = {
 };
 
 
-config.shootNear = SIZE / 20;
-config.shootFar =  SIZE *1.2;
+config.shootNear = SIZE / 4;
+config.shootFar =  SIZE;
 config.passFlagNear = 0;
-config.passFlagFar = SIZE *1.4; // advantage
+config.passFlagFar = SIZE * 1.3; // advantage
 
 config.targetLockMs = 1000;
 
 config.colideDistance = config.distancePerMS * 50;
 config.gatePassDistance = config.distancePerMS * 100;
-config.lookSpeed = config.distancePerMS * 0.003; //0.0005,
+config.lookSpeed = config.distancePerMS * 0.01; //0.0005,
