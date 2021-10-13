@@ -650,7 +650,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       cam.getWorldDirection(this.direction);
       //let quaternion = new THREE.Quaternion();
       //cam.getWorldQuaternion(quaternion);
-      //const targetPos = this.moving? this.calcTargetPos(cam.position, this.direction) : cam.position;
+      const targetPos = this.moving? this.calcTargetPos(cam.position, this.direction) : cam.position;
       deepStream.sendEvent('player',{
         type:"pos",
         // old
@@ -660,9 +660,9 @@ class Game /*extends THREE.EventDispatcher*/ {
         moving: this.moving,
         // new
         targetPos: {
-          x:cam.position.x,
-          y:cam.position.y,
-          z:cam.position.z
+          x:targetPos.x,
+          y:targetPos.y,
+          z:targetPos.z
         },
         mouseX: this.controls.mouseX,
         mouseY: this.controls.mouseY,
@@ -677,16 +677,16 @@ class Game /*extends THREE.EventDispatcher*/ {
   // axis - the axis of rotation (normalized THREE.Vector3)
   // theta - radian value of rotation
   //////////////////////////////////////////////////////////
-  // calcTargetPos(pos, worldDir){
-  //   this.targetPos.copy(pos);
-  //   //return this.targetPos;
-
-  //   const distance = config.distancePerMS * config.updateInterval;
-  //   // move forward
-  //   const direction = worldDir.multiplyScalar(distance);
-  //   this.targetPos.add(direction);
-  //   return this.targetPos;
-  // }
+  calcTargetPos(pos, worldDir){
+    this.targetPos.copy(pos);
+    //return this.targetPos;
+    const turnFactor = 0.8;
+    const distance = config.distancePerMS * config.updateInterval * turnFactor;
+    // move forward
+    const direction = worldDir.multiplyScalar(distance);
+    this.targetPos.add(direction);
+    return this.targetPos;
+  }
   //////////////////////////////////////////////////////////
   checkGatePass(){
     // always check (even when passing to know if exited)
