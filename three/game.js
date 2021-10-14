@@ -180,9 +180,10 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   startStop(){
+    // cant start while exploding
     if(!this.moving && this.exploding){
       this.playAudio('wrong');
-      console.log('cant start while exploding')
+      console.log('cant start while exploding');
       return;
     }
     this.stopWarning();
@@ -738,9 +739,14 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   stopWarning(){
-    this.setGameMsg('');
+    // dont turn effect off
+    // and dont change message
+    // when exploding
+    if(!this.exploding){
+       this.world.turnWarningEffect(false);
+       this.setGameMsg('');
+    }
     this.stopAudio('alarm');
-    this.world.turnWarningEffect(false);
     if(this.tidWarning){
       clearTimeout(this.tidWarning);
       this.tidWarning = 0;
@@ -836,7 +842,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   doFire(){
     if(!this.moving) return;
     if(!this.world.shooting) return;
-    if(this.world.shooting.firing) return;
+    if(this.firing) return;
 
     // shooting an enemy
     if(!this.world.shooting.locked){
@@ -874,7 +880,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   keydown(e){
     //console.log('keydown code=', e.code);
     // not started
-    if(!this.mngrState.started && this.world.players.gameJoined){
+    if(!this.mngrState.started || !this.world.players.gameJoined){
       console.log("cant fly before game started and joined");
       return;
     }

@@ -533,6 +533,10 @@ class World {
     //////////////////////////////////////////////////////////
     doExplode() {
         this.explode.create(this._camera.position.x, this._camera.position.y, this._camera.position.z, game.localState.isRed);
+
+        if(this.shooting){
+            this.shooting.resetHUD();
+        }
         // camera sound moved to HTMLs
         //let sound = this._camera.getObjectByName('sound_explode.wav');
         //if(sound) sound.play();

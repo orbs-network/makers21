@@ -81,7 +81,7 @@ class Shooting {
   // }
   //////////////////////////////////////////////
   onNewTarget(target, players) {
-    this.tidNewTarget = null;
+    //this.tidNewTarget = null;
     // REMINDER 'target' is the sphere THREEJS mesh object
 
     // reset locking
@@ -246,6 +246,12 @@ class Shooting {
     }
   }
   //////////////////////////////////////////////
+  resetHUD() {
+    this.tsEnemyLock = 0;
+    this.target = null;
+    this.changeHudState();
+  }
+  //////////////////////////////////////////////
   changeHudState() {
     this.setHudOpacity(0.3);
     // neutral
@@ -263,8 +269,6 @@ class Shooting {
       this.setHudColor(this.friend ? "#00FF00" : "#FF0000");
       // SIZE
       this.hud.position.z = HUD_Z_ACTIVE;
-      // TEXT
-      const targetName = this.targetPlayer.nick;
     }
   }
 }
