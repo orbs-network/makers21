@@ -15,12 +15,12 @@ body {
 
 .player-label{
     background-color: transparent;
-    text-shadow:0 0 7px #000;
-    margin-top: 1em;
+    text-shadow:0 0 7px #FFF;
+    margin-top: 1.5em;
 }
 .hud-label{
     background-color: transparent;
-    text-shadow:0 0 7px #000;
+    text-shadow:1 1 3px #000;
     margin-top: 5em;
     opacity: 0.3;
 }
@@ -51,7 +51,8 @@ body {
     text-align: center;
     color: silver;
     left: calc(50% - 400px);
-    top: calc(50% - 400px);
+    top: 4%;
+    background-color: #0004;
 }
 .team-label {
     width: 200px;
@@ -65,7 +66,7 @@ body {
     /*font-size: 26px;*/
     /*height: 48px;*/
     color:silver;
-    background-color: black;
+    background-color: #0004;
     border: 1px solid silver;
 }
 #nick {
@@ -88,12 +89,14 @@ div{
 
 
 #game-display{
+    padding:1em;
     display:none;
+    font-size: larger;
     position: absolute;
-    top: 0;
+    top: 2%;
     right: 25%;
     width: 50%;
-    background-color:black;
+    background-color:#0004;
     color:silver;
     border: 1px solid silver;
     text-align: center;
@@ -106,6 +109,7 @@ div{
     right: 25%;
     width: 50%;
     border: 1px solid silver;
+    background-color: #0004;
     text-align: center;
     font-size: xx-large;
 }

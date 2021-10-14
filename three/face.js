@@ -18,6 +18,8 @@ class Face  {
 		this.faceDisplay = document.getElementById('face-display');
 		this.faceDisplay.style.display = 'block';
 
+		this.ret = {};
+
 
 		//const canvasElement = document.getElementsByClassName("output_canvas")[0];
 		//<canvas style="position: fixed; height: 144px; width: 256px; left: 0; top: 0; transform: scale(-1, 1);" class="output_canvas" width="256px" height="144px"></canvas>
@@ -60,10 +62,22 @@ class Face  {
 		this.center.y = this.orientation.y;
 	}
 	getDelta(){
-		return {
-			x : this.orientation.x - this.center.x,
-			y : this.orientation.y - this.center.y
+		// x gimble, constraint on range of left/right
+		let x = this.orientation.x - this.center.x;
+		const tmp = x;
+		// limit left right look
+		if(config.maxFaceX){
+			const ax = Math.abs(x);
+			if(ax >= config.maxFaceX){
+				const sign = ax / x;
+				x = config.maxFaceX * sign;
+			}
 		}
+		//console.log('x:',tmp, x)
+
+		this.ret.x = x;
+		this.ret.y = this.orientation.y - this.center.y;
+		return this.ret;
 	}
 	//////////////////////////////////////////////////////////
 	draw(results) {

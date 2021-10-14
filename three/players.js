@@ -1,5 +1,5 @@
 let v3 = new THREE.Vector3(0,0,0);
-const lookDistance = -1000;
+const lookDistance = 1000;
 
 //////////////////////////////////////////////////////////
 class Player{
@@ -10,7 +10,12 @@ class Player{
     this.isRed = isRed;
     this.gameJoined = false;
     this.nick = nick;
-    this.go2Target = false;
+    this.verticalLookRatio = Math.PI / ( game.controls.verticalMax - game.controls.verticalMin );
+    //this.go2Target = false;
+    //this.targetPos = new THREE.Vector3();
+    this.lastPosTS = 0;
+
+    //obj.rotation.y = -1;
 
     this._initLabel(nick, isRed);
 
@@ -19,19 +24,38 @@ class Player{
       this.addSound(sound);
     }
     // DO BEFORE SHOOTING SO IT DOESNT REPLACE ADDED SPHERE MATTERIAL
-    this.setMaterialColor(isRed? materials.redPhong : materials.bluePhong);
+    this.setMaterialColor(isRed);
+
+
+    // SUPER SIMPLE GLOW EFFECT
+    // use sprite because it appears the same from all angles
+    const spriteMaterial = new THREE.SpriteMaterial(
+        {
+          map: new THREE.ImageUtils.loadTexture( 'images/nova_1.png' ),
+          depthWrite: false,
+          color: isRed? 0xffaaaa:0x9999ff , blending: THREE.AdditiveBlending
+        });
+
+    const sprite = new THREE.Sprite( spriteMaterial );
+    sprite.scale.set(300, 300, 1.0);
+    sprite.position.z  = -180;
+    sprite.position.x  = -30;
+    obj.add(sprite);
 
     // useShooting
     this.useShooting = useShooting;
     if(useShooting){
       // bounding sphere
-      const geometry = new THREE.SphereGeometry( config.playerSphereSize, 16, 8 );
+      const geometry = new THREE.SphereGeometry( 320 * config.playSphereFactor, 16, 8 );
       // create new matterial per sphere so opacity can be changed individually
       this.boundSphere = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: isRed? 0xFF0000:0x0000FF } ) );
       this.boundSphere.layers.enable(1); // MUST
       this.boundSphere.material.transparent = true;
+      //this.boundSphere.position.z = 90;
       this.boundSphere.name = nick + '_bound_sphere';
-      this.boundSphere.material.opacity = 0; // invisible
+      //this.boundSphere.scale.set(2400,2400,2400);
+      this.boundSphere.material.opacity = 0;
+      //this.boundSphere.visible = false;// invisible
       this.obj.add(this.boundSphere);
       // lasser beam
       var laserBeam	= new THREEx.LaserBeam();
@@ -41,17 +65,16 @@ class Player{
       laserBeam.object3d.position.z = -.05; // infront of airplane
       this.laserBeam = laserBeam;
     }
+
+
   }
   //////////////////////////////////////////////////////////
   showBoundingSphere(show){
-    this.boundSphere.material.opacity = show? 0.5 : 0;
+    this.boundSphere.material.opacity = show? 0.3 : 0;
   }
   //////////////////////////////////////////////////////////
-  setMaterialColor(matterial){
-    this.obj.traverse(child=> {
-      if(child instanceof THREE.Mesh) {
-        child.material = matterial;
-      }});
+  setMaterialColor(red){
+    this.obj.children[0].material.emissive.set(red  ? RED_SHIP :  BLUE_SHIP);
   }
   //////////////////////////////////////////////////////////
   addSound(sound){
@@ -63,123 +86,114 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   update(delta){
-    if(this.moving){
+    if(this.moving && this.go2Target){
       // NEW
-      if(this.go2Target){
+      //if(this.go2Target){
         // Position
         this.obj.position.x += this.xPerMS * delta;
         this.obj.position.y += this.yPerMS * delta;
         this.obj.position.z += this.zPerMS * delta;
         // Rotation
-        // this.obj.rotation.x += this.xRotPerMS * delta;
-        // this.obj.rotation.y += this.yRotPerMS * delta;
-        // this.obj.rotation.z += this.zRotPerMS * delta;
-      }else{
+        //this.obj.rotation.set(direction);
+        this.obj.rotateOnAxis(new THREE.Vector3(0,1,0), this.xRadMS * delta);
+        this.obj.rotateOnAxis(new THREE.Vector3(1,0,0), this.yRadMS * delta);
+      //}else{
         // OLD
-        this.obj.getWorldDirection(v3);
-        //const direction = v3.multiplyScalar(-config.speed);
-        let distance = config.distancePerMS * delta ;
-        const direction = v3.multiplyScalar(-distance);
-        this.obj.position.add(direction);
-        //console.log('passed target!!!');
-      }
+        // console.error('player::update CALL YUVAL');
+        // this.obj.position.set(this.targetPos);
+        // this.obj.getWorldDirection(v3);
+        // //const direction = v3.multiplyScalar(-config.speed);
+        // let distance = config.distancePerMS * delta ;
+        // const direction = v3.multiplyScalar(-distance);
+        // this.obj.position.add(direction);
+      //}
     }
+  }//////////////////////////////////////////////////////////
+  hadPos(){
+    // return false if all zero
+    return(this.obj.position.x || this.obj.position.y || this.obj.position.z );
   }
   //////////////////////////////////////////////////////////
   onPos(data){
-    // direction
-    // this.lookTarget = {
-    //   x: data.dir.x * lookDistance,
-    //   y: data.dir.y * lookDistance,
-    //   z: data.dir.z * lookDistance
-    // }
-    // OLD
-    this.obj.lookAt(data.dir.x * lookDistance, data.dir.y*lookDistance, data.dir.z*lookDistance);
-
-
-    // position if not moving
-    this.moving = data.moving;
-    if(!this.moving){
-      // this.obj.position.x = data.targetPos.x;
-      // this.obj.position.y = data.targetPos.y;
-      // this.obj.position.z = data.targetPos.z;
+    let msSinceLast = data.targetTS - this.lastPosTS;
+    if(msSinceLast < 0){
+      console.error('OLD TS MSG', data.targetTS ,this.lastPosTS);
       return;
     }
+    this.lastPosTS = data.targetTS;
+    // direction
+    this.obj.lookAt(data.dir.x * lookDistance, data.dir.y * lookDistance, data.dir.z * lookDistance);
+    this.mouseX = data.mouseX;
+    this.mouseY = data.mouseY;
+
+    // position if not moving
+    this.go2Target = false;
+    this.moving = data.moving;
+    let timeToTarget = data.targetTS - Date.now();
+
+    // zlotin bug
+    if(timeToTarget <= msSinceLast){ // was 500ms
+      //timeToTarget = msSinceLast;
+      timeToTarget = config.updateInterval;
+    }
+
+    // necesseraly
+    this.exploding = false;
     this.show();
 
-    // First time pos
-    // if(isNaN(this.obj.position.x)){
-    //   this.obj.position.x = data.targetPos.x;
-    //   this.obj.position.y = data.targetPos.y;
-    //   this.obj.position.z = data.targetPos.z;
-    //   this.go2Target = false;
-    //   return;
-    // }
-
-    // OLD
-    // this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
-    // //this.rotation.set(data.rx, data.ry, data.rz);
-    // // since camera is oposite- we look backward negative sign
-
-    // this.moveForward();
-    // NEW
-    // this.targetDir = data.dir;
-    // this.targetPos = data.targetPos;
-    //this.targetTS = data.targetTS;
-    // NEW 2
-
-    // filter old messages
-    // doesnt happen
-    // if(!this.targetTS){
-    //   this.targetTS = data.targetTS;
-    // }else{
-    //   if(data.targetTS < this.targetTS){
-    //     console.error('pos message too old');
-    //     return;
-    //   }
-    // }
-
-
-    const timeToTarget = data.targetTS - Date.now();
-    if(timeToTarget > 0){
-      // Position
-      this.go2Target = true;
-      this.xPerMS = (data.targetPos.x - this.obj.position.x) / timeToTarget;
-      this.yPerMS = (data.targetPos.y - this.obj.position.y) / timeToTarget;
-      this.zPerMS = (data.targetPos.z - this.obj.position.z) / timeToTarget;
-      // Rotation
-      //this.obj.applyQuaternion(data.quaternion);
-      //this.obj.setRotationFromQuaternion(data.quaternion);
-      // this.obj.getWorldDirection(v3);
-      // this.xRotPerMS = (data.dir.x - v3.x) / timeToTarget;
-      // this.yRotPerMS = (data.dir.y - v3.y) / timeToTarget;
-      // this.zRotPerMS = (data.dir.z - v3.z) / timeToTarget;
-    }else{
-      this.go2Target = false;
-    }
-  }
-  //////////////////////////////////////////////////////////
-  onStart(data){
-    // abort future lockOff
-    if(this.tidLockOff){
-      clearTimeout(this.tidLock);
-      this.tidLock = 0;
+    if(!this.moving || !this.hadPos() ){
+      this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
+      return;
     }
 
-    this.moving = data.moving;
-    this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
+    // important??? or time?
+    //game.world.camera.updateMatrixWorld();
+    //this.obj.updateMatrixWorld();
+    this.obj.updateMatrix();
+
+    // Position
+    this.go2Target = true;
+    this.xPerMS = (data.targetPos.x - this.obj.position.x) / timeToTarget;
+    this.yPerMS = (data.targetPos.y - this.obj.position.y) / timeToTarget;
+    this.zPerMS = (data.targetPos.z - this.obj.position.z) / timeToTarget;
+
+    // rotation
+    let lon = -data.mouseX * game.controls.lookSpeed;
+    let lat = data.mouseY * game.controls.lookSpeed;
+    this.xRadMS = THREE.MathUtils.degToRad( lon );
+    this.yRadMS = THREE.MathUtils.degToRad( lat );
+
   }
   //////////////////////////////////////////////////////////
   onExplode(data, explode){
+    this.exploding = data.flag;
+
+    // finished exploding
+    if(!this.exploding){
+      this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
+      this.obj.rotation.set(data.dir.x, data.dir.y, data.dir.z);
+      this.show(true);
+      return;
+    }
+
     // abort future lockOff
-    if(this.tidLockOff){
+    if(this.tidLock){
       clearTimeout(this.tidLock);
       this.tidLock = 0;
     }
 
     // hide exploding airplaine
     this.moving = false;
+    // hide exploding
     this.show(false);
+    // show again after return to start
+    if(this.tidWaitReturn){
+      clearTimeout(this.tidWaitReturn);
+    }
+    // this.tidWaitReturn = setTimeout(()=>{
+    //   this.tidWaitReturn = 0;
+    //   this.show(true)
+    // },config.return2startSec * 1000)
 
     // create explosition attached to player
     explode.create(this.obj.position.x, this.obj.position.y, this.obj.position.z, this.isRed);
@@ -194,7 +208,7 @@ class Player{
   //////////////////////////////////////////////////////////
   onFire(data){
     // abort future lockOff
-    if(this.tidLockOff){
+    if(this.tidLock){
       clearTimeout(this.tidLock);
       this.tidLock = 0;
     }
@@ -219,9 +233,9 @@ class Player{
     if(sound) sound.play();
 
     // timer for lock off
-    this.tidLockOff = setTimeout(() =>{
+    this.tidLock = setTimeout(() =>{
       this.onLockOff(data, target);
-      this.tidLockOff = 0;
+      this.tidLock = 0;
     }, config.targetLockMs)
 
   }
@@ -254,7 +268,7 @@ class Player{
     const playerLabelDiv = document.createElement( 'div' );
     playerLabelDiv.className = 'player-label';
     playerLabelDiv.textContent = nick || "WHO DIS?";
-    playerLabelDiv.style.color = isRed ? '#F33':'33F';
+    playerLabelDiv.style.color = isRed ? '#F00':'#00F';
     this.playerLabelObj = new THREE.CSS2DObject( playerLabelDiv );
     this.playerLabelObj.position.set( 0, 0, 0 );
     this.obj.add( this.playerLabelObj );
@@ -268,32 +282,22 @@ class Players{
     this.world= world;
     this.model = world.models['airplane'];
 
-    this.redMaterial =
-
-    this.blueMaterial = new THREE.MeshPhongMaterial({
-      color: 0x0000FF,    // red (can also use a CSS color string here)
-      flatShading: true,
-      side: THREE.DoubleSide
-    });
-    //const material = new THREE.MeshPhongMaterial();
-    //const material = THREE.MeshToonMaterial();
-    //const material = THREE.MeshBasicMaterial();
-    //material.flatShading = false;
-    //material.flatShading = true;
-    //this.matter = material;
     this.useShooting = false;
 
-		deepStream.subscribe("player", this.onEvent.bind(this));
+    deepStream.subscribe("player", this.onEvent.bind(this));
+
   }
   //////////////////////////////////////////////////////////
   reset(){
     // hide objects from scene
     for(let p of this.all()){
       p.visible = false;
-      p.playerLabelObj.visible = false;
+      // if(p.playerLabelObj){
+      //   p.playerLabelObj.visible = false;
+      // }
 
       // abort future lockOff
-      if(p.tidLockOff){
+      if(p.tidLock){
         clearTimeout(this.tidLock);
         p.tidLock = 0;
       }
@@ -317,21 +321,25 @@ class Players{
     if(!this.gameJoined){
       return;
     }
-
     const p = this.getPlayer(data.nick);
+
     if(!p){
-      console.error(`Player ${data.id} not found`);
+      console.log(`Player ${data.id} ${data.nick} not in this game`); // ignore
       return;
     }
+
+    //  if(data.targetPos)    console.log(`event type:${data.type}`,data.targetPos);
+
     switch(data.type){
-      case "start":
-        p.onStart(data);
-        break;
+      // case "start":
+      //   p.onStart(data);
+      //   break;
       case "pos":
         p.onPos(data);
         break;
       case "explode":
         p.onExplode(data, this.world.explode);
+        game.setGameMsg(`${data.nick} got exploded`);
         break;
       case "fire":
         p.onFire(data);
@@ -383,7 +391,7 @@ class Players{
     p.copy(this.model);
 
     // scale
-    const s = SIZE/5;// was4
+    const s = SIZE/20000;// was 30000 but adjusted to ship model
     p.scale.set(s,s,s);
 
     p.name = nick;
@@ -392,7 +400,7 @@ class Players{
     p.castShadow = true;
     //p.visible = false; // until positioned
     let newPlayer = new Player(p, nick, (isRed===1), this.sound, this.useShooting);
-    newPlayer.show(false);
+    //newPlayer.show(false);
 
     this.dict[nick] = newPlayer;
     console.log('create player',nick);

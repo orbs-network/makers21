@@ -2,7 +2,7 @@
 function ExplodeMngr(scene){
   //////////////settings/////////
   const SECONDS = 2;
-  var movementSpeed = 0.08;
+  var movementSpeed = SIZE/50;
   var totalObjects = 1000;
   //var objectSize = 0.03;
   //var sizeRandomness = 4000;
@@ -67,15 +67,16 @@ function ExplodeMngr(scene){
         var count = totalObjects;
         while(--count) {
           //var particle =  this.object.geometry.vertices[index]
-          this.particles[index++] += dirs[count].y;
-          this.particles[index++] += dirs[count].x;
-          this.particles[index++] += dirs[count].z;
+          this.particles[index++] += dirs[count].y * Math.random() * (Math.random() > 0.2 ? 1 : -1) ;
+          this.particles[index++] += dirs[count].x * Math.random() * (Math.random() > 0.2 ? 1 : -1);
+          this.particles[index++] += dirs[count].z * Math.random() * (Math.random() > 0.2 ? 1 : -1);
           this.object.material.opacity = this.object.material.opacity * 0.99;
           // var particle = this.particles[pCount];
           // particle.y += dirs[pCount].y;
           // particle.x += dirs[pCount].x;
           // particle.z += dirs[pCount].z;
         }
+
         //this.object.geometry.verticesNeedUpdate = true;
         this.object.geometry.attributes.position.needsUpdate = true;
       }

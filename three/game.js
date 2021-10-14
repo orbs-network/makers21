@@ -4,6 +4,9 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.resetMembers();
     this.loadLocalState();
     this.useNeck = localStorage.getItem('disableNeck') !== 'true';
+    this.stillTargetEnabled = localStorage.getItem('stillTargetEnabled') == 'true';
+    this.disableConstantSpeed = localStorage.getItem("disableConstantSpeed") == 'true';
+    this.disableSound = localStorage.getItem("disableSound");
   }
   //////////////////////////////////////////////////////////
   resetMembers(){
@@ -14,6 +17,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.passingGate = null;
     this.gameOver = false;
     this.targetPos = new THREE.Vector3();
+    this.direction = new THREE.Vector3();
     // NEED THIS! this.mngrState = null;
   }
   //////////////////////////////////////////////////////////
@@ -84,7 +88,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     // init controls
     this.initControls(false);
-    // start broadcast interval
+    // stop broadcast interval
     this.startUpdateLoop(false);
     // to enable start stop
     this.setGameMsg('game has been reset!');
@@ -176,22 +180,24 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   startStop(){
+    // cant start while exploding
     if(!this.moving && this.exploding){
       this.playAudio('wrong');
-      console.log('cant start while exploding')
+      console.log('cant start while exploding');
       return;
     }
+    this.stopWarning();
     this.moving = !this.moving;
-    this.controls.autoForward = this.moving;
+    this.controls.autoForward = !this.disableConstantSpeed &&  this.moving;
     this.controls.enabled = this.moving;
     //this.controls
-    let pos = this.world.camera.position;
-    deepStream.sendEvent('player',{
-      type:"start",
-      moving:this.moving,
-      pos:pos,
-      nick:this.localState.nick
-    });
+    // const pos = this.world.camera.position.clone();
+    // deepStream.sendEvent('player',{
+    //   type:"start",
+    //   moving:this.moving,
+    //   pos:pos,
+    //   nick:this.localState.nick
+    // });
     // start
     if(this.moving){
       if(this.useNeck){
@@ -200,7 +206,10 @@ class Game /*extends THREE.EventDispatcher*/ {
 
       if(this.first){
         this.first = false;
-        this.world.sound.play();
+
+        if (!this.disableSound) {
+          this.world.sound.play();
+        }
         //this.world.onFirst();
       }
     }
@@ -250,31 +259,37 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   setGameMsg(html){
+    document.getElementById('game-display').style.display = html? "block":"none";
     document.getElementById('msg').innerHTML = html;
   }
   //////////////////////////////////////////////////////////
   show321(){
-    let sec = 0;
     this.playAudio('ping');
+    let first = true;
     this.tid321 = setInterval(() =>{
       const diff = this.mngrState.startTs - Date.now();
-      if(diff < 0 ){
+      if(diff > 0){
+        var seconds = Math.floor(diff / 1000);
+        var mili  = parseInt((new Date(diff)).getMilliseconds() / 100);
+        this.setGameMsg(`GAME BEGINS IN ${seconds}:${mili}`);
+
+        if(mili === 0){
+          // ping
+          if(!first){
+            this.playAudio((seconds > 0 )? 'ping':'locked');
+          }else{
+            first = false;
+          }
+        }
+      }
+      // end
+      else{
         if(this.tid321){
           clearInterval(this.tid321);
           this.tid321 = null;
         }
         // resume
         this.onGameStarted();
-        return;
-      }
-      var seconds = parseInt(diff / 1000);
-      var mili  = (new Date(diff)).getMilliseconds();
-      this.setGameMsg(`GAME BEGINS IN ${seconds}:${mili}`);
-      // ping
-      sec +=1;
-      if(!(sec % 15)){
-        //this.ping.stop();
-        this.playAudio('ping');
       }
     },100);
   }
@@ -293,7 +308,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.show321();
       //this.setGameMsg('game begins in:');
       return;
-    }else{
+    }else{ // happens after Reload
       // update world
       this.world.setNick(this.localState.nick);
       this.world.setTeamPos(this.localState.isRed);
@@ -304,10 +319,18 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
       this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
 
+      // drop flag if has it after reloading
+      if(this.holdingFlag){
+        this.tellDropFlag(this.holdingFlag);
+        this.setGameMsg('Flag was dropped during game page reload');
+      }
+
       // start broadcast interval
       this.startUpdateLoop(true);
+      this.startBorderLoop(true);
+
       // to enable start stop
-      this.setGameMsg('press any key to start flying!');
+      this.setGameMsg('press any key to start');
 
       // start FPS loop
       const fps = document.getElementById('fps');
@@ -327,6 +350,11 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('winnerIsRed').innerHTML =`${winnerTeam} TEAM IS THE WINNER`;
     this.moving = false;
     this.startUpdateLoop(false);
+    this.startBorderLoop(false);
+    this.stopWarning();
+
+    this.resetAll();
+    //this.world.setTeamPos(null); // also sets players joined to null
   }
   //////////////////////////////////////////////////////////
   onMngrState(state){
@@ -363,29 +391,44 @@ class Game /*extends THREE.EventDispatcher*/ {
     // game already started
     if(state.started){
       // first means hasnt moved, after reload
-      if(joined && this.first){
-        // return/start game
-        this.onGameStarted();
-      }else{
-        // Ongoing game update (not first since reload)
+      if(joined){
+        if(this.first){
+          // return/start game
+          this.onGameStarted();
+        }else{
+          // Ongoing game update (not first since reload)
 
-        // Handle Flags
-        const holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
-        this.world.setFlagHolders(holdingFlag, this.localState, this.mngrState);
+          // Handle Flags
+          const holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
 
-        // play success if it was flag got captured
-        if(holdingFlag && !this.holdingFlag){
-          // SUCCESS - you are the holder of the flag
-          game.playAudio('success');
+          this.world.setFlagHolders(holdingFlag, this.localState, this.mngrState);
+
+          // play success if it was flag got captured
+          if(holdingFlag && !this.holdingFlag){
+            // SUCCESS - you are the holder of the flag
+            this.setGameMsg('return the flag to you home gate');
+            this.playAudio('success');
+          }
+          this.holdingFlag = holdingFlag;
+
+          // drop flag if exploding during this update from nanager
+          if(this.exploding){
+            this.setGameMsg('flag was dropped during explosion');
+            this.tellDropFlag();
+          }
         }
-        this.holdingFlag = holdingFlag;
-
+      }
+      // game started but not joined
+      else {
+        document.getElementById('welcome').style.display = "block";
         document.getElementById('inputs').style.display = "none";
         document.getElementById('teams').style.display = "none";
         document.getElementById('started').innerText = "game has started - please wait for next game to start";
       }
       return;
     }
+    // show welcome as game isnt over and hasnt started yet
+    document.getElementById('welcome').style.display = "block";
 
     // ready to start
     document.getElementById('ready-text').innerText = state.ready? "ready to start": "waiting for more players to join";
@@ -431,7 +474,6 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   onEvent(data){
-    console.log('onEvent manager', data);
     switch(data.type){
       case "state":
         this.onMngrState(data.state);
@@ -469,7 +511,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   stopAudio(id){
-    let sound =  document.getElementById(id);
+    let sound = !this.disableSound && document.getElementById(id);
     if(sound){
       if( !sound.paused && !sound.ended && 0 < sound.currentTime){
         sound.pause();
@@ -479,7 +521,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   playAudio(id, cb){
-    let sound =  document.getElementById(id);
+    let sound =  !this.disableSound && document.getElementById(id);
     if(sound){
 
       // stop first
@@ -530,7 +572,6 @@ class Game /*extends THREE.EventDispatcher*/ {
       const team = this.localState.isRed?'red':'blue';
       // return to home gate - Game Won?
       if(this.holdingFlag){
-        console.log('WIN - tell manager!!!!!!!!!!!!!!!!!')
         this.setGameMsg(`<span class="${team}">${team} TEAM</span> WINS thanks to you!`);
         this.playAudio('success');
         this.tellGatePass(true);
@@ -543,10 +584,10 @@ class Game /*extends THREE.EventDispatcher*/ {
       }
     }
   }
-  checkFlagDrop(){
-    if(!this.holdingFlag){
-      return;
-    }
+  tellDropFlag(){
+    // if(!this.holdingFlag){
+    //   return;
+    // }
     //this.world.setFlagHolders(); - let mngr state take care of this
 
     deepStream.client.rpc.make('client',{
@@ -559,13 +600,44 @@ class Game /*extends THREE.EventDispatcher*/ {
         return;
       }
       if(result!='ok'){
-        this.setGameMsg('flagDrop: '+result);
+        console.log('flagDrop: '+result);
       }
     });
   }
   //////////////////////////////////////////////////////////
+  startBorderLoop(start){
+    // ignore when game is over.
+    if(!start){
+      clearInterval(this.borderLoopTID);
+      this.borderLoopTID = 0;
+      return;
+    }
+
+
+    let outside = 0;
+    this.borderLoopTID = setInterval(()=>{
+      if(!this.moving || this.exploding || this.gameOver) return;
+      if(outside > 30){
+        outside = 0;
+        this.doExplode();
+        return;
+      }
+      if(!this.world.checkCrossBorders()){
+        if(outside) this.stopWarning();
+        outside = 0;
+      }
+      else{
+        if(!outside) this.startWarning('dont fly outside the game boundaries', false); // NO MANUAL STOP BUG!
+        outside++;
+
+      }
+    }, 100);
+
+
+  }
+  //////////////////////////////////////////////////////////
   startUpdateLoop(start){
-    // stop
+    // stop - always tell your position
     if(!start){
       if(this.updateLoopTID){
         clearInterval(this.updateLoopTID);
@@ -575,42 +647,63 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
     // start
     let cam = this.world.camera;
-    let direction = new THREE.Vector3();
 
     this.updateLoopTID = setInterval(()=>{
       // conditions
       if(this.exploding){
         return;
       }
+      if(this.gameOver){
+        return;
+      }
+      if(document.hidden){
+        return;
+      }
       // if(!this.moving){
       //   return;
       // }
+      cam.updateMatrixWorld();
+
       // broadcast position
-      cam.getWorldDirection(direction);
+      cam.getWorldDirection(this.direction);
       //let quaternion = new THREE.Quaternion();
       //cam.getWorldQuaternion(quaternion);
+      const targetPos = this.moving? this.calcTargetPos(cam, this.direction) : cam.position.clone();
+      //const targetPos = cam.position.clone();
+      //const targetPos = cam.position;
+      //let targetPos = cam.position.clone();
+      //console.log('sending pos', targetPos);
       deepStream.sendEvent('player',{
         type:"pos",
         // old
         //pos:cam.position,
-        dir:direction,
+        dir:this.direction,
         nick: this.localState.nick,
         moving: this.moving,
         // new
-        targetPos: this.calcTargetPos(cam.position, direction),
-        targetTS: Date.now() + config.updateInterval
+        targetPos: {
+          x:targetPos.x,
+          y:targetPos.y,
+          z:targetPos.z
+        },
+        mouseX: this.controls.mouseX,
+        mouseY: this.controls.mouseY,
+        targetTS: Date.now() + config.updateInterval,
         //quaternion: quaternion
       });
-
-      if(this.gameOver){
-        return;
-      }
     }, config.updateInterval);
   }
   //////////////////////////////////////////////////////////
-  calcTargetPos(pos, worldDir){
-    this.targetPos.copy(pos);
-    const distance = config.distancePerMS * config.updateInterval;
+  // obj - your object (THREE.Object3D or derived)
+  // point - the point of rotation (THREE.Vector3)
+  // axis - the axis of rotation (normalized THREE.Vector3)
+  // theta - radian value of rotation
+  //////////////////////////////////////////////////////////
+  calcTargetPos(cam, worldDir){
+    this.targetPos = cam.position.clone();
+    //return this.targetPos;
+    const turnFactor = 0.8;
+    const distance = config.distancePerMS * config.updateInterval * turnFactor;
     // move forward
     const direction = worldDir.multiplyScalar(distance);
     this.targetPos.add(direction);
@@ -636,30 +729,38 @@ class Game /*extends THREE.EventDispatcher*/ {
     return false;
   }
   //////////////////////////////////////////////////////////
-  startWarning(msg){
+  startWarning(msg, manualStop){
     if(msg) this.setGameMsg(msg);
     this.playAudio('alarm');
     this.world.turnWarningEffect(true);
-    this.tidWarning = setTimeout(() => this.stopWarning(),config.targetLockMs);
+    if(!manualStop){
+      this.tidWarning = setTimeout(() => this.stopWarning(),config.targetLockMs);
+    }
   }
   //////////////////////////////////////////////////////////
   stopWarning(){
-    this.setGameMsg('');
+    // dont turn effect off
+    // and dont change message
+    // when exploding
+    if(!this.exploding){
+       this.world.turnWarningEffect(false);
+       this.setGameMsg('');
+    }
     this.stopAudio('alarm');
-    this.world.turnWarningEffect(false);
     if(this.tidWarning){
       clearTimeout(this.tidWarning);
       this.tidWarning = 0;
     }
-
   }
   //////////////////////////////////////////////////////////
-  doExplode(){
+  doExplode(msg){
+    this.exploding = true;
+
     this.stopWarning();
-    this.setGameMsg('BOOM!!!');
+    this.setGameMsg(msg || 'BOOM!!!');
 
     // return flag if holders
-    this.checkFlagDrop();
+    this.tellDropFlag();
 
     // STOP FLYING!
     if(this.moving){
@@ -678,13 +779,15 @@ class Game /*extends THREE.EventDispatcher*/ {
     // event explosion
     deepStream.sendEvent('player',{
       type:"explode",
-      pos:cam.position,
+      flag:true,
+      pos:cam.position.clone(),
       dir:direction,
       nick: this.localState.nick
     });
 
     // return to start
     this.world.return2Start(()=>{
+      console.log("FINISH RETURN TO START");
       this.setGameMsg('Let us start again');
       this.playAudio('locked');
       this.world.turnWarningEffect(false);
@@ -694,8 +797,9 @@ class Game /*extends THREE.EventDispatcher*/ {
       let cam = this.world.camera;
       cam.getWorldDirection(direction);
       deepStream.sendEvent('player',{
-        type:"pos",
-        targetPos:cam.position,
+        type:"explode",
+        flag:false,
+        pos:cam.position.clone(),
         dir:direction,
         nick: this.localState.nick
       });
@@ -713,7 +817,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.startWarning(`WARNING! ${data.nick} is locking on you!`);
       }else{
         this.stopWarning();
-        this.setGameMsg('');
+        //this.setGameMsg(`${data.nick} lost aim on you`);
       }
     }
   }
@@ -738,7 +842,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   doFire(){
     if(!this.moving) return;
     if(!this.world.shooting) return;
-    if(this.world.shooting.firing) return;
+    if(this.firing) return;
 
     // shooting an enemy
     if(!this.world.shooting.locked){
@@ -776,7 +880,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   keydown(e){
     //console.log('keydown code=', e.code);
     // not started
-    if(!this.mngrState.started && this.world.players.gameJoined){
+    if(!this.mngrState.started || !this.world.players.gameJoined){
       console.log("cant fly before game started and joined");
       return;
     }
@@ -794,22 +898,13 @@ class Game /*extends THREE.EventDispatcher*/ {
     //return false;
   }
   //////////////////////////////////////////////////////////
-  // render2dOverlay(){
-  //   const c = this.renderer.domElement;
-  //   var ctx = c.getContext("2d");
-  //   if(ctx){
-  //     ctx.beginPath();
-  //     ctx.arc(100, 75, 50, 0, 2 * Math.PI);
-  //     ctx.stroke();
-  //   }
-  // }
-  //////////////////////////////////////////////////////////
   render(){
     // FPS measure
     this.frames++;
 
     const now = Date.now();
     const delta = (now - this.tsRender);
+    this.tsRender = now;
 
     // fly controls
     if(this.controls){
@@ -818,16 +913,14 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     const collision = this.world.render(delta);
     if(collision){
-      this.exploding = true;
       this.doExplode();
     }
-
-    this.tsRender = now;
 
     // conditions
     if(this.exploding){
       return;
     }
+
     if(!this.moving){
       return;
     }
@@ -836,10 +929,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(this.checkGatePass()){
       return;
     };
-    // collisions and gate pass
-    // if(this.checkCollision()){
-    //   return;
-    // }
   }
   //////////////////////////////////////////////////////////
   onresize(e){
@@ -865,6 +954,7 @@ window.onload = function(){
 
     game.world.createScene();
     game.initControls(false);
+    game.world.setTeamPos(null);
     game.connect();
 
     function animate() {
