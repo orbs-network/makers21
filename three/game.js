@@ -655,6 +655,9 @@ class Game /*extends THREE.EventDispatcher*/ {
       if(this.gameOver){
         return;
       }
+      if(document.hidden){
+        return;
+      }
       // if(!this.moving){
       //   return;
       // }
