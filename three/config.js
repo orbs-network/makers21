@@ -22,7 +22,7 @@ window.config = {
   //  horizLimit:0.02,
   vertLimit: 0.60,
   maxFaceX: 0.1 , // gimble in face.js 0 is zero max face turn is 0.2
-  playSphereFactor: 1.5, //control shooting sphere size
+  playSphereFactor: 1.2, //control shooting sphere size
   updateInterval: 300,
   return2startSec: 5,
   explodePartSize: 2,

@@ -46,7 +46,7 @@ class Player{
     this.useShooting = useShooting;
     if(useShooting){
       // bounding sphere
-      const geometry = new THREE.SphereGeometry( 320, 16, 8 );
+      const geometry = new THREE.SphereGeometry( 320 * config.playSphereFactor, 16, 8 );
       // create new matterial per sphere so opacity can be changed individually
       this.boundSphere = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: isRed? 0xFF0000:0x0000FF } ) );
       this.boundSphere.layers.enable(1); // MUST
@@ -133,7 +133,8 @@ class Player{
 
     // zlotin bug
     if(timeToTarget <= msSinceLast){ // was 500ms
-      timeToTarget = msSinceLast;
+      //timeToTarget = msSinceLast;
+      timeToTarget = config.updateInterval;
     }
 
     // necesseraly
