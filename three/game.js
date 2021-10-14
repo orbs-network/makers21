@@ -626,7 +626,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         outside = 0;
       }
       else{
-        if(!outside) this.startWarning('dont fly outside the game boundaries', true); // for manual stop
+        if(!outside) this.startWarning('dont fly outside the game boundaries', false); // NO MANUAL STOP BUG!
         outside++;
 
       }

@@ -197,15 +197,14 @@
 						verticalLookRatio = Math.PI / ( this.verticalMax - this.verticalMin );
 
 					}
-					//console.log(`x:  ${this.mouseX} y:  ${this.mouseY}`);
+
 					const dlt = this.face.getDelta();
-					//console.log(`dx: ${dlt.x} dy: ${dlt.y}`);
 
 					// UV translation
 					this.mouseX = -dlt.x * 1500;
 					this.mouseY = dlt.y * 1500;
 
-					lon -= this.mouseX * actualLookSpeed;
+					lon -= this.mouseX * actualLookSpeed ;
 					if ( this.lookVertical ) lat -= this.mouseY * actualLookSpeed * verticalLookRatio;
 					lat = Math.max( - 85, Math.min( 85, lat ) );
 					let phi = THREE.MathUtils.degToRad( 90 - lat );
