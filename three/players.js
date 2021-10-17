@@ -391,7 +391,7 @@ class Players{
     p.copy(this.model);
 
     // scale
-    const s = SIZE/20000;// was 30000 but adjusted to ship model
+    const s = SIZE/40000;// was 30000 but adjusted to ship model
     p.scale.set(s,s,s);
 
     p.name = nick;

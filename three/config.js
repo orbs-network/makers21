@@ -1,6 +1,6 @@
-const SIZE = 400;
-const HEIGHT = 120;
-const GATE_SIZE = SIZE / 40;
+const SIZE = 300;
+const HEIGHT = 100;
+const GATE_SIZE = SIZE / 80;
 
 const BLUE = 0x224988;
 const RED = 0x703020;
@@ -15,7 +15,7 @@ const toRad = (Math.PI / 180);
 
 window.config = {
   size: SIZE,
-  distancePerMS: SIZE / 10000, // half cort in 4 sec
+  distancePerMS: SIZE / 15000, // half cort in 15 sec
   gateTurnPerSec: 0.15,
   //ctrlHeightLimit: (20 * toRad)
   // steerReleaseFactor: 0.95,
@@ -25,7 +25,7 @@ window.config = {
   playSphereFactor: 1.6, //control shooting sphere size
   updateInterval: 300,
   return2startSec: 5,
-  explodePartSize: 2,
+  explodePartSize: SIZE/200,
   // rotUnit:0.001,
   raycastNear:0,
   raycastFar:2 * SIZE
