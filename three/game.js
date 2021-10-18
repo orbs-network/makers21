@@ -666,9 +666,14 @@ class Game /*extends THREE.EventDispatcher*/ {
 
       // broadcast position
       cam.getWorldDirection(this.direction);
+
+      let samplePos = this.world.flushPosSample();
+      if(!samplePos.len) {
+        return;
+      }
       //let quaternion = new THREE.Quaternion();
       //cam.getWorldQuaternion(quaternion);
-      const targetPos = this.moving? this.calcTargetPos(cam, this.direction) : cam.position.clone();
+      //const targetPos = this.moving? this.calcTargetPos(cam, this.direction) : cam.position.clone();
       //const targetPos = cam.position.clone();
       //const targetPos = cam.position;
       //let targetPos = cam.position.clone();
@@ -676,20 +681,11 @@ class Game /*extends THREE.EventDispatcher*/ {
       deepStream.sendEvent('player',{
         type:"pos",
         // old
-        //pos:cam.position,
         dir:this.direction,
         nick: this.localState.nick,
         moving: this.moving,
         // new
-        targetPos: {
-          x:targetPos.x,
-          y:targetPos.y,
-          z:targetPos.z
-        },
-        mouseX: this.controls.mouseX,
-        mouseY: this.controls.mouseY,
-        targetTS: Date.now() + config.updateInterval,
-        //quaternion: quaternion
+        sample: samplePos
       });
     }, config.updateInterval);
   }
@@ -699,16 +695,16 @@ class Game /*extends THREE.EventDispatcher*/ {
   // axis - the axis of rotation (normalized THREE.Vector3)
   // theta - radian value of rotation
   //////////////////////////////////////////////////////////
-  calcTargetPos(cam, worldDir){
-    this.targetPos = cam.position.clone();
-    //return this.targetPos;
-    const turnFactor = 0.8;
-    const distance = config.distancePerMS * config.updateInterval * turnFactor;
-    // move forward
-    const direction = worldDir.multiplyScalar(distance);
-    this.targetPos.add(direction);
-    return this.targetPos;
-  }
+  // calcTargetPos(cam, worldDir){
+  //   this.targetPos = cam.position.clone();
+  //   //return this.targetPos;
+  //   const turnFactor = 0.8;
+  //   const distance = config.distancePerMS * config.updateInterval * turnFactor;
+  //   // move forward
+  //   const direction = worldDir.multiplyScalar(distance);
+  //   this.targetPos.add(direction);
+  //   return this.targetPos;
+  // }
   //////////////////////////////////////////////////////////
   checkGatePass(){
     // always check (even when passing to know if exited)
@@ -929,6 +925,9 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(this.checkGatePass()){
       return;
     };
+
+    // sample positions for update interval
+    this.world.samplePos();
   }
   //////////////////////////////////////////////////////////
   onresize(e){

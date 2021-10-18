@@ -3,8 +3,8 @@ class World {
     constructor() {
         this.border = {};
         this.flags = new Flags();
-        this.worldPos = new THREE.Vector3();
-        this.worldDir = new THREE.Vector3();
+        //this.pos = new THREE.Vector3();
+        this.dir = new THREE.Vector3();
 
         this.loader = new THREE.OBJLoader();
         this.models = {};
@@ -16,6 +16,14 @@ class World {
         this.disableGateRotation = localStorage.getItem("disableGateRotation");
         this.simpleRendering = localStorage.getItem("simpleRendering");
         this.disableSound = localStorage.getItem("disableSound");
+
+        this.samplePosX = [];
+        this.samplePosY = [];
+        this.samplePosZ = [];
+
+        this.sampleDirX = [];
+        this.sampleDirY = [];
+        this.sampleDirZ = [];
 
     }
 
@@ -685,8 +693,7 @@ class World {
         // lookAhead as a start point for rotating back to gate
         const cam = this._camera;
         let lookAhead = cam.position.clone();
-        let worldDir = new THREE.Vector3;
-        cam.getWorldDirection(worldDir);
+
         const distance = 3 * SIZE;
         const offset = worldDir.multiplyScalar(distance);
         lookAhead.add(offset);
@@ -763,7 +770,52 @@ class World {
         // this.renderer2d.domElement.style.width = window.innerWidth;
         // this.renderer2d.domElement.style.height = window.innerHeight;
     }
+    shortDecimal(num){
+        return Math.round(num * 100) / 100;
+    }
 
+    //////////////////////////////////////////////////////////
+    samplePos() {
+        const now = Date.now();
+        if(this.lastSample && now - this.lastSample < config.sampleInterval){
+            return;
+        }
+        this.lastSample = now;
+        const pos = this.camera.position;
+        //let dir = new THREE.Vector3;
+        this.camera.getWorldDirection(this.dir);
+
+        this.samplePosX.push(this.shortDecimal(pos.x));
+        this.samplePosY.push(this.shortDecimal(pos.y));
+        this.samplePosZ.push(this.shortDecimal(pos.z));
+
+        this.sampleDirX.push(this.dir.x);
+        this.sampleDirY.push(this.dir.y);
+        this.sampleDirZ.push(this.dir.z);
+    }
+    ////////////////////////////////////////////////////s//////
+    flushPosSample() {
+        const res = {
+            posX:this.samplePosX.slice(),
+            posY:this.samplePosY.slice(),
+            posZ:this.samplePosZ.slice(),
+            //
+            dirX:this.sampleDirX.slice(),
+            dirY:this.sampleDirY.slice(),
+            dirZ:this.sampleDirZ.slice(),
+            //
+            len: this.samplePosX.length
+        }
+        this.samplePosX = [];
+        this.samplePosY = [];
+        this.samplePosZ = [];
+        this.sampleDirX = [];
+        this.sampleDirY = [];
+        this.sampleDirZ = [];
+
+        return res;
+    }
+    //////////////////////////////////////////////////////////
     render(delta) {
       // rotate gates & flags in sync with all players
       if (game.mngrState?.startTs) {

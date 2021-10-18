@@ -1,5 +1,5 @@
 let v3 = new THREE.Vector3(0,0,0);
-const lookDistance = 1000;
+const lookDistance = SIZE*2;
 
 //////////////////////////////////////////////////////////
 class Player{
@@ -12,8 +12,8 @@ class Player{
     this.nick = nick;
     this.verticalLookRatio = Math.PI / ( game.controls.verticalMax - game.controls.verticalMin );
     //this.go2Target = false;
-    //this.targetPos = new THREE.Vector3();
-    this.lastPosTS = 0;
+    this.dir = new THREE.Vector3();
+    //this.lastPosTS = 0;
 
     //obj.rotation.y = -1;
 
@@ -86,17 +86,42 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   update(delta){
+    this.trgtMS += delta;
     if(this.moving && this.go2Target){
-      // NEW
-      //if(this.go2Target){
-        // Position
-        this.obj.position.x += this.xPerMS * delta;
-        this.obj.position.y += this.yPerMS * delta;
-        this.obj.position.z += this.zPerMS * delta;
-        // Rotation
-        //this.obj.rotation.set(direction);
-        this.obj.rotateOnAxis(new THREE.Vector3(0,1,0), this.xRadMS * delta);
-        this.obj.rotateOnAxis(new THREE.Vector3(1,0,0), this.yRadMS * delta);
+      let indx = Math.floor(this.trgtMS / config.sampleInterval);
+      if(indx >= this.xPerMS.length) {
+        //console.log('sampleInterval index out of range');
+        return;
+      }
+      if(indx != this.index){
+        this.index = indx;
+
+        this.obj.position.set(this.posData.sample.posX[indx], this.posData.sample.posY[indx], this.posData.sample.posZ[indx]);
+        this.obj.lookAt(this.posData.sample.dirX[indx] * lookDistance, this.posData.sample.dirY[indx] * lookDistance,this.posData.sample.dirZ[indx] * lookDistance);
+        return;
+      }
+      //console.log(delta, indx);
+
+      this.obj.position.x += this.xPerMS[indx] * delta;
+      this.obj.position.y += this.yPerMS[indx] * delta;
+      this.obj.position.z += this.zPerMS[indx] * delta;
+
+      this.dir.x += this.rxPerMS[indx] * delta;
+      this.dir.y += this.ryPerMS[indx] * delta;
+      this.dir.z += this.rzPerMS[indx] * delta;
+
+      //this.obj.lookAt(this.dir.x * lookDistance, this.dir.y * lookDistance, this.dir.z * lookDistance);
+    }
+      // // NEW
+      // //if(this.go2Target){
+      //   // Position
+      //   this.obj.position.x += this.xPerMS * delta;
+      //   this.obj.position.y += this.yPerMS * delta;
+      //   this.obj.position.z += this.zPerMS * delta;
+      //   // Rotation
+      //   //this.obj.rotation.set(direction);
+      //   this.obj.rotateOnAxis(new THREE.Vector3(0,1,0), this.xRadMS * delta);
+      //   this.obj.rotateOnAxis(new THREE.Vector3(1,0,0), this.yRadMS * delta);
       //}else{
         // OLD
         // console.error('player::update CALL YUVAL');
@@ -107,7 +132,7 @@ class Player{
         // const direction = v3.multiplyScalar(-distance);
         // this.obj.position.add(direction);
       //}
-    }
+    //}
   }//////////////////////////////////////////////////////////
   hadPos(){
     // return false if all zero
@@ -115,36 +140,37 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   onPos(data){
-    let msSinceLast = data.targetTS - this.lastPosTS;
-    if(msSinceLast < 0){
-      console.error('OLD TS MSG', data.targetTS ,this.lastPosTS);
-      return;
-    }
-    this.lastPosTS = data.targetTS;
+    //this.lastPosTS = data.targetTS;
     // direction
-    this.obj.lookAt(data.dir.x * lookDistance, data.dir.y * lookDistance, data.dir.z * lookDistance);
-    this.mouseX = data.mouseX;
-    this.mouseY = data.mouseY;
+    //this.obj.lookAt(data.dir.x * lookDistance, data.dir.y * lookDistance, data.dir.z * lookDistance);
 
     // position if not moving
     this.go2Target = false;
     this.moving = data.moving;
-    let timeToTarget = data.targetTS - Date.now();
-
-    // zlotin bug
-    if(timeToTarget <= msSinceLast){ // was 500ms
-      //timeToTarget = msSinceLast;
-      timeToTarget = config.updateInterval;
-    }
 
     // necesseraly
     this.exploding = false;
     this.show();
 
-    if(!this.moving || !this.hadPos() ){
-      this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
+    // let xTrgt = data.sample.x;//.split(',');
+    // let yTrgt = data.sample.y;//.split(',');
+    // let zTrgt = data.sample.z;//.split(',');
+
+    //console.log("onPos len=", data.sample.len);
+    // if(!this.hadPos() ){
+    //   this.obj.position.set(data.sample.posX.shift(), data.sample.posY.shift(), data.sample.posZ.shift());
+    //   this.obj.lookAt(data.sample.dirX.shift() * lookDistance, data.sample.dirY.shift() * lookDistance, data.sample.dirZ.shift() * lookDistance);
+    //   //data.sample.len -=1;
+    // }
+    //else{
+      //this.obj.lookAt(data.sample.dirX[0] * lookDistance, data.sample.dirY[0] * lookDistance, data.sample.dirZ[0] * lookDistance);
+    //}
+
+    if(!this.hadPos() ){
+      this.obj.position.set(data.sample.posX[0], data.sample.posY[0], data.sample.posZ[0]);
       return;
     }
+    if(!this.moving) return;
 
     // important??? or time?
     //game.world.camera.updateMatrixWorld();
@@ -152,16 +178,45 @@ class Player{
     this.obj.updateMatrix();
 
     // Position
+    this.posData = data;
     this.go2Target = true;
-    this.xPerMS = (data.targetPos.x - this.obj.position.x) / timeToTarget;
-    this.yPerMS = (data.targetPos.y - this.obj.position.y) / timeToTarget;
-    this.zPerMS = (data.targetPos.z - this.obj.position.z) / timeToTarget;
+    this.xPerMS = [];
+    this.yPerMS = [];
+    this.zPerMS = [];
+    this.rxPerMS = [];
+    this.ryPerMS = [];
+    this.rzPerMS = [];
+    this.obj.getWorldDirection(this.dir);
+    let src = this.obj.position.clone();
+    let rSrc = this.dir; // just for code elegancy
 
-    // rotation
-    let lon = -data.mouseX * game.controls.lookSpeed;
-    let lat = data.mouseY * game.controls.lookSpeed;
-    this.xRadMS = THREE.MathUtils.degToRad( lon );
-    this.yRadMS = THREE.MathUtils.degToRad( lat );
+
+    this.trgtIndx = 0;
+    this.trgtMS = 0;
+    for(let i=0; i < data.sample.len; ++i){
+      // pos
+      this.xPerMS.push((data.sample.posX[i] - src.x) / config.sampleInterval);
+      this.yPerMS.push((data.sample.posY[i] - src.y) / config.sampleInterval);
+      this.zPerMS.push((data.sample.posZ[i] - src.z) / config.sampleInterval);
+      // dir/rot
+      this.rxPerMS.push((data.sample.dirX[i] - rSrc.x) / config.sampleInterval);
+      this.ryPerMS.push((data.sample.dirY[i] - rSrc.y) / config.sampleInterval);
+      this.rzPerMS.push((data.sample.dirZ[i] - rSrc.z) / config.sampleInterval);
+
+      // for next round
+      src.x = data.sample.posX[i];
+      src.y = data.sample.posY[i];
+      src.z = data.sample.posZ[i];
+
+      rSrc.x = data.sample.dirX[i];
+      rSrc.y = data.sample.dirY[i];
+      rSrc.z = data.sample.dirZ[i];
+    }
+    // // rotation
+    // let lon = -data.mouseX * game.controls.lookSpeed;
+    // let lat = data.mouseY * game.controls.lookSpeed;
+    // this.xRadMS = THREE.MathUtils.degToRad( lon );
+    // this.yRadMS = THREE.MathUtils.degToRad( lat );
 
   }
   //////////////////////////////////////////////////////////
