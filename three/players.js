@@ -1,5 +1,5 @@
 let v3 = new THREE.Vector3(0,0,0);
-const lookDistance = 1000;
+const lookDistance = SIZE * 2; // WAS 1000 - NEED TO CHECK
 
 //////////////////////////////////////////////////////////
 class Player{
@@ -10,13 +10,7 @@ class Player{
     this.isRed = isRed;
     this.gameJoined = false;
     this.nick = nick;
-    this.verticalLookRatio = Math.PI / ( game.controls.verticalMax - game.controls.verticalMin );
-    //this.go2Target = false;
-    //this.targetPos = new THREE.Vector3();
     this.lastPosTS = 0;
-
-    //obj.rotation.y = -1;
-
     this._initLabel(nick, isRed);
 
     // create sounds
@@ -29,12 +23,11 @@ class Player{
 
     // SUPER SIMPLE GLOW EFFECT
     // use sprite because it appears the same from all angles
-    const spriteMaterial = new THREE.SpriteMaterial(
-        {
-          map: new THREE.ImageUtils.loadTexture( 'images/nova_1.png' ),
-          depthWrite: false,
-          color: isRed? 0xffaaaa:0x9999ff , blending: THREE.AdditiveBlending
-        });
+    const spriteMaterial = new THREE.SpriteMaterial({
+      map: new THREE.ImageUtils.loadTexture( 'images/nova_1.png' ),
+      depthWrite: false,
+      color: isRed? 0xffaaaa:0x9999ff , blending: THREE.AdditiveBlending
+    });
 
     const sprite = new THREE.Sprite( spriteMaterial );
     sprite.scale.set(300, 300, 1.0);
@@ -87,26 +80,15 @@ class Player{
   //////////////////////////////////////////////////////////
   update(delta){
     if(this.moving && this.go2Target){
-      // NEW
-      //if(this.go2Target){
-        // Position
-        this.obj.position.x += this.xPerMS * delta;
-        this.obj.position.y += this.yPerMS * delta;
-        this.obj.position.z += this.zPerMS * delta;
-        // Rotation
-        //this.obj.rotation.set(direction);
-        this.obj.rotateOnAxis(new THREE.Vector3(0,1,0), this.xRadMS * delta);
-        this.obj.rotateOnAxis(new THREE.Vector3(1,0,0), this.yRadMS * delta);
-      //}else{
-        // OLD
-        // console.error('player::update CALL YUVAL');
-        // this.obj.position.set(this.targetPos);
-        // this.obj.getWorldDirection(v3);
-        // //const direction = v3.multiplyScalar(-config.speed);
-        // let distance = config.distancePerMS * delta ;
-        // const direction = v3.multiplyScalar(-distance);
-        // this.obj.position.add(direction);
-      //}
+      this.obj.position.x += this.xPerMS * delta;
+      this.obj.position.y += this.yPerMS * delta;
+      this.obj.position.z += this.zPerMS * delta;
+
+      // Direction
+      this.dir.x += this.rxPerMS * delta;
+      this.dir.y += this.ryPerMS * delta;
+      this.dir.z += this.rzPerMS * delta;
+      this.obj.lookAt(this.dir.x * lookDistance, this.dir.y * lookDistance, this.dir.z * lookDistance);
     }
   }//////////////////////////////////////////////////////////
   hadPos(){
@@ -115,54 +97,42 @@ class Player{
   }
   //////////////////////////////////////////////////////////
   onPos(data){
-    let msSinceLast = data.targetTS - this.lastPosTS;
-    if(msSinceLast < 0){
-      console.error('OLD TS MSG', data.targetTS ,this.lastPosTS);
-      return;
-    }
-    this.lastPosTS = data.targetTS;
-    // direction
-    this.obj.lookAt(data.dir.x * lookDistance, data.dir.y * lookDistance, data.dir.z * lookDistance);
-    this.mouseX = data.mouseX;
-    this.mouseY = data.mouseY;
-
     // position if not moving
     this.go2Target = false;
     this.moving = data.moving;
-    let timeToTarget = data.targetTS - Date.now();
-
-    // zlotin bug
-    if(timeToTarget <= msSinceLast){ // was 500ms
-      //timeToTarget = msSinceLast;
-      timeToTarget = config.updateInterval;
-    }
 
     // necesseraly
     this.exploding = false;
     this.show();
 
+    // pos dir correction
     if(!this.moving || !this.hadPos() ){
-      this.obj.position.set(data.targetPos.x, data.targetPos.y, data.targetPos.z);
+      this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
+      this.obj.lookAt(data.dir.x * lookDistance, data.dir.y * lookDistance, data.dir.z * lookDistance);
       return;
     }
 
     // important??? or time?
     //game.world.camera.updateMatrixWorld();
     //this.obj.updateMatrixWorld();
+    const timeToTarget = config.updateInterval;
     this.obj.updateMatrix();
 
     // Position
     this.go2Target = true;
-    this.xPerMS = (data.targetPos.x - this.obj.position.x) / timeToTarget;
-    this.yPerMS = (data.targetPos.y - this.obj.position.y) / timeToTarget;
-    this.zPerMS = (data.targetPos.z - this.obj.position.z) / timeToTarget;
+    this.xPerMS = (data.pos.x - this.obj.position.x) / timeToTarget;
+    this.yPerMS = (data.pos.y - this.obj.position.y) / timeToTarget;
+    this.zPerMS = (data.pos.z - this.obj.position.z) / timeToTarget;
 
     // rotation
-    let lon = -data.mouseX * game.controls.lookSpeed;
-    let lat = data.mouseY * game.controls.lookSpeed;
-    this.xRadMS = THREE.MathUtils.degToRad( lon );
-    this.yRadMS = THREE.MathUtils.degToRad( lat );
-
+    if(!this.dir){
+      // first time
+      this.dir = new THREE.Vector3();
+      this.obj.getWorldDirection(this.dir);
+    }
+    this.rxPerMS = (data.dir.x - this.dir.x) / timeToTarget;
+    this.ryPerMS = (data.dir.y - this.dir.y) / timeToTarget;
+    this.rzPerMS = (data.dir.z - this.dir.z) / timeToTarget;
   }
   //////////////////////////////////////////////////////////
   onExplode(data, explode){
