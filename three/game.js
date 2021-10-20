@@ -264,22 +264,15 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   show321(){
-    this.playAudio('ping');
-    let first = true;
     this.tid321 = setInterval(() =>{
       const diff = this.mngrState.startTs - Date.now();
       if(diff > 0){
         var seconds = Math.floor(diff / 1000);
-        var mili  = parseInt((new Date(diff)).getMilliseconds() / 100);
-        this.setGameMsg(`GAME BEGINS IN ${seconds}:${mili}`);
-
-        if(mili === 0){
-          // ping
-          if(!first){
-            this.playAudio((seconds > 0 )? 'ping':'locked');
-          }else{
-            first = false;
-          }
+        var tenth  = parseInt((new Date(diff)).getMilliseconds() / 100);
+        this.setGameMsg(`GAME BEGINS IN ${seconds}:${tenth}`);
+        // ping only on last 3 sec - locked when ready
+        if(tenth === 0 && seconds <= 3){
+          this.playAudio((seconds > 0 )? 'ping':'locked');
         }
       }
       // end
@@ -291,7 +284,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         // resume
         this.onGameStarted();
       }
-    },100);
+    },50);
   }
   //////////////////////////////////////////////////////////
   onGameStarted(){

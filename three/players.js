@@ -8,7 +8,7 @@ class Player{
     this.obj = obj;
     this.moving = false;
     this.isRed = isRed;
-    this.gameJoined = false;
+    this.inGame = true; // constructor is called when in game
     this.nick = nick;
     this.lastPosTS = 0;
     this._initLabel(nick, isRed);
@@ -48,7 +48,6 @@ class Player{
       this.boundSphere.name = nick + '_bound_sphere';
       //this.boundSphere.scale.set(2400,2400,2400);
       this.boundSphere.material.opacity = 0;
-      //this.boundSphere.visible = false;// invisible
       this.obj.add(this.boundSphere);
       // lasser beam
       var laserBeam	= new THREEx.LaserBeam();
@@ -58,8 +57,6 @@ class Player{
       laserBeam.object3d.position.z = -.05; // infront of airplane
       this.laserBeam = laserBeam;
     }
-
-
   }
   //////////////////////////////////////////////////////////
   showBoundingSphere(show){
@@ -80,6 +77,7 @@ class Player{
   //////////////////////////////////////////////////////////
   update(delta){
     if(this.moving && this.go2Target){
+      // position
       this.obj.position.x += this.xPerMS * delta;
       this.obj.position.y += this.yPerMS * delta;
       this.obj.position.z += this.zPerMS * delta;
@@ -259,31 +257,31 @@ class Players{
   }
   //////////////////////////////////////////////////////////
   reset(){
-    // hide objects from scene
-    for(let p of this.all()){
-      p.visible = false;
-      // if(p.playerLabelObj){
-      //   p.playerLabelObj.visible = false;
-      // }
-
-      // abort future lockOff
+    for ( let nick in this.dict){
+      let p = this.dict[nick];
+      // reset
+      p.inGame = false;
+      p.moving = false;
+      p.exploding = false;
+      p.go2Target = false;
       if(p.tidLock){
         clearTimeout(this.tidLock);
         p.tidLock = 0;
       }
-      // THREE.SceneUtils.detach(p, this.world.scene, this.world.scene);
-      // this.world.scene.remove(p);
-      // p.clear();
+      // hide from scene
+      p.show(false);
     }
-    this.gameJoined = false;
-    // remove all wrapping players
-    // this.dict = {};
-
   }
   //////////////////////////////////////////////////////////
   setTeams(red,blue){
     this.red = red;
     this.blue = blue;
+
+    // mark all players if they are ingame or not
+    for ( let nick in this.dict){
+      this.dict[nick].inGame = red.includes(nick) || blue.includes(nick);
+    }
+
   }
   //////////////////////////////////////////////////////////
   onEvent(data){
@@ -293,7 +291,7 @@ class Players{
     }
     const p = this.getPlayer(data.nick);
 
-    if(!p){
+    if(!p || !p.inGame){
       console.log(`Player ${data.id} ${data.nick} not in this game`); // ignore
       return;
     }
@@ -326,9 +324,8 @@ class Players{
   }
   //////////////////////////////////////////////////////////
   update(delta){
-    const now = Date.now();
     for ( let nick in this.dict){
-      this.dict[nick].update(delta, now);
+      this.dict[nick].update(delta);
     }
   }
   //////////////////////////////////////////////////////////
@@ -350,6 +347,7 @@ class Players{
     // return null if not in either team
     const isRed = this.checkIsRed(nick);
     if(!isRed){
+      console.error('SHOULDNT HAPPEN!')
       console.log(`${nick} wasnt found in either team`);
       console.log('blue team:', this.blue.join());
       console.log('red  team:', this.red.join());
@@ -368,9 +366,7 @@ class Players{
 
     this.world.scene.add(p);
     p.castShadow = true;
-    //p.visible = false; // until positioned
     let newPlayer = new Player(p, nick, (isRed===1), this.sound, this.useShooting);
-    //newPlayer.show(false);
 
     this.dict[nick] = newPlayer;
     console.log('create player',nick);
@@ -403,6 +399,10 @@ class Players{
   getPlayer(nick){
     // this player
     if(nick === game.localState.nick)
+      return null;
+
+    // ignore platers not in game
+    if(!this.red.includes(nick) && !this.blue.includes(nick))
       return null;
 
     const p = this.dict[nick];
