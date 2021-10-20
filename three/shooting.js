@@ -56,7 +56,7 @@ class Shooting {
       type: "lockOn",
       on: flag,
       nick: game.localState.nick,
-      targetNick: this.targetPlayer.nick,
+      targetNick: this.targetPlayer?.nick,
       // new
       targetTS: Date.now()
     });
@@ -83,6 +83,8 @@ class Shooting {
   onNewTarget(target, players) {
     //this.tidNewTarget = null;
     // REMINDER 'target' is the sphere THREEJS mesh object
+    // hide bounding sphere for others
+    this.broadcastLock(false);
 
     // reset locking
     game.stopAudio('laser_up');
@@ -92,9 +94,6 @@ class Shooting {
     if (this.targetPlayer) {
       // hide sphere
       this.targetPlayer.showBoundingSphere(false);
-
-      // hide bounding sphere for others
-      this.broadcastLock(false);
 
       // release lock
       if (this.locked) {
