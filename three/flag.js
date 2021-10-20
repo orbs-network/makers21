@@ -60,7 +60,7 @@ class Flags  {
 	}
 	//////////////////////////////////////////////////////////
 	attachTo(name, parent) {
-		const obj = this.dict[name];
+		//const obj = this.dict[name];
 		// attach
 		//parent.add(obj);
 		//parent.updateMatrixWorld(true);
@@ -96,8 +96,21 @@ class Flags  {
 		for(let flagName in this.holders){
 			const flag = this.dict[flagName];
 			const holder = this.holders[flagName];
-			if(holder && holder.obj){
-				flag.position.set(holder.obj.position.x, holder.obj.position.y + 0.05, holder.obj.position.z);
+			if(holder){
+				// infront of camera
+				if (holder.name === 'cam' ){
+					let lookAhead = holder.position.clone();
+					let worldDir = new THREE.Vector3;
+					holder.getWorldDirection(worldDir);
+					const distance = 50;
+					const offset = worldDir.multiplyScalar(distance);
+					lookAhead.add(offset);
+					flag.position.set(lookAhead.x + 10, lookAhead.y , lookAhead.z );
+				}
+				// on top of player
+				else if (holder.obj){
+					flag.position.set(holder.obj.position.x, holder.obj.position.y + 0.05, holder.obj.position.z);
+				}
 			}
 		}
 		// rotate

@@ -23,12 +23,14 @@ window.config = {
   vertLimit: 0.60,
   maxFaceX: 0.1 , // gimble in face.js 0 is zero max face turn is 0.2
   playSphereFactor: 1.6, //control shooting sphere size
-  updateInterval: 300,
+  updateInterval: 250,
   return2startSec: 5,
-  explodePartSize: SIZE/200,
+  explodePartSize: SIZE / 200, //(2)
   // rotUnit:0.001,
   raycastNear:0,
-  raycastFar:2 * SIZE
+  raycastFar:2 * SIZE,
+  secCrossBorder:2, // 2 sec explode outside border
+  newTargetDelay:100 //ms
 };
 
 

@@ -482,9 +482,8 @@ class World {
     // }
     //////////////////////////////////////////////////////////
     createCamera() {
-        //this._camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this._camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.05, 10*SIZE);
-        //this._camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this._camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+        this._camera.name = 'cam';
         this.scene.add(this._camera);
     }
 
@@ -503,7 +502,7 @@ class World {
 
     //////////////////////////////////////////////////////////
     checkCrossBorders() {
-        return false;
+        //return false;
         // X axis
         if (this._camera.position.x < this.border.west) return true;
         if (this._camera.position.x > this.border.east) return true;
@@ -639,16 +638,18 @@ class World {
         // detach
         const flagName = flagIsRed ? 'red' : 'blue';
         const flag = this.flags.detach(flagName);
-        if (holderNick) { // Add to holder
+        if (holderNick) {
+            // Add to holder
             console.log('attachFlagToHolder', flagName, holderNick);
-      const holder = this.players.getPlayer(holderNick);
-      if(!holder || !holder.obj){
-        console.error('failed to get player', holderNick);
-        return;
-      }
+            const holder = this.players.getPlayer(holderNick);
+            if(!holder || !holder.obj){
+                console.error('failed to get player', holderNick);
+                return;
+            }
             this.flags.attachTo(flagName, holder);
             //this.flags.setPosPlayer(flagName);
-        } else { // return to gate
+        }
+        else { // return to gate
             const gateName = flagIsRed ? 'blue' : 'red';
             console.log('attachFlagToGate', flagName, 'gate=' + gateName);
             this.flags.moveToGate(flagName);
@@ -798,7 +799,8 @@ class World {
         // set raycast
         this.raycaster.setFromCamera(new THREE.Vector3(), this.camera);
 
-        if (this.checkGateCollision())
+        // avoid this check while telling server gate pass
+        if (!game.tellingGatePass && this.checkGateCollision())
             return true; // exploding
 
         // shooting

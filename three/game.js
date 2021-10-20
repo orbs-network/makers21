@@ -264,22 +264,15 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   show321(){
-    this.playAudio('ping');
-    let first = true;
     this.tid321 = setInterval(() =>{
       const diff = this.mngrState.startTs - Date.now();
       if(diff > 0){
         var seconds = Math.floor(diff / 1000);
-        var mili  = parseInt((new Date(diff)).getMilliseconds() / 100);
-        this.setGameMsg(`GAME BEGINS IN ${seconds}:${mili}`);
-
-        if(mili === 0){
-          // ping
-          if(!first){
-            this.playAudio((seconds > 0 )? 'ping':'locked');
-          }else{
-            first = false;
-          }
+        var tenth  = parseInt((new Date(diff)).getMilliseconds() / 100);
+        this.setGameMsg(`GAME BEGINS IN ${seconds}:${tenth}`);
+        // ping only on last 3 sec - locked when ready
+        if(tenth === 0 && seconds <= 3){
+          this.playAudio((seconds > 0 )? 'ping':'locked');
         }
       }
       // end
@@ -291,7 +284,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         // resume
         this.onGameStarted();
       }
-    },100);
+    },50);
   }
   //////////////////////////////////////////////////////////
   onGameStarted(){
@@ -358,6 +351,8 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   onMngrState(state){
+    this.tellingGatePass = false; //- must have been finished
+
     // store
     this.mngrState = state;
     // to add dummies during game
@@ -540,6 +535,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   tellGatePass(winGate){
+    this.tellingGatePass = true; // to avoid exploding - reset on mngr state
     deepStream.client.rpc.make('client',{
       type:"gatePass",
       isRed: this.localState.isRed,
@@ -584,6 +580,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       }
     }
   }
+  //////////////////////////////////////////////////////////
   tellDropFlag(){
     // if(!this.holdingFlag){
     //   return;
@@ -613,11 +610,14 @@ class Game /*extends THREE.EventDispatcher*/ {
       return;
     }
 
-
     let outside = 0;
     this.borderLoopTID = setInterval(()=>{
-      if(!this.moving || this.exploding || this.gameOver) return;
-      if(outside > 30){
+      if(!this.moving || this.exploding || this.gameOver) {
+        outside = 0; // fix exlode on start bug
+        return;
+      }
+
+      if(outside > config.secCrossBorder * 10){
         outside = 0;
         this.doExplode();
         return;
@@ -627,7 +627,8 @@ class Game /*extends THREE.EventDispatcher*/ {
         outside = 0;
       }
       else{
-        if(!outside) this.startWarning('dont fly outside the game boundaries', false); // NO MANUAL STOP BUG!
+        // MANUAL STOP - this is not the bug!
+        if(!outside) this.startWarning('dont fly outside the game boundaries', true);
         outside++;
 
       }
@@ -666,30 +667,23 @@ class Game /*extends THREE.EventDispatcher*/ {
 
       // broadcast position
       cam.getWorldDirection(this.direction);
-      //let quaternion = new THREE.Quaternion();
-      //cam.getWorldQuaternion(quaternion);
-      const targetPos = this.moving? this.calcTargetPos(cam, this.direction) : cam.position.clone();
-      //const targetPos = cam.position.clone();
-      //const targetPos = cam.position;
-      //let targetPos = cam.position.clone();
-      //console.log('sending pos', targetPos);
+      const pos = cam.position.clone();
       deepStream.sendEvent('player',{
         type:"pos",
-        // old
-        //pos:cam.position,
-        dir:this.direction,
         nick: this.localState.nick,
         moving: this.moving,
         // new
-        targetPos: {
-          x:targetPos.x,
-          y:targetPos.y,
-          z:targetPos.z
+        pos: {
+          x:pos.x,
+          y:pos.y,
+          z:pos.z
         },
-        mouseX: this.controls.mouseX,
-        mouseY: this.controls.mouseY,
-        targetTS: Date.now() + config.updateInterval,
-        //quaternion: quaternion
+        // new
+        dir: {
+          x:this.direction.x,
+          y:this.direction.y,
+          z:this.direction.z
+        },
       });
     }, config.updateInterval);
   }
@@ -699,16 +693,16 @@ class Game /*extends THREE.EventDispatcher*/ {
   // axis - the axis of rotation (normalized THREE.Vector3)
   // theta - radian value of rotation
   //////////////////////////////////////////////////////////
-  calcTargetPos(cam, worldDir){
-    this.targetPos = cam.position.clone();
-    //return this.targetPos;
-    const turnFactor = 0.8;
-    const distance = config.distancePerMS * config.updateInterval * turnFactor;
-    // move forward
-    const direction = worldDir.multiplyScalar(distance);
-    this.targetPos.add(direction);
-    return this.targetPos;
-  }
+  // calcTargetPos(cam, worldDir){
+  //   this.targetPos = cam.position.clone();
+  //   //return this.targetPos;
+  //   const turnFactor = 0.8;
+  //   const distance = config.distancePerMS * config.updateInterval * turnFactor;
+  //   // move forward
+  //   const direction = worldDir.multiplyScalar(distance);
+  //   this.targetPos.add(direction);
+  //   return this.targetPos;
+  // }
   //////////////////////////////////////////////////////////
   checkGatePass(){
     // always check (even when passing to know if exited)
@@ -716,12 +710,13 @@ class Game /*extends THREE.EventDispatcher*/ {
     // enter gate pass
     if(!this.passingGate && gate){
       console.log(`enter ${gate.name}`);
-      this.passingGate = gate;
+      this.passingGate = gate; // reset this flag during explosion
       return true; // avoid collision check
     }
     // exit of gate pass
     if(this.passingGate && !gate){
       console.log(`exit ${this.passingGate.name}`);
+      // pass confirmed- logic in this func call
       this.passInGate(this.passingGate);
       this.passingGate = null;
       return true; // avoid collision check
@@ -755,6 +750,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   doExplode(msg){
     this.exploding = true;
+    this.passingGate = null;
 
     this.stopWarning();
     this.setGameMsg(msg || 'BOOM!!!');
