@@ -29,7 +29,8 @@ window.config = {
   // rotUnit:0.001,
   raycastNear:0,
   raycastFar:2 * SIZE,
-  secCrossBorder:2 // 2 sec explode outside border
+  secCrossBorder:2, // 2 sec explode outside border
+  newTargetDelay:100 //ms
 };
 
 

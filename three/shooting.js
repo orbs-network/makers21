@@ -81,7 +81,8 @@ class Shooting {
   // }
   //////////////////////////////////////////////
   onNewTarget(target, players) {
-    //this.tidNewTarget = null;
+    this.tidNewTarget = 0; // reset async proc
+
     // REMINDER 'target' is the sphere THREEJS mesh object
     // hide bounding sphere for others
     this.broadcastLock(false);
@@ -189,16 +190,24 @@ class Shooting {
     if (target != this.target) {
       // ignore invisible
       if (!target || target.visible) {
-        this.onNewTarget(target, players);
-        this.changeHudState();
+        if (!this.tidNewTarget){
+          this.tidNewTarget = setTimeout(()=>{
+            this.onNewTarget(target, players);
+            this.changeHudState();
+          }, config.newTargetDelay);
+        }
       }
     }
     // same target as before
     else {
+      if(this.tidNewTarget){
+        clearTimeout(this.tidNewTarget);
+      }
+      this.tidNewTarget = 0;
       // No target do nothing
       if (!target) return;
       // ignore exploding targets
-      if (this.targetPlayer.exploding) return;
+      if (this.targetPlayer && this.targetPlayer.exploding) return;
       // ignore still targets
       if (!game.stillTargetEnabled && !this.targetPlayer.moving) {
         this.hudLabel.textContent = `can't lock on still target`;
