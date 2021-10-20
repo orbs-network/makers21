@@ -208,7 +208,7 @@ class World {
     createSpace() {
         // Add Sky
         const sky = new Sky();
-        sky.scale.setScalar(1000);
+        sky.scale.setScalar(10000);
         this.scene.add(sky);
 
         const sun = new THREE.Vector3();
@@ -312,7 +312,7 @@ class World {
         this.scene.add(light);
 
         const lensflare = new Lensflare();
-        lensflare.addElement(new LensflareElement(textureFlare0, 700, 0, light.color));
+        lensflare.addElement(new LensflareElement(textureFlare0, 7000, 0, light.color));
         lensflare.addElement(new LensflareElement(textureFlare3, 60, 0.6));
         lensflare.addElement(new LensflareElement(textureFlare3, 70, 0.7));
         lensflare.addElement(new LensflareElement(textureFlare3, 120, 0.9));
@@ -482,7 +482,7 @@ class World {
     // }
     //////////////////////////////////////////////////////////
     createCamera() {
-        this._camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+        this._camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
         this._camera.name = 'cam';
         this.scene.add(this._camera);
     }
@@ -502,7 +502,7 @@ class World {
 
     //////////////////////////////////////////////////////////
     checkCrossBorders() {
-        //return false;
+        return false;
         // X axis
         if (this._camera.position.x < this.border.west) return true;
         if (this._camera.position.x > this.border.east) return true;

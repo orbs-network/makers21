@@ -13,7 +13,7 @@ class Shooting {
   createHUD() {
     const hud = new THREE.Group();
     for (let i = 0; i < 4; i++) {
-      hud.add(new THREE.Mesh(new THREE.RingGeometry(0.045, 0.055, 128, 1, hPi * i + 0.2, hPi - 0.4), new THREE.LineBasicMaterial({
+      hud.add(new THREE.Mesh(new THREE.RingGeometry(0.025, 0.03, 128, 1, hPi * i + 0.2, hPi - 0.4), new THREE.LineBasicMaterial({
         color: `#ffffff`,
         transparent: true,
         opacity: 0.1
