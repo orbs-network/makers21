@@ -580,6 +580,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       }
     }
   }
+  //////////////////////////////////////////////////////////
   tellDropFlag(){
     // if(!this.holdingFlag){
     //   return;
@@ -616,7 +617,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         return;
       }
 
-      if(outside > 30){
+      if(outside > config.secCrossBorder * 10){
         outside = 0;
         this.doExplode();
         return;
@@ -709,12 +710,13 @@ class Game /*extends THREE.EventDispatcher*/ {
     // enter gate pass
     if(!this.passingGate && gate){
       console.log(`enter ${gate.name}`);
-      this.passingGate = gate;
+      this.passingGate = gate; // reset this flag during explosion
       return true; // avoid collision check
     }
     // exit of gate pass
     if(this.passingGate && !gate){
       console.log(`exit ${this.passingGate.name}`);
+      // pass confirmed- logic in this func call
       this.passInGate(this.passingGate);
       this.passingGate = null;
       return true; // avoid collision check
@@ -748,6 +750,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   doExplode(msg){
     this.exploding = true;
+    this.passingGate = null;
 
     this.stopWarning();
     this.setGameMsg(msg || 'BOOM!!!');
