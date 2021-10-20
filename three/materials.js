@@ -10,11 +10,11 @@ materials = {
         side: THREE.DoubleSide
     }),
     redExplode: new THREE.PointsMaterial({
-        color: 0xFF0000,
+        transparent: true,
         size: config.explodePartSize
     }),
     blueExplode: new THREE.PointsMaterial({
-        color: 0x0000FF,
+        transparent: true,
         size: config.explodePartSize
     })
 }

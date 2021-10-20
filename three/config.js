@@ -1,13 +1,13 @@
-const SIZE = 300;
-const HEIGHT = 100;
-const GATE_SIZE = SIZE / 80;
+const SIZE = 30;
+const HEIGHT = 13;
+const GATE_SIZE = (SIZE/ 2) / 80;
 
 const BLUE = 0x224988;
 const RED = 0x703020;
-const BLUE2 = 0x003070;
+const BLUE2 = 0x0044ff;
 const BLUE_SHIP = 0x000411;
-const RED2 = 0x882200;
-const RED_SHIP = 0x110100;
+const RED2 = 0xff3300;
+const RED_SHIP = 0x110500;
 const GREY = 0x333344;
 const WHITE = 0xFFFFFF;
 
@@ -15,17 +15,17 @@ const toRad = (Math.PI / 180);
 
 window.config = {
   size: SIZE,
-  distancePerMS: SIZE / 5000, // half cort in 15 sec
+  distancePerMS: SIZE / 8000, // half cort in 15 sec
   gateTurnPerSec: 0.15,
   //ctrlHeightLimit: (20 * toRad)
   // steerReleaseFactor: 0.95,
   //  horizLimit:0.02,
-  vertLimit: 0.60,
+  vertLimit: 0.90,
   maxFaceX: 0.1 , // gimble in face.js 0 is zero max face turn is 0.2
   playSphereFactor: 1.6, //control shooting sphere size
-  updateInterval: 250,
+  updateInterval:500,
   return2startSec: 5,
-  explodePartSize: SIZE / 200, //(2)
+  explodePartSize: SIZE / 500, //(2)
   // rotUnit:0.001,
   raycastNear:0,
   raycastFar:2 * SIZE,

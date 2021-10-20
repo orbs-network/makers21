@@ -2,7 +2,7 @@
 function ExplodeMngr(scene){
   //////////////settings/////////
   const SECONDS = 2;
-  var movementSpeed = SIZE/50;
+  var movementSpeed = SIZE/100;
   var totalObjects = 1000;
   //var objectSize = 0.03;
   //var sizeRandomness = 4000;
@@ -61,16 +61,20 @@ function ExplodeMngr(scene){
     this.started = Date.now();
 
     // animation
-    this.update = function(){
+    this.update = function(age){
       if (this.status == true){
         var index = 0;
         var count = totalObjects;
-        while(--count) {
+          const explosionColors = isRed ? explosionRedColors : explosionBlueColors;
+
+          while(--count) {
           //var particle =  this.object.geometry.vertices[index]
           this.particles[index++] += dirs[count].y * Math.random() * (Math.random() > 0.2 ? 1 : -1) ;
           this.particles[index++] += dirs[count].x * Math.random() * (Math.random() > 0.2 ? 1 : -1);
           this.particles[index++] += dirs[count].z * Math.random() * (Math.random() > 0.2 ? 1 : -1);
-          this.object.material.opacity = this.object.material.opacity * 0.99;
+          const explosionPhase = Math.abs(1-(age/2));
+          this.object.material.opacity = explosionPhase;
+          this.object.material.color.set(explosionColors[Math.floor((age/2) * 10)]);
           // var particle = this.particles[pCount];
           // particle.y += dirs[pCount].y;
           // particle.x += dirs[pCount].x;
@@ -94,8 +98,12 @@ function ExplodeMngr(scene){
     const now = Date.now();
     let ended = [];
     while(pCount--) {
-      if ( (now - parts[pCount].started) / 1000 < SECONDS ){
-        parts[pCount].update();
+
+      let age = (now - parts[pCount].started) / 1000;
+
+      if ( age < SECONDS ){
+        parts[pCount].update(age);
+
       }
       else{
         ended.push(pCount);
@@ -137,3 +145,33 @@ function ExplodeMngr(scene){
     create:create
   }
 }
+
+const explosionRedColors =[
+
+    "#ffffff",
+    "#ffdbdb",
+    "#ffd0d0",
+    "#ffa1a1",
+    "#ff9393",
+    "#ff5b5b",
+    "#ff2e2e",
+    "#ff0000",
+    "#9e0000",
+    "#840000",
+    "#2a0000",
+];
+
+const explosionBlueColors =[
+
+    "#ffffff",
+    "#ced4ff",
+    "#cfd6ff",
+    "#a1b9ff",
+    "#93aaff",
+    "#5b76ff",
+    "#2e62ff",
+    "#0037ff",
+    "#00159e",
+    "#001d84",
+    "#00092a",
+];

@@ -20,28 +20,16 @@ class Player{
     // DO BEFORE SHOOTING SO IT DOESNT REPLACE ADDED SPHERE MATTERIAL
     this.setMaterialColor(isRed);
 
-
-    // SUPER SIMPLE GLOW EFFECT
-    // use sprite because it appears the same from all angles
-    const spriteMaterial = new THREE.SpriteMaterial({
-      map: new THREE.ImageUtils.loadTexture( 'images/nova_1.png' ),
-      depthWrite: false,
-      color: isRed? 0xffaaaa:0x9999ff , blending: THREE.AdditiveBlending
-    });
-
-    const sprite = new THREE.Sprite( spriteMaterial );
-    sprite.scale.set(300, 300, 1.0);
-    sprite.position.z  = -180;
-    sprite.position.x  = -30;
-    obj.add(sprite);
-
     // useShooting
     this.useShooting = useShooting;
     if(useShooting){
       // bounding sphere
       const geometry = new THREE.SphereGeometry( 320 * config.playSphereFactor, 16, 8 );
       // create new matterial per sphere so opacity can be changed individually
-      this.boundSphere = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: isRed? 0xFF0000:0x0000FF } ) );
+      this.boundSphere = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+        color: isRed ? 0xFF0000 : 0x0000FF,
+        depthWrite: false,
+      }));
       this.boundSphere.layers.enable(1); // MUST
       this.boundSphere.material.transparent = true;
       //this.boundSphere.position.z = 90;
@@ -57,6 +45,21 @@ class Player{
       laserBeam.object3d.position.z = -.05; // infront of airplane
       this.laserBeam = laserBeam;
     }
+
+    // SUPER SIMPLE GLOW EFFECT
+    // use sprite because it appears the same from all angles
+    const engineMaterial = new THREE.SpriteMaterial({
+      map: new THREE.ImageUtils.loadTexture( 'images/nova_1.png' ),
+      depthWrite: false,
+      color: isRed? 0xffaaaa:0x9999ff , blending: THREE.AdditiveBlending
+    });
+
+    const engineSprite = new THREE.Sprite( engineMaterial );
+    engineSprite.scale.set(300, 300, 1.0);
+    engineSprite.position.z  = -180;
+    engineSprite.position.x  = -30;
+    obj.add(engineSprite);
+
   }
   //////////////////////////////////////////////////////////
   showBoundingSphere(show){
@@ -359,7 +362,7 @@ class Players{
     p.copy(this.model);
 
     // scale
-    const s = SIZE/40000;// was 30000 but adjusted to ship model
+    const s = SIZE/80000;// was 30000 but adjusted to ship model
     p.scale.set(s,s,s);
 
     p.name = nick;
