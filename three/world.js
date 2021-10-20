@@ -497,7 +497,7 @@ class World {
     // }
     //////////////////////////////////////////////////////////
     createCamera() {
-        this._camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100000);
+        this._camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.01, 100000);
         this._camera.name = 'cam';
         this.scene.add(this._camera);
     }

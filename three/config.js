@@ -1,6 +1,9 @@
 const SIZE = 30;
 const HEIGHT = 13;
-const GATE_SIZE = (SIZE/ 2) / 80;
+
+const GAME_OBJECT_SCALE_FACTOR = 1.5;
+
+const GATE_SIZE = (SIZE/ GAME_OBJECT_SCALE_FACTOR) / 80;
 
 const BLUE = 0x224988;
 const RED = 0x703020;
@@ -15,7 +18,7 @@ const toRad = (Math.PI / 180);
 
 window.config = {
   size: SIZE,
-  distancePerMS: SIZE / 8000, // half cort in 15 sec
+  distancePerMS: SIZE / 20000, // half cort in 15 sec
   gateTurnPerSec: 0.15,
   //ctrlHeightLimit: (20 * toRad)
   // steerReleaseFactor: 0.95,
@@ -43,4 +46,4 @@ config.targetLockMs = 1000;
 
 config.colideDistance = config.distancePerMS * 50;
 config.gatePassDistance = config.distancePerMS * 100;
-config.lookSpeed = config.distancePerMS * 0.01; //0.0005,
+config.lookSpeed = config.distancePerMS * 0.2; //0.0005,
