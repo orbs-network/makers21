@@ -15,7 +15,7 @@ const toRad = (Math.PI / 180);
 
 window.config = {
   size: SIZE,
-  distancePerMS: SIZE / 6000, // half cort in 4 sec
+  distancePerMS: SIZE / 10000, // half cort in 6 sec
   gateTurnPerSec: 0.15,
   //ctrlHeightLimit: (20 * toRad)
   // steerReleaseFactor: 0.95,
@@ -25,10 +25,11 @@ window.config = {
   playSphereFactor: 1.6, //control shooting sphere size
   updateInterval: 250,
   return2startSec: 5,
-  explodePartSize: 2,
+  explodePartSize: SIZE / 200, //(2)
   // rotUnit:0.001,
   raycastNear:0,
-  raycastFar:2 * SIZE
+  raycastFar:2 * SIZE,
+  secCrossBorder:2 // 2 sec explode outside border
 };
 
 
