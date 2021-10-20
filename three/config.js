@@ -15,7 +15,7 @@ const toRad = (Math.PI / 180);
 
 window.config = {
   size: SIZE,
-  distancePerMS: SIZE / 10000, // half cort in 4 sec
+  distancePerMS: SIZE / 6000, // half cort in 4 sec
   gateTurnPerSec: 0.15,
   //ctrlHeightLimit: (20 * toRad)
   // steerReleaseFactor: 0.95,

@@ -358,6 +358,8 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   onMngrState(state){
+    this.tellingGatePass = false; //- must have been finished
+
     // store
     this.mngrState = state;
     // to add dummies during game
@@ -540,6 +542,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   tellGatePass(winGate){
+    this.tellingGatePass = true; // to avoid exploding - reset on mngr state
     deepStream.client.rpc.make('client',{
       type:"gatePass",
       isRed: this.localState.isRed,
@@ -613,10 +616,13 @@ class Game /*extends THREE.EventDispatcher*/ {
       return;
     }
 
-
     let outside = 0;
     this.borderLoopTID = setInterval(()=>{
-      if(!this.moving || this.exploding || this.gameOver) return;
+      if(!this.moving || this.exploding || this.gameOver) {
+        outside = 0; // fix exlode on start bug
+        return;
+      }
+
       if(outside > 30){
         outside = 0;
         this.doExplode();

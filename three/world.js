@@ -799,7 +799,8 @@ class World {
         // set raycast
         this.raycaster.setFromCamera(new THREE.Vector3(), this.camera);
 
-        if (this.checkGateCollision())
+        // avoid this check while telling server gate pass
+        if (!game.tellingGatePass && this.checkGateCollision())
             return true; // exploding
 
         // shooting
