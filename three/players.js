@@ -362,7 +362,7 @@ class Players{
     p.copy(this.model);
 
     // scale
-    const s = SIZE/(80000 *  GAME_OBJECT_SCALE_FACTOR);// was 30000 but adjusted to ship model
+    const s = GATE_SIZE/500;// was 30000 but adjusted to ship model
     p.scale.set(s,s,s);
 
     p.name = nick;

@@ -18,6 +18,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.gameOver = false;
     this.targetPos = new THREE.Vector3();
     this.direction = new THREE.Vector3();
+    this.tsRender = Date.now();
     // NEED THIS! this.mngrState = null;
   }
   //////////////////////////////////////////////////////////
@@ -235,7 +236,6 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.controls = new THREE.FirstPersonControls(this.world.camera, this.world.renderer.domElement);
       }
       this.controls.activeLook = true;
-      //this.controls.movementSpeed = config.speed;
       this.controls.movementSpeed = config.distancePerMS;
       this.controls.constrainVertical = true;
       this.controls.verticalMax  = 1.6 + config.vertLimit;

@@ -19,6 +19,8 @@ class World {
         this.simpleRendering = localStorage.getItem("simpleRendering");
         this.disableSound = localStorage.getItem("disableSound");
 
+        this.groundThrottle = 0;
+
     }
 
     //////////////////////////////////////////////////////////
@@ -151,7 +153,7 @@ class World {
 
         const gateY = HEIGHT / 2 + GATE_SIZE / 2;
 
-        const gatePosFactor = 0.95;//almost at border (2)
+        const gatePosFactor = 1;//0.95;//almost at border (2)
 
         // move front and up
         this.redGate.position.z = -SIZE * gatePosFactor;
@@ -274,7 +276,8 @@ class World {
         let stars = new THREE.Points(starGeo, starMaterial);
 
         this.scene.add(stars);
-
+/*
+        // SMALL STARS
         starVertices = [];
 
         for (let i = 0; i < 1000; i++) {
@@ -301,7 +304,7 @@ class World {
 
         stars = new THREE.Points(starGeo, starMaterial);
 
-        this.scene.add(stars);
+        this.scene.add(stars);*/
 
 
         // lensflares
@@ -356,13 +359,17 @@ class World {
             fog: false
         }));
 
+        // moon
         this.moon.position.x = -28000;
-
         this.moonCenter.add(this.moon);
 
+        // fog
         this.scene.fog = new THREE.FogExp2(0x1c222d, 0.001);
-
-        const worldWidth = 300, worldDepth = 300;
+        this.createGround(SIZE,SIZE);
+    }
+    ////////////////////////////////////////
+    createGround(worldWidth, worldDepth){
+        //const worldWidth = 300, worldDepth = 300;
         const data = this.generateGroundNormal(worldWidth, worldDepth);
 
         const groundGeometry = new THREE.PlaneGeometry(5000, 5000, worldWidth - 1, worldDepth - 1);
@@ -382,7 +389,7 @@ class World {
 
         const ground = new THREE.Mesh(groundGeometry, new THREE.MeshStandardMaterial({map: groundTexture}));
         // ground.position.x = -10;
-        ground.position.y = -HEIGHT - 100;
+        ground.position.y = -HEIGHT/2;//-HEIGHT - 100;
         ground.rotation.z = 0.1;
         this.scene.add(ground);
 
@@ -392,22 +399,9 @@ class World {
         bloomPass.strength = 0.5;
         bloomPass.radius = 0;
 
-        this.composer.addPass(bloomPass);
-
+        //this.composer.addPass(bloomPass);
+        this.ground = ground;
     }
-
-    //////////////////////////////////////////////////////////
-    // createBorderPad(divisions, zDir, zPosFactor, xDir, xPosFactor, yPos) {
-    //     let grid = new THREE.GridHelper(SIZE / 2, divisions / 2, GREY, GREY);
-    //     this.scene.add(grid);
-    //     grid.position.z = SIZE * zPosFactor * zDir;
-    //     grid.position.x -= SIZE * xPosFactor * xDir;
-    //     grid.position.y = yPos;
-    // }
-
-    // createBorderPads(divisions, zDir, xDir, yPos) {
-
-    // }
 
     //////////////////////////////////////////////////////////
     createHoriz(divisions, color, zDir, yPos) {
@@ -423,10 +417,6 @@ class World {
         const material = new THREE.MeshBasicMaterial({opacity: 0.1, transparent: true, color: color});
         const cube = new THREE.Mesh(geometry, material);
         grid.add(cube);
-
-        // create pads
-        //this.createBorderPads(divisions, zDir, 1, yPos);
-        //this.createBorderPads(divisions, zDir, -1, yPos);
     }
 
     //////////////////////////////////////////////////////////
@@ -497,7 +487,7 @@ class World {
     // }
     //////////////////////////////////////////////////////////
     createCamera() {
-        this._camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.01, 100000);
+        this._camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 100000);
         this._camera.name = 'cam';
         this.scene.add(this._camera);
     }
@@ -539,6 +529,30 @@ class World {
         const intersects = this.raycaster.intersectObjects([this.redGate, this.blueGate], false);
         if (intersects && intersects.length) {
             //console.log(intersects[0].object.name, intersects[0].distance);
+            if (intersects[0].distance < config.colideDistance) {
+                return true;
+            }
+        }
+        return false;
+    }
+    //////////////////////////////////////////////////////////
+    // throttled
+    checkGroundCollision(delta){
+        // above ground grid
+        if (this.camera.position.y > 0) return false;
+        // throttle heavy raycasting
+        this.groundThrottle += 1;
+
+        // 2 times a second frames == FPS
+        if(this.groundThrottle != 15){// Math.floor(game.frames / 2) ){
+            return false;
+        }
+        this.groundThrottle = 0;
+        //console.log('nop throt', delta);
+
+        const intersects = this.raycaster.intersectObjects([this.ground], false);
+        if (intersects && intersects.length) {
+            console.log("ground", intersects[0].distance);
             if (intersects[0].distance < config.colideDistance) {
                 return true;
             }
@@ -781,7 +795,7 @@ class World {
         // this.renderer2d.domElement.style.width = window.innerWidth;
         // this.renderer2d.domElement.style.height = window.innerHeight;
     }
-
+    //////////////////////////////////////////////////////////
     render(delta) {
       // rotate gates & flags in sync with all players
       if (game.mngrState?.startTs) {
@@ -805,12 +819,13 @@ class World {
       // explosions
       this.explode.beforeRender();
 
-        //world
-        if (!this.simpleRendering) {
-            this.planet.rotation.y += 0.0001;
-            this.moonCenter.rotation.y += 0.00001;
-        }
 
+      //world
+
+      if (!this.simpleRendering) {
+        this.planet.rotation.y += 0.0001;
+        this.moonCenter.rotation.y += 0.00001;
+      }
 
       // return to start
       if (this.returnObj) {
@@ -823,6 +838,10 @@ class World {
         // avoid this check while telling server gate pass
         if (!game.tellingGatePass && this.checkGateCollision())
             return true; // exploding
+
+        if (this.checkGroundCollision(delta)){
+            return true; // exploding
+        }
 
         // shooting
         if (this.shooting) {
@@ -839,7 +858,7 @@ class World {
       return false; //not exploding
     }
 
-
+    //////////////////////////////////////////////////////////
     generateGroundNormal(width, height) {
 
         let seed = Math.PI / 4;
