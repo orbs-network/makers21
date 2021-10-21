@@ -399,7 +399,7 @@ class World {
         bloomPass.strength = 0.5;
         bloomPass.radius = 0;
 
-        //this.composer.addPass(bloomPass);
+        this.composer.addPass(bloomPass);
         this.ground = ground;
     }
 
