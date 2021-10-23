@@ -538,13 +538,13 @@ class World {
     //////////////////////////////////////////////////////////
     // throttled
     checkGroundCollision(delta){
-        // above ground grid
-        if (this.camera.position.y > 0) return false;
+        // above ground grid and not in eastern mountains
+        if (this.camera.position.y > this.border.floor && this.camera.position.x < this.border.east  ) return false;
         // throttle heavy raycasting
         this.groundThrottle += 1;
 
         // 2 times a second frames == FPS
-        if(this.groundThrottle != 15){// Math.floor(game.frames / 2) ){
+        if(this.groundThrottle != config.groundRaycastEvery){// Math.floor(game.frames / 2) ){
             return false;
         }
         this.groundThrottle = 0;
@@ -553,7 +553,10 @@ class World {
         const intersects = this.raycaster.intersectObjects([this.ground], false);
         if (intersects && intersects.length) {
             console.log("ground", intersects[0].distance);
-            if (intersects[0].distance < config.colideDistance) {
+            // dynamic distance calc
+            const crashDis = delta * config.distancePerMS * config.groundRaycastEvery;
+            console.log(intersects[0].distance, crashDis);
+            if (intersects[0].distance < crashDis) {
                 return true;
             }
         }

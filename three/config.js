@@ -22,16 +22,17 @@ window.config = {
   // steerReleaseFactor: 0.95,
   //  horizLimit:0.02,
   vertLimit: 0.90,
-  maxFaceX: 0.2 , // gimble in face.js 0 is zero max face turn is 0.2
+  maxFaceX: 0,// zero should turn it off 0.2 , // gimble in face.js 0 is zero max face turn is 0.2
   playSphereFactor: 1.6, //control shooting sphere size
-  updateInterval:250,
+  updateInterval:100,
   return2startSec: 5,
   explodePartSize: SIZE / 500, //(2)
   // rotUnit:0.001,
   raycastNear:0,
   raycastFar:2 * SIZE,
   secCrossBorder:2, // 2 sec explode outside border
-  newTargetDelay:100 //ms
+  newTargetDelay:100, //ms
+  groundRaycastEvery: 15
 };
 
 

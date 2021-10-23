@@ -64,7 +64,7 @@ class Face  {
 	getDelta(){
 		// x gimble, constraint on range of left/right
 		let x = this.orientation.x - this.center.x;
-		const tmp = x;
+
 		// limit left right look
 		if(config.maxFaceX){
 			const ax = Math.abs(x);
@@ -73,7 +73,6 @@ class Face  {
 				x = config.maxFaceX * sign;
 			}
 		}
-		//console.log('x:',tmp, x)
 
 		this.ret.x = x;
 		this.ret.y = this.orientation.y - this.center.y;

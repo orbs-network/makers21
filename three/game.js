@@ -876,7 +876,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   keydown(e){
     //console.log('keydown code=', e.code);
     // not started
-    if(!this.mngrState.started || !this.world.players.gameJoined){
+    if(!this.mngrState || !this.mngrState.started || !this.world.players.gameJoined){
       console.log("cant fly before game started and joined");
       return;
     }
@@ -887,7 +887,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.startStop();
         break;
       case "Enter":
-      case "NumpadEnter":
+      case "NumpadEnter": // ori easy fire
       case "KeyF":
         this.doFire();
         break;
