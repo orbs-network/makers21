@@ -1,6 +1,5 @@
 # general configuration with default values
 serverName: makerz
 showLogo: true
-logLevel: 3
 dependencyInitializationTimeout: 2000
-exitOnFatalError: false
+logLevel: 1

@@ -886,9 +886,12 @@ class Game /*extends THREE.EventDispatcher*/ {
       case "Space":
         this.startStop();
         break;
+      case "Enter":
+      case "NumpadEnter":
       case "KeyF":
         this.doFire();
         break;
+
 
     }
     //return false;

@@ -16,15 +16,15 @@ const toRad = (Math.PI / 180);
 
 window.config = {
   size: SIZE,
-  distancePerMS: SIZE / 10000, // half cort in 15 sec
+  distancePerMS: SIZE / 9000, // half cort in 15 sec
   gateTurnPerSec: 0.15,
   //ctrlHeightLimit: (20 * toRad)
   // steerReleaseFactor: 0.95,
   //  horizLimit:0.02,
   vertLimit: 0.90,
-  maxFaceX: 0.1 , // gimble in face.js 0 is zero max face turn is 0.2
+  maxFaceX: 0.2 , // gimble in face.js 0 is zero max face turn is 0.2
   playSphereFactor: 1.6, //control shooting sphere size
-  updateInterval:500,
+  updateInterval:250,
   return2startSec: 5,
   explodePartSize: SIZE / 500, //(2)
   // rotUnit:0.001,
