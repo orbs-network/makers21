@@ -282,7 +282,7 @@ class Game /*extends THREE.EventDispatcher*/ {
           this.tid321 = null;
         }
         // resume
-        this.startStop();
+
         this.onGameStarted();
       }
     },50);
@@ -388,6 +388,10 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(state.started){
       // first means hasnt moved, after reload
       if(joined){
+        if(!this.moving) {
+          this.startStop();
+        }
+
         if(this.first){
           // return/start game
           this.onGameStarted();
