@@ -166,9 +166,18 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     // [press any key to start]
     document.body.addEventListener("keydown",this.keydown.bind(this));
-    document.body.addEventListener("click", ()=> { this.startStop(); })
-    // UI events
-    document.getElementById('nick').addEventListener('input',(e)=>{
+
+      // Mobile buttons
+      if(this.isMobile) {
+
+        let startBtn = document.getElementById('mobile-start-btn');
+        startBtn.addEventListener('click', ()=> { this.startStop(); })
+        let fireBtn = document.getElementById('mobile-fire-btn');
+        fireBtn.addEventListener('click', ()=> { this.doFire(); })
+      }
+
+      // UI events
+      document.getElementById('nick').addEventListener('input',(e)=>{
       // show/hide chose team
       document.getElementById('choose-team').style.display = (e.target.value.length > 2)? 'block':'none';
       if(e.target.value.length > 2){
@@ -179,6 +188,11 @@ class Game /*extends THREE.EventDispatcher*/ {
     // radio buttons and nick
     this.setInputs();
   }
+  //////////////////////////////////////////////////////////
+  isMobile() {
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  }
+
   //////////////////////////////////////////////////////////
   startStop(){
     // cant start while exploding
@@ -388,10 +402,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     if(state.started){
       // first means hasnt moved, after reload
       if(joined){
-        if(!this.moving) {
-          this.startStop();
-        }
-
         if(this.first){
           // return/start game
           this.onGameStarted();
