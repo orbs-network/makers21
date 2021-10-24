@@ -52,8 +52,21 @@ body {
     color: silver;
     left: calc(50% - 400px);
     top: 4%;
+    bottom:4%;
     background-color: #0004;
 }
+
+@media only screen and (max-device-width: 736px) {
+    #welcome {
+        font-size: 1.5rem;
+        padding:0.5rem;
+        left: 13vw;
+    }
+    input {
+        font-size: 2rem;
+    }
+}
+
 .team-label {
     width: 200px;
     text-align: center;
