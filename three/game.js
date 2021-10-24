@@ -282,7 +282,7 @@ class Game /*extends THREE.EventDispatcher*/ {
           this.tid321 = null;
         }
         // resume
-
+        this.startStop();
         this.onGameStarted();
       }
     },50);
