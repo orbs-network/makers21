@@ -166,7 +166,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     // [press any key to start]
     document.body.addEventListener("keydown",this.keydown.bind(this));
-
+    document.body.addEventListener("click", ()=> { this.startStop(); })
     // UI events
     document.getElementById('nick').addEventListener('input',(e)=>{
       // show/hide chose team
@@ -282,6 +282,7 @@ class Game /*extends THREE.EventDispatcher*/ {
           this.tid321 = null;
         }
         // resume
+
         this.onGameStarted();
       }
     },50);
