@@ -7,6 +7,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.stillTargetEnabled = localStorage.getItem('stillTargetEnabled') == 'true';
     this.disableConstantSpeed = localStorage.getItem("disableConstantSpeed") == 'true';
     this.disableSound = localStorage.getItem("disableSound");
+    this.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   }
   //////////////////////////////////////////////////////////
   resetMembers(){
@@ -48,7 +49,11 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   loadAsync(cb){
-    this.loadNeck(()=>{
+    this.loadNeck((success)=>{
+      if(!success){
+        console.log('failed to start face camera, neck flight is disabled');
+        this.useNeck = false;
+      }
       this.world.loadModels(cb);
     });
   }
@@ -157,6 +162,49 @@ class Game /*extends THREE.EventDispatcher*/ {
     });
   }
   //////////////////////////////////////////////////////////
+  setMobileBtnPrps(prps){
+    if(!this.mobileBtn) return;
+    if(prps == 'start' && this.moving) {
+      prps = 'stop';
+    }else if(prps == 'stop' && !this.moving){
+      prps = 'start';
+    }
+
+    this.mobileBtnText.innerHTML = prps;
+    this.mobileBtnPrps = prps;
+    let color;
+    switch(prps){
+      case 'start':
+        color = "#6060ff";
+        break;
+      case 'stop':
+        color = "#303060";
+        break;
+      case 'fire':
+        color = "#ff0000";
+        break;
+      case 'pass':
+        color = "#00ff00";
+        break
+    }
+    this.mobileBtnFace.style.backgroundColor = color;
+  }
+  //////////////////////////////////////////////////////////
+  mobileBtnClick(){
+    switch(this.mobileBtnPrps){
+      case 'start':
+      case 'stop':
+        this.startStop();
+        // change text
+        this.setMobileBtnPrps('start');
+        break;
+      case 'fire':
+      case 'pass':
+        this.doFire();
+        break
+    }
+  }
+  //////////////////////////////////////////////////////////
   uxInit(){
     // handler for join
     document.getElementById('join').addEventListener('click',this.onJoin.bind(this));
@@ -167,17 +215,18 @@ class Game /*extends THREE.EventDispatcher*/ {
     // [press any key to start]
     document.body.addEventListener("keydown",this.keydown.bind(this));
 
-      // Mobile buttons
-      if(this.isMobile) {
+    // Mobile buttons
+    if(this.isMobile) {
+      this.mobileBtn = document.getElementById('mobile-btn');
+      this.mobileBtnFace = this.mobileBtn.children[0];
+      this.mobileBtnText = this.mobileBtn.children[1];
+      this.mobileBtnFace.addEventListener('click', this.mobileBtnClick.bind(this));
+      this.mobileBtn.style.display = 'block';
+      this.setMobileBtnPrps('start');
+    }
 
-        let startBtn = document.getElementById('mobile-start-btn');
-        startBtn.addEventListener('click', ()=> { this.startStop(); })
-        let fireBtn = document.getElementById('mobile-fire-btn');
-        fireBtn.addEventListener('click', ()=> { this.doFire(); })
-      }
-
-      // UI events
-      document.getElementById('nick').addEventListener('input',(e)=>{
+    // UI events
+    document.getElementById('nick').addEventListener('input',(e)=>{
       // show/hide chose team
       document.getElementById('choose-team').style.display = (e.target.value.length > 2)? 'block':'none';
       if(e.target.value.length > 2){
@@ -188,11 +237,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     // radio buttons and nick
     this.setInputs();
   }
-  //////////////////////////////////////////////////////////
-  isMobile() {
-    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  }
-
   //////////////////////////////////////////////////////////
   startStop(){
     // cant start while exploding

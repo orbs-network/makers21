@@ -146,7 +146,7 @@ void main()
 		<audio id="explode" src="./sound/explode.wav"></audio>
 		<audio id="alarm" src="./sound/alarm.wav" loop></audio>
 		<!-- welcome -->
-		<div id="welcome" style="display: none;">
+		<div id="welcome" class="h_center" style="display: none;">
 			<h1>Makers2021 welcome</h1>
 			<div id="online">please wait...</div>
 			<div id="started"></div>
@@ -190,7 +190,7 @@ void main()
 			<div id="req-start" style="display:none">request start from server...</div>
 		</div>
 		<!-- welcome END -->
-		<div id="game-display">
+		<div id="game-display" class="h_center">
 			<span id="msg"></span>
 		</div>
 		<!-- GAVE OVER -->
@@ -204,17 +204,21 @@ void main()
 		<div id="flag-holder" class="red">
 			you are holding the flag!
 		</div>
-		<div id="mobile-fire-btn">🎯</div>
-		<div id="mobile-start-btn">GO</div>
+		<!-- <div id="mobile-start-btn">GO</div> -->
 		<!-- FPS -->
 		<div id="fps" >v1.1.3 FPS:</div>
+		<!-- Mobile -->
+		<div id="mobile-btn" class="no_highlights">
+			<div class="face" ></div>
+			<div class="text" >start</div>
+		</div>
 		<!-- Face -->
 		<div id="face-display" >
 			<canvas id="face-canvas" style="height: 90%; width: 100%; left: 0; top: 0; transform: scale(-1, 1);" class="output_canvas"></canvas>
 			<div class="cords">
 				<span>X:<span id="face-x"></span></span>
 				<span>Y:<span id="face-y"></span></span>
-		</div>
+			</div>
 		</div>
 	</body>
 </html>

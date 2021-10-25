@@ -43,7 +43,6 @@ class Face  {
 				return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/${file}`;
 			}
 		});
-
 		this.faceMesh.onResults(this.onResults.bind(this));
 
 		// Instantiate a camera. We'll feed each frame we receive into the solution.
@@ -55,6 +54,7 @@ class Face  {
 			height: 720
 		});
 		camera.start();
+
 	}
 	//////////////////////////////////////////////////////////
 	captureCenterXY(){
@@ -102,13 +102,13 @@ class Face  {
 	}
 	//////////////////////////////////////////////////////////
 	onResults(results) {
-		if(!results.multiFaceLandmarks)
-			return;
-
 		if(this.onReady){
-			this.onReady();
+			this.onReady(results.multiFaceLandmarks != null);
 			this.onReady = null;
 		}
+
+		if(!results.multiFaceLandmarks)
+			return;
 
 		// from nose (center)
 		this.orientation.x = results.multiFaceLandmarks[0][1].x;

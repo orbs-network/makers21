@@ -82,6 +82,7 @@ class Shooting {
   //////////////////////////////////////////////
   onNewTarget(target, players) {
     this.tidNewTarget = 0; // reset async proc
+    game.setMobileBtnPrps('start'); // or stop
 
     // REMINDER 'target' is the sphere THREEJS mesh object
     // hide bounding sphere for others
@@ -148,6 +149,7 @@ class Shooting {
 
       } else {
         this.hudLabel.textContent = "Target locked!"
+        game.setMobileBtnPrps('fire');
         game.stopAudio('laser_up');
         game.playAudio('locked');
         this.hud.rotation.z = 0;
@@ -233,6 +235,7 @@ class Shooting {
           if (game.holdingFlag) {
             this.locked = true;
             this.hudLabel.textContent = `Pass the flag to ${this.targetPlayer.nick}`
+            game.setMobileBtnPrps('pass');
             game.stopAudio('laser_up');
             game.stopAudio('laser_down');
             game.playAudio('locked');
