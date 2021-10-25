@@ -3,7 +3,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   constructor(){
     this.resetMembers();
     this.loadLocalState();
-    this.useNeck = localStorage.getItem('disableNeck') !== 'true';
+    this.useNeck = localStorage.getItem('disableNeck') != 'true';
     this.stillTargetEnabled = localStorage.getItem('stillTargetEnabled') == 'true';
     this.disableConstantSpeed = localStorage.getItem("disableConstantSpeed") == 'true';
     this.disableSound = localStorage.getItem("disableSound");
