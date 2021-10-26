@@ -21,7 +21,7 @@ body {
 .hud-label{
     background-color: transparent;
     text-shadow:1 1 3px #000;
-    margin-top: 5em;
+    margin-top: 3em;
     opacity: 0.3;
 }
 
@@ -52,7 +52,7 @@ body {
     /* top: 0; */
     /* right: 0; */
     border: 1px solid silver;
-    padding: 65px 20px;
+    /* padding: 65px 20px; */
     text-align: center;
     color: silver;
     top: 4%;
@@ -81,12 +81,19 @@ body {
     user-select: none;
   }
 
+ #mobile{
+    display: none;
+    position: absolute;
+    text-align: center;
+    color: silver;
+    background-color: #0004;
+}
 #mobile-btn {
     display:none;
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    right:-80px;
+    right:1em;
     text-align: center;
     opacity: 0.4;
 }

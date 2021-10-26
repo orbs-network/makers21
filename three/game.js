@@ -48,14 +48,28 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.face.startCamera(cb);
   }
   //////////////////////////////////////////////////////////
-  loadAsync(cb){
-    this.loadNeck((success)=>{
-      if(!success){
-        console.log('failed to start face camera, neck flight is disabled');
-        this.useNeck = false;
-      }
-      this.world.loadModels(cb);
+  loadMobile(cb){
+    if(!this.isMobile) return cb();
+    let el = document.getElementById('mobile');
+    el.style.display = 'block';
+    document.getElementById('mobile-confirm').addEventListener('click',()=>{
+      el.style.display = 'none';
+      document.body.requestFullscreen();
+      cb();
     });
+
+  }
+  //////////////////////////////////////////////////////////
+  loadAsync(cb){
+    this.loadMobile(()=>{
+      this.loadNeck((success)=>{
+        if(!success){
+          console.log('failed to start face camera, neck flight is disabled');
+          this.useNeck = false;
+        }
+        this.world.loadModels(cb);
+      });
+    })
   }
   //////////////////////////////////////////////////////////
   isJoined(){
@@ -560,10 +574,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     });
   }
   //////////////////////////////////////////////////////////
-  createWorld(){
-    this.world = new World();
-  }
-  //////////////////////////////////////////////////////////
   stopAudio(id){
     let sound = !this.disableSound && document.getElementById(id);
     if(sound){
@@ -1003,7 +1013,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 //////////////////////////////////////////////////////////
 const game = new Game();
 window.onload = function(){
-  game.createWorld();
+  game.world = new World();
   game.loadAsync(()=>{
     console.log('All models have been loaded');
     game.uxInit();
