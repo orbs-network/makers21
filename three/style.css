@@ -81,6 +81,15 @@ body {
     #choose-team{
         margin-top:-10px;
     }
+    #face-display {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 25%;
+        height: 25%;
+        /*border: 1px solid silver;*/
+        color: silver;
+    }
 }
 
 .no_highlights{
@@ -185,7 +194,7 @@ body {
 
 
 .control-panel {
-    background-color: #0000004D;
+    background-color: #0000006D;
     position: absolute;
     top: 0;
     right: 0;
