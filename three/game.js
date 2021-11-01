@@ -110,8 +110,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.initControls(false);
     // stop broadcast interval
     this.startUpdateLoop(false);
-    // to enable start stop
-    this.setGameMsg('game has been reset!');
   }
   //////////////////////////////////////////////////////////
   onJoin(){
@@ -235,7 +233,6 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.mobileBtnFace = this.mobileBtn.children[0];
       this.mobileBtnText = this.mobileBtn.children[1];
       this.mobileBtnFace.addEventListener('click', this.mobileBtnClick.bind(this));
-      this.mobileBtn.style.display = 'block';
       this.setMobileBtnPrps('start');
     }
 
@@ -263,6 +260,10 @@ class Game /*extends THREE.EventDispatcher*/ {
     this.moving = !this.moving;
     this.controls.autoForward = !this.disableConstantSpeed &&  this.moving;
     this.controls.enabled = this.moving;
+
+    if(this.world.shooting){
+      this.world.shooting.showHUD(this.moving);
+    }
     //this.controls
     // const pos = this.world.camera.position.clone();
     // deepStream.sendEvent('player',{
@@ -375,6 +376,10 @@ class Game /*extends THREE.EventDispatcher*/ {
       //this.setGameMsg('game begins in:');
       return;
     }else{ // happens after Reload
+      if(this.mobileBtn){
+        this.mobileBtn.style.display = 'block';
+      }
+
       // update world
       this.world.setNick(this.localState.nick);
       this.world.setTeamPos(this.localState.isRed);
@@ -396,7 +401,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.startBorderLoop(true);
 
       // to enable start stop
-      this.setGameMsg('press any key to start');
+      this.setGameMsg('press start');
 
       // start FPS loop
       const fps = document.getElementById('fps');
@@ -409,6 +414,9 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   onGameOver(){
+    if(this.mobileBtn)
+      this.mobileBtn.style.display = 'none';
+
     document.getElementById('game-over').style.display = 'block';
     const winnerTeam = this.mngrState.winnerIsRed? 'red':'blue';
     document.getElementById('game-over').className = winnerTeam;

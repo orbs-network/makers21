@@ -37,9 +37,9 @@ window.config = {
 
 
 config.shootNear = 0;//SIZE / 10;
-config.shootFar =  SIZE;
+config.shootFar =  SIZE * 1.4;
 config.passFlagNear = 0;
-config.passFlagFar = SIZE * 1.3; // advantage
+config.passFlagFar = config.shootFar * 1.3; // advantage
 
 config.targetLockMs = 1000;
 

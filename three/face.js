@@ -38,22 +38,27 @@ class Face  {
 	//////////////////////////////////////////////////////////
 	startCamera(cb){
 		this.onReady = cb;
-		this.faceMesh = new window.FaceMesh({
-			locateFile: file => {
-				return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/${file}`;
-			}
-		});
-		this.faceMesh.onResults(this.onResults.bind(this));
+		try{
+			this.faceMesh = new window.FaceMesh({
+				locateFile: file => {
+					return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/${file}`;
+				}
+			});
+			this.faceMesh.onResults(this.onResults.bind(this));
 
-		// Instantiate a camera. We'll feed each frame we receive into the solution.
-		const camera = new window.Camera(this.video, {
-			onFrame: async () => {
-				await this.faceMesh.send({ image: this.video });
-			},
-			width: 1280,
-			height: 720
-		});
-		camera.start();
+			// Instantiate a camera. We'll feed each frame we receive into the solution.
+			const camera = new window.Camera(this.video, {
+				onFrame: async () => {
+					await this.faceMesh.send({ image: this.video });
+				},
+				width: 1280,
+				height: 720
+			});
+			camera.start();
+		}catch(e){
+			console.error('startCamera', e);
+			cb(null);
+		}
 
 	}
 	//////////////////////////////////////////////////////////
@@ -90,10 +95,10 @@ class Face  {
 			});
 		}
 		// this landmark is the tip of the nose
-		drawLandmarks(this.canvasCtx, [results.multiFaceLandmarks[0][1]], {
-			color: "#880000",
-			radius: 0.2
-		});
+		// drawLandmarks(this.canvasCtx, [results.multiFaceLandmarks[0][1]], {
+		// 	color: "#880000",
+		// 	radius: 0.2
+		// });
 		this.canvasCtx.restore();
 
 		// update x, y

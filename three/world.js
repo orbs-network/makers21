@@ -200,6 +200,7 @@ class World {
             this.shooting = new Shooting();
             this._camera.add(this.shooting.createHUD())
             this.players.initShooting(true);
+            this.shooting.showHUD(false);
         }
         console.log('shooting is ' + (this.shooting ? 'enabled' : 'disabled'));
 

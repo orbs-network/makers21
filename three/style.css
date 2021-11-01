@@ -60,14 +60,26 @@ body {
     background-color: #0004;
 }
 
+.site-wrapper{
+    overflow-x:hidden;
+    overflow-y:hidden;
+}
+#welcome div{
+    padding: 0.2em;
+}
+.smaller{ font-size:smaller}
+.larger{ font-size:larger }
+
 @media only screen and (max-device-width: 736px) {
     #welcome {
-        font-size: 1.5rem;
-        padding:0.5rem;
-        left: 13vw;
+        font-size: 1rem;
     }
     input {
-        font-size: 2rem;
+        font-family: monospace;
+        font-size: 1rem;
+    }
+    #choose-team{
+        margin-top:-10px;
     }
 }
 
@@ -87,6 +99,14 @@ body {
     text-align: center;
     color: silver;
     background-color: #0004;
+    padding: 1em;
+}
+#mobile-confirm {
+    margin: auto;
+    width:30%;
+    color:black;
+    background-color:silver;
+
 }
 #mobile-btn {
     display:none;
@@ -116,11 +136,9 @@ body {
     margin: auto;
 }
 .btn {
-    padding: 0.5em 2em;
-    margin: 0.5em;
+    padding: 0.3em 2em;
+    margin: 0.3em;
     cursor: pointer;
-    /*font-size: 26px;*/
-    /*height: 48px;*/
     color:silver;
     background-color: #0004;
     border: 1px solid silver;
@@ -137,12 +155,9 @@ body {
     width: 30%;
 }
 
-div{
-    padding: 0.2em;
-}
-.red{ color: #C03030}
-.blue{ color: #4040FF}
 
+.red{ color: #C03030;}
+.blue{ color: #4040FF;}
 
 #game-display{
     padding:1em;
@@ -150,7 +165,7 @@ div{
     font-size: larger;
     position: absolute;
     top: 2%;
-    background-color:#0004;
+    background-color:#0006;
     color:silver;
     border: 1px solid silver;
     text-align: center;
@@ -159,13 +174,13 @@ div{
 #game-over{
     display:none;
     position: absolute;
-    top: 130px;
+    top: 10%;
     right: 25%;
     width: 50%;
     border: 1px solid silver;
-    background-color: #0004;
+    background-color: #0006;
     text-align: center;
-    font-size: xx-large;
+    font-size: larger;
 }
 
 
@@ -182,10 +197,10 @@ div{
 
 #face-display {
     position: absolute;
-    top: 0px;
-    right: -100px;
-    width: 344;
-    height: 248;
+    bottom: -10%;
+    left: -10%;
+    width: 25%;
+    height: 25%;
     /*border: 1px solid silver;*/
     color: silver;
 }
@@ -216,12 +231,11 @@ label {
 
 input {
     vertical-align: middle;
+    font-family: monospace;
 }
 
 .control-percentage {
     width: 80px
 }
 
-#face-display {
-    /* display:none; */
-}
+.dark-text-shadow{text-shadow:3px 3px 0.3em rgba(0,0,0,.9)};

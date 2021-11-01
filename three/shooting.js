@@ -10,6 +10,11 @@ class Shooting {
     this.friend = false;
   }
   //////////////////////////////////////////////
+  showHUD(show) {
+    this.hudLabelObj.visible = show;
+    this.hud.visible = show;
+  }
+  //////////////////////////////////////////////
   createHUD() {
     const hud = new THREE.Group();
     for (let i = 0; i < 4; i++) {
@@ -31,6 +36,7 @@ class Shooting {
     obj.position.set(0, 0, 0);
     this.hud.add(obj);
     this.hudLabel = label;
+    this.hudLabelObj = obj;
 
     return hud;
   }
