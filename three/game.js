@@ -873,9 +873,10 @@ class Game /*extends THREE.EventDispatcher*/ {
   //////////////////////////////////////////////////////////
   checkFireTarget(data) {
     if(data.targetNick == this.localState.nick){
-      this.doExplode();
+      this.doExplode(`You were shot down by ${data.nick}`);
     }
   }
+  //////////////////////////////////////////////////////////
   checkLockOnTarget(data){
     if(data.targetNick == this.localState.nick){
       if(data.on){
