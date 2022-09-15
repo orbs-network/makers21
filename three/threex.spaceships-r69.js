@@ -2,11 +2,11 @@ var THREEx	= THREEx	|| {}
 
 THREEx.SpaceShips		= {}
 
-THREEx.SpaceShips.baseUrl	= '../'
+THREEx.SpaceShips.baseUrl	= '/three'
 
 THREEx.SpaceShips.loadSpaceFighter01	= function(onLoad){
 	var loader	= new THREE.OBJMTLLoader();
-	var baseUrl	= THREEx.SpaceShips.baseUrl 
+	var baseUrl	= THREEx.SpaceShips.baseUrl
 	var objUrl	= baseUrl + 'models/SpaceFighter01/SpaceFighter01.obj';
 	var mtlUrl	= baseUrl + 'models/SpaceFighter01/SpaceFighter01.mtl';
 	loader.load(objUrl, mtlUrl, function( object3d ){
@@ -19,12 +19,12 @@ THREEx.SpaceShips.loadSpaceFighter01	= function(onLoad){
 		})
 		// notify the callback
 		onLoad	&& onLoad(object3d)
-	});		
+	});
 }
 
 THREEx.SpaceShips.loadSpaceFighter02	= function(onLoad){
 	var loader	= new THREE.OBJMTLLoader();
-	var baseUrl	= THREEx.SpaceShips.baseUrl 
+	var baseUrl	= THREEx.SpaceShips.baseUrl
 	var objUrl	= baseUrl + 'models/SpaceFighter02/SpaceFighter02.obj';
 	var mtlUrl	= baseUrl + 'models/SpaceFighter02/SpaceFighter02.mtl';
 	loader.load(objUrl, mtlUrl, function( object3d ){
@@ -37,12 +37,12 @@ THREEx.SpaceShips.loadSpaceFighter02	= function(onLoad){
 		})
 		// notify the callback
 		onLoad	&& onLoad(object3d)
-	});		
+	});
 }
 
 THREEx.SpaceShips.loadSpaceFighter03	= function(onLoad){
 	var loader	= new THREE.OBJMTLLoader();
-	var baseUrl	= THREEx.SpaceShips.baseUrl 
+	var baseUrl	= THREEx.SpaceShips.baseUrl
 	var objUrl	= baseUrl + 'models/SpaceFighter03/SpaceFighter03.obj';
 	var mtlUrl	= baseUrl + 'models/SpaceFighter03/SpaceFighter03.mtl';
 	loader.load(objUrl, mtlUrl, function( object3d ){
@@ -55,12 +55,12 @@ THREEx.SpaceShips.loadSpaceFighter03	= function(onLoad){
 		})
 		// notify the callback
 		onLoad	&& onLoad(object3d)
-	});		
+	});
 }
 
 THREEx.SpaceShips.loadShuttle01	= function(onLoad){
 	var loader	= new THREE.OBJMTLLoader();
-	var baseUrl	= THREEx.SpaceShips.baseUrl 
+	var baseUrl	= THREEx.SpaceShips.baseUrl
 	var objUrl	= baseUrl + 'models/Shuttle01/Shuttle01.obj';
 	var mtlUrl	= baseUrl + 'models/Shuttle01/Shuttle01.mtl';
 	loader.load(objUrl, mtlUrl, function( object3d ){
@@ -73,12 +73,12 @@ THREEx.SpaceShips.loadShuttle01	= function(onLoad){
 		})
 		// notify the callback
 		onLoad	&& onLoad(object3d)
-	});		
+	});
 }
 
 THREEx.SpaceShips.loadShuttle02	= function(onLoad){
 	var loader	= new THREE.OBJMTLLoader();
-	var baseUrl	= THREEx.SpaceShips.baseUrl 
+	var baseUrl	= THREEx.SpaceShips.baseUrl
 	var objUrl	= baseUrl + 'models/Shuttle02/Shuttle02.obj';
 	var mtlUrl	= baseUrl + 'models/Shuttle02/Shuttle02.mtl';
 	loader.load(objUrl, mtlUrl, function( object3d ){
@@ -91,7 +91,7 @@ THREEx.SpaceShips.loadShuttle02	= function(onLoad){
 		})
 		// notify the callback
 		onLoad	&& onLoad(object3d)
-	});		
+	});
 }
 
 
@@ -105,7 +105,7 @@ THREEx.SpaceShips.Shoot	= function(){
 	var texture	= new THREE.Texture( canvas );
 	texture.needsUpdate = true;
 
-	// do the material	
+	// do the material
 	var material	= new THREE.MeshBasicMaterial({
 		color		: 0xffaacc,
 		map		: texture,
@@ -126,9 +126,9 @@ THREEx.SpaceShips.Shoot	= function(){
 		mesh.rotateX(i*Math.PI/nPlanes)
 		container.add(mesh)
 	}
-	
-	return container	
-		
+
+	return container
+
 	function generateShootCanvas(){
 		// init canvas
 		var canvas	= document.createElement( 'canvas' );
@@ -139,7 +139,7 @@ THREEx.SpaceShips.Shoot	= function(){
 		var gradient	= context.createRadialGradient(
 			canvas.width/2, canvas.height /2, 0,
 			canvas.width/2, canvas.height /2, canvas.width /2
-		);		
+		);
 		gradient.addColorStop( 0  , 'rgba(255,255,255,1)' );
 		gradient.addColorStop( 0.5, 'rgba(192,192,192,1)' );
 		gradient.addColorStop( 0.8, 'rgba(128,128,128,0.7)' );
@@ -148,19 +148,19 @@ THREEx.SpaceShips.Shoot	= function(){
 		// fill the rectangle
 		context.fillStyle	= gradient;
 		context.fillRect(0,0, canvas.width, canvas.height);
-		// return the just built canvas 
-		return canvas;	
+		// return the just built canvas
+		return canvas;
 	};
 }
 
 /**
- * create a detonation effect. 
+ * create a detonation effect.
  */
 THREEx.SpaceShips.Detonation	= function(){
-	var baseUrl	= THREEx.SpaceShips.baseUrl 
+	var baseUrl	= THREEx.SpaceShips.baseUrl
 	var url		= baseUrl + 'images/lensflare0_alpha.png';
 	var texture	= THREE.ImageUtils.loadTexture(url);
-	// do the material	
+	// do the material
 	var geometry	= new THREE.PlaneGeometry(1,1)
 	var material	= new THREE.MeshBasicMaterial({
 		color		: 0x00ffff,

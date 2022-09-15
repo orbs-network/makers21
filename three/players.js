@@ -49,7 +49,7 @@ class Player{
     // SUPER SIMPLE GLOW EFFECT
     // use sprite because it appears the same from all angles
     const engineMaterial = new THREE.SpriteMaterial({
-      map: new THREE.ImageUtils.loadTexture( 'images/nova_1.png' ),
+      map: THREE.ImageUtils.loadTexture( 'images/nova_1.png' ),
       depthWrite: false,
       color: isRed? 0xffaaaa:0x9999ff , blending: THREE.AdditiveBlending
     });

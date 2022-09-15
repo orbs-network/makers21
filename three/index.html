@@ -14,8 +14,8 @@
 		</script>
 	</head>
 	<body>
-		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js"></script> -->
-		<script src="https://unpkg.com/three/build/three.min.js"></script>
+		 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js"></script>
+<!--		<script src="https://unpkg.com/three/build/three.min.js"></script>-->
 		<script src="https://cdn.deepstream.io/js/client/latest/ds.min.js"></script>
 		<!-- <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/OBJLoader.js"></script> -->
 		<script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script>
@@ -28,35 +28,36 @@
 		<!-- <script src="https://threejs.org/examples/js/controls/PointerLockControls.js"></script>		 -->
 		<script src="https://threejs.org/examples/js/controls/FirstPersonControls.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/face_mesh.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/face_mesh.js" crossorigin="anonymous"></script>
 		<!-- ---------------- Custom Shader Code ------------------------ -->
 		<script id="vertexShader" type="x-shader/x-vertex">
-varying vec3 vNormal;
-void main()
-{
-    vNormal = normalize( normalMatrix * normal );
-    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-}
-</script>
+            varying vec3 vNormal;
+            void main()
+            {
+                vNormal = normalize( normalMatrix * normal );
+                gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+            }
+        </script>
 
 		<!-- fragment shader a.k.a. pixel shader -->
 		<script id="fragmentShader" type="x-shader/x-vertex">
-varying vec3 vNormal;
-void main()
-{
-	float intensity = pow( 0.7 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), 4.0 );
-    gl_FragColor = vec4( 1.0, 0, 1.0, 1.0 ) * intensity;
-}
-</script>
+            varying vec3 vNormal;
+            void main()
+            {
+                float intensity = pow( 0.7 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), 4.0 );
+                gl_FragColor = vec4( 1.0, 0, 1.0, 1.0 ) * intensity;
+            }
+        </script>
+        <script src='static/jsm/postprocessing/Pass.js'></script>
+        <script src="MaskPass.js"></script>
+        <script src="ShaderPass.js"></script>
+        <script src="EffectsComposer.js"></script>
+        <script src="RenderPass.js"></script>
+        <script src="AfterimageShader.js"></script>
+        <script src="AfterimagePass.js"></script>
 		<!-- ----------------------------------------------------------- -->
-		<script type="module">
-			import { EffectComposer } from 'https://threejs.org/examples/jsm/postprocessing/EffectComposer.js';
-			import { RenderPass } from 'https://threejs.org/examples/jsm/postprocessing/RenderPass.js';
-			import { AfterimagePass } from 'https://threejs.org/examples/jsm/postprocessing/AfterimagePass.js';
-			// import { ShaderPass } from 'https://threejs.org/examples/jsm/postprocessing/ShaderPass.js';
-			// import { RGBShiftShader } from 'https://threejs.org/examples/jsm/shaders/RGBShiftShader.js';
-			// import { DotScreenShader } from 'https://threejs.org/examples/jsm/shaders/DotScreenShader.js';
+		<script type="text/javascript">
 
 			THREE.EffectComposer = EffectComposer;
 			THREE.RenderPass = RenderPass;
@@ -123,14 +124,14 @@ void main()
 		<script src="players.js"></script>
 		<script src="face.js"></script>
 		<script src="neckControls.js"></script>
-		<script src="/static/jsm/obejcts/Sky.js"></script>
-		<script src="/static/jsm/obejcts/Lensflare.js"></script>
-		<script src="/static/jsm/ImprovedNoise.js"></script>
-		<script src='threex.spaceships.js'></script>
-		<script src='/static/jsm/postprocessing/Pass.js'></script>
-		<script src='/static/jsm/shaders/CopyShader.js'></script>
-		<script src='/static/jsm/shaders/LuminosityHighPassShader.js'></script>
-		<script src='/static/jsm/postprocessing/UnrealBloomPass.js'></script>
+		<script src="static/jsm/obejcts/Sky.js"></script>
+		<script src="static/jsm/obejcts/Lensflare.js"></script>
+		<script src="static/jsm/ImprovedNoise.js"></script>
+		<script src="threex.spaceships.js"></script>
+
+		<script src='static/jsm/shaders/CopyShader.js'></script>
+		<script src='static/jsm/shaders/LuminosityHighPassShader.js'></script>
+		<script src='static/jsm/postprocessing/UnrealBloomPass.js'></script>
 		<script src="game.js"></script>
 
 		<!-- HTML SOUNDS -->

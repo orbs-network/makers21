@@ -1,4 +1,4 @@
-const SIZE = 500;
+const SIZE = 300;
 const HEIGHT = SIZE * 0.4;
 
 const GATE_SIZE = SIZE / 60;

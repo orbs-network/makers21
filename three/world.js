@@ -263,7 +263,7 @@ class World {
             starVertices
         );
 
-        let sprite = this.textureLoader.load('../static/img/star.png');
+        let sprite = this.textureLoader.load('/three/static/img/star.png');
 
         let starMaterial = new THREE.PointsMaterial({
             opacity: 0.8,
@@ -309,8 +309,8 @@ class World {
 
         // lensflares
 
-        const textureFlare0 = this.textureLoader.load('../static/texture/lensflare/lensflare0_alpha.png');
-        const textureFlare3 = this.textureLoader.load('../static/texture/lensflare/lensflare3.png');
+        const textureFlare0 = this.textureLoader.load('/three/static/texture/lensflare/lensflare0_alpha.png');
+        const textureFlare3 = this.textureLoader.load('/three/static/texture/lensflare/lensflare3.png');
 
         let light = new THREE.PointLight(0xFFFFFF, 1.5, 2000);
         light.color.setHSL(0, 0, 0.2);
@@ -326,7 +326,7 @@ class World {
         light.add(lensflare);
 
 
-        const planetTexture = this.textureLoader.load('../static/texture/2k_jupiter.jpg');
+        const planetTexture = this.textureLoader.load('/three/static/texture/2k_jupiter.jpg');
 
         this.planet = new THREE.Mesh(new THREE.SphereBufferGeometry(10000, 32, 32), new THREE.MeshStandardMaterial({
             map: planetTexture,
@@ -352,7 +352,7 @@ class World {
         this.scene.add(this.planet);
         this.scene.add(this.moonCenter);
 
-        const moonTexture = this.textureLoader.load('../static/texture/2k_mercury.jpg');
+        const moonTexture = this.textureLoader.load('/three/static/texture/2k_mercury.jpg');
 
         this.moon = new THREE.Mesh(new THREE.SphereBufferGeometry(300, 32, 32), new THREE.MeshStandardMaterial({
             map: moonTexture,
@@ -383,7 +383,7 @@ class World {
 
         }
 
-        const groundTexture = this.textureLoader.load('../static/texture/2k_mars.jpg');
+        const groundTexture = this.textureLoader.load('/three/static/texture/2k_mars.jpg');
         groundTexture.wrapS = THREE.ClampToEdgeWrapping;
         groundTexture.wrapT = THREE.ClampToEdgeWrapping;
 

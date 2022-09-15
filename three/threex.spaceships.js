@@ -2,7 +2,7 @@ var THREEx	= THREEx	|| {}
 
 THREEx.SpaceShips		= {}
 
-THREEx.SpaceShips.baseUrl	= '../'
+THREEx.SpaceShips.baseUrl	= '/three/'
 
 THREEx.SpaceShips._loadObjMtl = function(loaderPath, objBasename, mtlBasename, onLoad, onProgress, onError){
 	var mtlLoader = new THREE.MTLLoader();
@@ -16,7 +16,7 @@ THREEx.SpaceShips._loadObjMtl = function(loaderPath, objBasename, mtlBasename, o
 		objLoader.load( objBasename, function ( object3d ) {
 			onLoad	&& onLoad(object3d)
 		}, onProgress, onError);
-	});	
+	});
 }
 
 THREEx.SpaceShips.loadSpaceFighter01	= function(onLoad, onProgress, onError){
@@ -28,7 +28,7 @@ THREEx.SpaceShips.loadSpaceFighter01	= function(onLoad, onProgress, onError){
 		object3d.children.forEach(function(object3d){
 			object3d.material.forEach(function(material){
 				material.emissive.set('#050505')
-			})			
+			})
 		})
 		// notify the callback
 		onLoad	&& onLoad(object3d)
@@ -45,7 +45,7 @@ THREEx.SpaceShips.loadSpaceFighter02	= function(onLoad, onProgress, onError){
 			if( object3d.material ){
 				object3d.material.forEach(function(material){
 					material.emissive.set('#111')
-				})							
+				})
 			}else{
 				object3d.material.emissive.set('#111')
 			}
@@ -66,7 +66,7 @@ THREEx.SpaceShips.loadSpaceFighter03	= function(onLoad, onProgress, onError){
 			if( object3d.material ){
 				object3d.material.forEach(function(material){
 					material.emissive.set('#111')
-				})							
+				})
 			}else{
 				object3d.material.emissive.set('#111')
 			}
@@ -86,7 +86,7 @@ THREEx.SpaceShips.loadShuttle01	= function(onLoad, onProgress, onError){
 			if( object3d.material ){
 				object3d.material.forEach(function(material){
 					material.emissive.set('#111')
-				})							
+				})
 			}else{
 				object3d.material.emissive.set('#111')
 			}
@@ -106,7 +106,7 @@ THREEx.SpaceShips.loadShuttle02	= function(onLoad, onProgress, onError){
 			if( object3d.material ){
 				object3d.material.forEach(function(material){
 					material.emissive.set('#111')
-				})							
+				})
 			}else{
 				object3d.material.emissive.set('#111')
 			}
@@ -126,7 +126,7 @@ THREEx.SpaceShips.Shoot	= function(){
 	var texture	= new THREE.Texture( canvas );
 	texture.needsUpdate = true;
 
-	// do the material	
+	// do the material
 	var material	= new THREE.MeshBasicMaterial({
 		color		: 0xffaacc,
 		map		: texture,
@@ -147,9 +147,9 @@ THREEx.SpaceShips.Shoot	= function(){
 		mesh.rotateX(i*Math.PI/nPlanes)
 		container.add(mesh)
 	}
-	
-	return container	
-		
+
+	return container
+
 	function generateShootCanvas(){
 		// init canvas
 		var canvas	= document.createElement( 'canvas' );
@@ -160,7 +160,7 @@ THREEx.SpaceShips.Shoot	= function(){
 		var gradient	= context.createRadialGradient(
 			canvas.width/2, canvas.height /2, 0,
 			canvas.width/2, canvas.height /2, canvas.width /2
-		);		
+		);
 		gradient.addColorStop( 0  , 'rgba(255,255,255,1)' );
 		gradient.addColorStop( 0.5, 'rgba(192,192,192,1)' );
 		gradient.addColorStop( 0.8, 'rgba(128,128,128,0.7)' );
@@ -169,19 +169,19 @@ THREEx.SpaceShips.Shoot	= function(){
 		// fill the rectangle
 		context.fillStyle	= gradient;
 		context.fillRect(0,0, canvas.width, canvas.height);
-		// return the just built canvas 
-		return canvas;	
+		// return the just built canvas
+		return canvas;
 	};
 }
 
 /**
- * create a detonation effect. 
+ * create a detonation effect.
  */
 THREEx.SpaceShips.Detonation	= function(){
-	var baseUrl	= THREEx.SpaceShips.baseUrl 
+	var baseUrl	= THREEx.SpaceShips.baseUrl
 	var url		= baseUrl + 'images/lensflare0_alpha.png';
 	var texture	= THREE.ImageUtils.loadTexture(url);
-	// do the material	
+	// do the material
 	var geometry	= new THREE.PlaneGeometry(1,1)
 	var material	= new THREE.MeshBasicMaterial({
 		color		: 0x00ffff,
