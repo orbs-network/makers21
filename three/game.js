@@ -238,8 +238,8 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.controls.activeLook = true;
       this.controls.movementSpeed = config.distancePerMS;
       this.controls.constrainVertical = true;
-      this.controls.verticalMax  = 1.6 + config.vertLimit;
-      this.controls.verticalMin  = 1.6 - config.vertLimit;
+      // this.controls.verticalMax  = 1.6 + config.vertLimit;
+      // this.controls.verticalMin  = 1.6 - config.vertLimit;
       this.controls.lookSpeed = config.lookSpeed;
     }
     this.controls.enabled = init;

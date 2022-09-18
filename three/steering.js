@@ -1,17 +1,17 @@
-class Steering{  
+class Steering{
   constructor() {
     this.horiz = 0;
     this.vert = 0;
     // this.releaseH = true;
-    // this.releaseV = true;      
+    // this.releaseV = true;
   }
   addHoriz(unit){
     this.clearReleaseInterval();
     //this.releaseH = false;
-    this.horiz += unit;    
+    this.horiz += unit;
     // limit
     if(Math.abs(this.horiz) > config.horizLimit){
-      this.horiz = config.horizLimit * (this.horiz/Math.abs(this.horiz)); // 1 or -1 
+      this.horiz = config.horizLimit * (this.horiz/Math.abs(this.horiz)); // 1 or -1
     }
   }
   addVert(unit){
@@ -20,7 +20,7 @@ class Steering{
     this.vert += unit;
     // limit
     if(Math.abs(this.vert) > config.vertLimit){
-      this.vert = config.vertLimit * (this.vert/Math.abs(this.vert)); // 1 or -1 
+      this.vert = config.vertLimit * (this.vert/Math.abs(this.vert)); // 1 or -1
     }
   }
   clearReleaseInterval(){
@@ -46,5 +46,5 @@ class Steering{
     },50);
   }
   releaseVert(){
-  }  
+  }
 }
