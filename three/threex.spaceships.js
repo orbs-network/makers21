@@ -2,7 +2,7 @@ var THREEx	= THREEx	|| {}
 
 THREEx.SpaceShips		= {}
 
-THREEx.SpaceShips.baseUrl	= '/three/'
+THREEx.SpaceShips.baseUrl	= '/'
 
 THREEx.SpaceShips._loadObjMtl = function(loaderPath, objBasename, mtlBasename, onLoad, onProgress, onError){
 	var mtlLoader = new THREE.MTLLoader();
