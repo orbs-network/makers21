@@ -4,7 +4,7 @@ const HEIGHT = SIZE * 0.4;
 const GATE_SIZE = SIZE / 60;
 
 const BLUE = 0x224988;
-const RED = 0x703020;
+const RED = 0x704320;
 const BLUE2 = 0x0044ff;
 const BLUE_SHIP = 0x000411;
 const RED2 = 0xff3300;

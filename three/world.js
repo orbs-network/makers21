@@ -31,23 +31,23 @@ class World {
 
     //////////////////////////////////////////////////////////
     loadShip(name) {
-      return new Promise((resolve, reject) => {
-        return THREEx.SpaceShips.loadSpaceFighter01((object3d) => {
-            // object3d is the loaded spacefighter
-            // now we add it to the scene
+        return new Promise((resolve, reject) => {
+            return THREEx.SpaceShips.loadSpaceFighter01((object3d) => {
+                // object3d is the loaded spacefighter
+                // now we add it to the scene
 
-            object3d.children[0].material = new THREE.MeshPhongMaterial({
-                map: this.textureLoader.load('models/SpaceFighter01/F01_512.jpg'),
-                // color: 0xff3333,
-                specular: 0xffffff,
-                shininess: 100,
-                reflectivity: 0.3
+                object3d.children[0].material = new THREE.MeshPhongMaterial({
+                    map: this.textureLoader.load('models/SpaceFighter01/F01_512.jpg'),
+                    // color: 0xff3333,
+                    specular: 0xffffff,
+                    shininess: 100,
+                    reflectivity: 0.3
+                });
+
+                this.models[name] = object3d;
+                resolve();
             });
-
-            this.models[name] = object3d;
-            resolve();
         });
-      });
     }
 
     loadModel(name) {
@@ -247,8 +247,8 @@ class World {
 
         let starVertices = [];
 
-        const starDis = 1000;
-        for (let i = 0; i < 1000; i++) {
+        const starDis = 1500;
+        for (let i = 0; i < 20000; i++) {
             const star = new THREE.Vector3(
                 Math.random() * starDis - starDis / 2,
                 Math.random() * starDis - starDis / 2,
@@ -266,25 +266,25 @@ class World {
         let sprite = this.textureLoader.load('/static/img/star.png');
 
         let starMaterial = new THREE.PointsMaterial({
-            opacity: 0.8,
+            opacity: 0.5,
             transparent: true,
             color: 0xaaaaaa,
-            size: 0.5,
+            size: 0.4,
             map: sprite
         });
 
         let stars = new THREE.Points(starGeo, starMaterial);
 
         this.scene.add(stars);
-/*
-        // SMALL STARS
+
+    /*    // SMALL STARS
         starVertices = [];
 
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < 10000; i++) {
             const star = new THREE.Vector3(
-                Math.random() * 60 - 30,
-                Math.random() * 60 - 30,
-                Math.random() * 60 - 30
+                Math.random() * 1000 - 30,
+                Math.random() * 1000 - 30,
+                Math.random() * 1000 - 30
             );
 
             starVertices.push(star);
@@ -298,7 +298,7 @@ class World {
             opacity: 0.5,
             transparent: true,
             color: 0xaaaaaa,
-            size: 0.04,
+            size: 0.5,
             map: sprite
         });
 
@@ -364,15 +364,28 @@ class World {
         this.moonCenter.add(this.moon);
 
         // fog
-        this.scene.fog = new THREE.FogExp2(0x1c222d, 0.001);
-        this.createGround(SIZE,SIZE);
+        this.scene.fog = new THREE.Fog(0x1c222d, 300, 3000);
+
+        this.scene.background = new THREE.Color(0x1c222d);
+
+
+        this.createGround(SIZE, SIZE);
+
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0;
+        bloomPass.strength = 0.5;
+        bloomPass.radius = 0;
+
+        this.composer.addPass(bloomPass);
+
     }
+
     ////////////////////////////////////////
-    createGround(worldWidth, worldDepth){
+    createGround(worldWidth, worldDepth) {
         //const worldWidth = 300, worldDepth = 300;
         const data = this.generateGroundNormal(worldWidth, worldDepth);
 
-        const groundGeometry = new THREE.PlaneGeometry(5000, 5000, worldWidth - 1, worldDepth - 1);
+        const groundGeometry = new THREE.PlaneGeometry(5000, 12000, worldWidth - 1, worldDepth - 1 );
         groundGeometry.rotateX(-Math.PI / 10);
 
         const groundVertices = groundGeometry.attributes.position.array;
@@ -389,17 +402,10 @@ class World {
 
         const ground = new THREE.Mesh(groundGeometry, new THREE.MeshStandardMaterial({map: groundTexture}));
         // ground.position.x = -10;
-        ground.position.y = -HEIGHT/2;//-HEIGHT - 100;
+        ground.position.y = -HEIGHT/1.4;//-HEIGHT - 100;
         ground.rotation.z = 0.1;
         this.scene.add(ground);
 
-
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-        bloomPass.threshold = 0;
-        bloomPass.strength = 0.5;
-        bloomPass.radius = 0;
-
-        this.composer.addPass(bloomPass);
         this.ground = ground;
     }
 
@@ -410,11 +416,11 @@ class World {
         let grid = new THREE.GridHelper(SIZE, divisions, color, color);
 
         this.scene.add(grid);
-        grid.position.z = SIZE/2 * zDir;
+        grid.position.z = SIZE / 2 * zDir;
         grid.position.y = yPos;
 
         const geometry = new THREE.BoxGeometry(SIZE, 0.1, SIZE);
-        const material = new THREE.MeshBasicMaterial({opacity: 0.1, transparent: true, color: color});
+        const material = new THREE.MeshBasicMaterial({opacity: 0.2, transparent: true, color: color});
         const cube = new THREE.Mesh(geometry, material);
         grid.add(cube);
     }
@@ -423,8 +429,8 @@ class World {
     createBorders(color, zDir) {
         const divisions = 25;
 
-        this.border.east = SIZE/2;
-        this.border.west = -SIZE/2;
+        this.border.east = SIZE / 2;
+        this.border.west = -SIZE / 2;
 
         // create floor
         this.border.floor = 0;
@@ -444,7 +450,11 @@ class World {
         let geometry = new THREE.TorusGeometry(GATE_SIZE, GATE_SIZE / 3, 32, 64);
         // red gate
         // NOT WORKING WITH RAYCAST! let material = new THREE.LineBasicMaterial({color: color /*side: THREE.DoubleSide*/  });
-        let material = new THREE.MeshPhongMaterial({color: color /*side: THREE.DoubleSide*/, shininess: 500, emissive: color});
+        let material = new THREE.MeshPhongMaterial({
+            color: color /*side: THREE.DoubleSide*/,
+            shininess: 500,
+            emissive: color
+        });
         let gate = new THREE.Mesh(geometry, material);
 
         // add internal sphere for gate pass calc
@@ -452,7 +462,7 @@ class World {
 
         material = new THREE.MeshStandardMaterial({
             // emissive: 0xff00ff,
-            color: 0xff00ff,
+            color: color,
             side: THREE.DoubleSide,
             transparent: true,
             opacity: 0.3
@@ -487,22 +497,22 @@ class World {
     // }
     //////////////////////////////////////////////////////////
     createCamera() {
-        this._camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 100000);
+        this._camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 100000);
         this._camera.name = 'cam';
         this.scene.add(this._camera);
     }
 
     //////////////////////////////////////////////////////////
     checkGatePass() {
-      let dis;
+        let dis;
 
-      dis =  this._camera.position.distanceTo(this.redGate.position);
-      if(dis <= config.gatePassDistance) return this.redGate;
+        dis = this._camera.position.distanceTo(this.redGate.position);
+        if (dis <= config.gatePassDistance) return this.redGate;
 
-      dis =  this._camera.position.distanceTo(this.blueGate.position);
-      if(dis <= config.gatePassDistance) return this.blueGate;
+        dis = this._camera.position.distanceTo(this.blueGate.position);
+        if (dis <= config.gatePassDistance) return this.blueGate;
 
-      return null
+        return null
     }
 
     //////////////////////////////////////////////////////////
@@ -535,16 +545,17 @@ class World {
         }
         return false;
     }
+
     //////////////////////////////////////////////////////////
     // throttled
-    checkGroundCollision(delta){
+    checkGroundCollision(delta) {
         // above ground grid and not in eastern mountains
-        if (this.camera.position.y > this.border.floor && this.camera.position.x < this.border.east  ) return false;
+        if (this.camera.position.y > this.border.floor && this.camera.position.x < this.border.east) return false;
         // throttle heavy raycasting
         this.groundThrottle += 1;
 
         // 2 times a second frames == FPS
-        if(this.groundThrottle != config.groundRaycastEvery){// Math.floor(game.frames / 2) ){
+        if (this.groundThrottle != config.groundRaycastEvery) {// Math.floor(game.frames / 2) ){
             return false;
         }
         this.groundThrottle = 0;
@@ -552,10 +563,10 @@ class World {
 
         const intersects = this.raycaster.intersectObjects([this.ground], false);
         if (intersects && intersects.length) {
-            console.log("ground", intersects[0].distance);
+            // console.log("ground", intersects[0].distance);
             // dynamic distance calc
             const crashDis = delta * config.distancePerMS * config.groundRaycastEvery;
-            console.log(intersects[0].distance, crashDis);
+            // console.log(intersects[0].distance, crashDis);
             if (intersects[0].distance < crashDis) {
                 return true;
             }
@@ -567,7 +578,7 @@ class World {
     doExplode() {
         this.explode.create(this._camera.position.x, this._camera.position.y, this._camera.position.z, game.localState.isRed);
 
-        if(this.shooting){
+        if (this.shooting) {
             this.shooting.resetHUD();
         }
         // camera sound moved to HTMLs
@@ -612,7 +623,7 @@ class World {
 
             // rotate - look at center
             this._camera.updateWorldMatrix();
-            game.controls.lookAt(new THREE.Vector3(0,0,0));
+            game.controls.lookAt(new THREE.Vector3(0, 0, 0));
 
             // not joined-
             this.players.gameJoined = false;
@@ -625,12 +636,12 @@ class World {
         const hHalf = HEIGHT / 2;
         this.startLineY = Math.floor(Math.random() * hHalf) + hHalf;        // (-2) - 2
         // avoid start x axis on gate
-        const width = ( SIZE / 3 );
+        const width = (SIZE / 3);
         let startX = Math.floor(Math.random() * width);
         const toEast = (startX % 2) == 0;
-        if(toEast) {
+        if (toEast) {
             startX = this.border.east - startX;
-        }else{
+        } else {
             startX = this.border.west + startX;
         }
         this.startLineX = startX;
@@ -674,14 +685,13 @@ class World {
             // Add to holder
             console.log('attachFlagToHolder', flagName, holderNick);
             const holder = this.players.getPlayer(holderNick);
-            if(!holder || !holder.obj){
+            if (!holder || !holder.obj) {
                 console.error('failed to get player', holderNick);
                 return;
             }
             this.flags.attachTo(flagName, holder);
             //this.flags.setPosPlayer(flagName);
-        }
-        else { // return to gate
+        } else { // return to gate
             const gateName = flagIsRed ? 'blue' : 'red';
             console.log('attachFlagToGate', flagName, 'gate=' + gateName);
             this.flags.moveToGate(flagName);
@@ -729,17 +739,17 @@ class World {
         this.returnObj = {
             cb: cb,
             tsFinish: dt.getTime(),
-          // delta pos
-          xDiff : (this.startLineX - cam.position.x) / denom,
-          yDiff : (this.startLineY - cam.position.y) / denom,
-          zDiff : (this.startLineZ - cam.position.z) / denom,
-                controls: controls,
-                targetGate: targetGate,
-                // delta rot
-          xLook : (targetGate.position.x - lookAhead.x) / denom,
-          yLook : (targetGate.position.y - lookAhead.y) / denom,
-          zLook : (targetGate.position.z - lookAhead.z) / denom,
-          lookPos: lookAhead
+            // delta pos
+            xDiff: (this.startLineX - cam.position.x) / denom,
+            yDiff: (this.startLineY - cam.position.y) / denom,
+            zDiff: (this.startLineZ - cam.position.z) / denom,
+            controls: controls,
+            targetGate: targetGate,
+            // delta rot
+            xLook: (targetGate.position.x - lookAhead.x) / denom,
+            yLook: (targetGate.position.y - lookAhead.y) / denom,
+            zLook: (targetGate.position.z - lookAhead.z) / denom,
+            lookPos: lookAhead
         };
     }
 
@@ -798,67 +808,67 @@ class World {
         // this.renderer2d.domElement.style.width = window.innerWidth;
         // this.renderer2d.domElement.style.height = window.innerHeight;
     }
+
     //////////////////////////////////////////////////////////
     render(delta) {
-      // rotate gates & flags in sync with all players
-      if (game.mngrState?.startTs) {
-          const diff = Date.now() - game.mngrState.startTs;
+        // rotate gates & flags in sync with all players
+        if (game.mngrState?.startTs) {
+            const diff = Date.now() - game.mngrState.startTs;
 
-          const modMs = diff % this.msPerTurn;
-          const angle = this.gateRad * modMs
+            const modMs = diff % this.msPerTurn;
+            const angle = this.gateRad * modMs
 
-          if (!this.disableGateRotation) {
+            if (!this.disableGateRotation) {
 
-              this.redGate.rotation.y = angle;
-              this.blueGate.rotation.y = Math.PI * 2 - angle;
+                this.redGate.rotation.y = angle;
+                this.blueGate.rotation.y = Math.PI * 2 - angle;
 
-          }
+            }
 
-          this.flags.update(this.gateRad * delta / 2 );
-      }
-
-      // players
-      this.players.update(delta);
-      // explosions
-      this.explode.beforeRender();
-
-
-      //world
-
-      if (!this.simpleRendering) {
-        this.planet.rotation.y += 0.0001;
-        this.moonCenter.rotation.y += 0.00001;
-      }
-
-      // return to start
-      if (this.returnObj) {
-          this.updateReturn2Start(delta);
-      }
-      else{
-        // set raycast
-        this.raycaster.setFromCamera(new THREE.Vector3(), this.camera);
-
-        // avoid this check while telling server gate pass
-        if (!game.tellingGatePass && this.checkGateCollision())
-            return true; // exploding
-
-        if (this.checkGroundCollision(delta)){
-            return true; // exploding
+            this.flags.update(this.gateRad * delta / 2);
         }
 
-        // shooting
-        if (this.shooting) {
-            this.shooting.update(this.raycaster, this.players);
+        // players
+        this.players.update(delta);
+        // explosions
+        this.explode.beforeRender();
+
+
+        //world
+
+        if (!this.simpleRendering) {
+            this.planet.rotation.y += 0.0001;
+            this.moonCenter.rotation.y += 0.00001;
         }
-      }
 
-      // scene 3d 2d rendering
-      //this._renderer.render(this.scene, this._camera);
-      this.composer.render();
+        // return to start
+        if (this.returnObj) {
+            this.updateReturn2Start(delta);
+        } else {
+            // set raycast
+            this.raycaster.setFromCamera(new THREE.Vector3(), this.camera);
 
-      this.renderer2d.render(this.scene, this._camera);
+            // avoid this check while telling server gate pass
+            if (!game.tellingGatePass && this.checkGateCollision())
+                return true; // exploding
 
-      return false; //not exploding
+            if (this.checkGroundCollision(delta)) {
+                return true; // exploding
+            }
+
+            // shooting
+            if (this.shooting) {
+                this.shooting.update(this.raycaster, this.players);
+            }
+        }
+
+        // scene 3d 2d rendering
+        //this._renderer.render(this.scene, this._camera);
+        this.composer.render();
+
+        this.renderer2d.render(this.scene, this._camera);
+
+        return false; //not exploding
     }
 
     //////////////////////////////////////////////////////////

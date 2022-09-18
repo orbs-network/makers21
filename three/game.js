@@ -323,7 +323,7 @@ class Game /*extends THREE.EventDispatcher*/ {
       this.startBorderLoop(true);
 
       // to enable start stop
-      this.setGameMsg('press any key to start');
+      this.setGameMsg('Press Space to start!');
 
       // start FPS loop
       const fps = document.getElementById('fps');
@@ -401,14 +401,14 @@ class Game /*extends THREE.EventDispatcher*/ {
           // play success if it was flag got captured
           if(holdingFlag && !this.holdingFlag){
             // SUCCESS - you are the holder of the flag
-            this.setGameMsg('return the flag to you home gate');
+            this.setGameMsg('Return the flag to you home gate');
             this.playAudio('success');
           }
           this.holdingFlag = holdingFlag;
 
           // drop flag if exploding during this update from nanager
           if(this.exploding){
-            this.setGameMsg('flag was dropped during explosion');
+            this.setGameMsg('Flag was dropped during explosion');
             this.tellDropFlag();
           }
         }
@@ -418,7 +418,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         document.getElementById('welcome').style.display = "block";
         document.getElementById('inputs').style.display = "none";
         document.getElementById('teams').style.display = "none";
-        document.getElementById('started').innerText = "game has started - please wait for next game to start";
+        document.getElementById('started').innerText = "Game has started - please wait for next game to start";
       }
       return;
     }
@@ -426,14 +426,14 @@ class Game /*extends THREE.EventDispatcher*/ {
     document.getElementById('welcome').style.display = "block";
 
     // ready to start
-    document.getElementById('ready-text').innerText = state.ready? "ready to start": "waiting for more players to join";
+    document.getElementById('ready-text').innerText = state.ready? "Ready to start": "waiting for more players to join";
 
     // joined section - show/hide
     document.getElementById('inputs').style.display = "none";
 
     //////////////////////////////////////////////////////////
     // game pending  - show welcome
-    document.getElementById('started').innerText = "game is pending";
+    document.getElementById('started').innerText = "Game is pending";
 
     // update teams
     document.getElementById('red-team').innerHTML = state.red?.length? state.red?.join() : '0 players';
@@ -477,7 +477,7 @@ class Game /*extends THREE.EventDispatcher*/ {
   }
   //////////////////////////////////////////////////////////
   onOffline(){
-    document.getElementById('online').innerText = "could not connect, please reload to retry";
+    document.getElementById('online').innerText = "Could not connect, please reload to retry";
     //alert('offline!!!');
     console.log('offline!!!');
   }
@@ -784,7 +784,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     // return to start
     this.world.return2Start(()=>{
       console.log("FINISH RETURN TO START");
-      this.setGameMsg('Let us start again');
+      this.setGameMsg('Lets start again...');
       this.playAudio('locked');
       this.world.turnWarningEffect(false);
       this.controls.lookAt(gate.position);
