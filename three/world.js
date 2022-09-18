@@ -366,9 +366,6 @@ class World {
         // fog
         this.scene.fog = new THREE.Fog(0x1c222d, 300, 3000);
 
-        this.scene.background = new THREE.Color(0x1c222d);
-
-
         this.createGround(SIZE, SIZE);
 
         const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
