@@ -45,4 +45,4 @@ config.targetLockMs = 1000;
 
 config.colideDistance = config.distancePerMS * 200;
 config.gatePassDistance = config.distancePerMS * 200;
-config.lookSpeed = config.distancePerMS * 0.005; //0.0005,
+config.lookSpeed = config.distancePerMS * 0.01; //0.0005,
