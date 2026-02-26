@@ -8,6 +8,11 @@ import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
+// Import official Three.js postprocessing
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { AfterimagePass } from 'three/addons/postprocessing/AfterimagePass.js';
+
 // Make Three.js and loaders available globally IMMEDIATELY
 window.THREE = THREE;
 window.THREE.OBJLoader = OBJLoader;
@@ -16,13 +21,18 @@ window.THREE.FirstPersonControls = FirstPersonControls;
 window.THREE.CSS2DRenderer = CSS2DRenderer;
 window.THREE.CSS2DObject = CSS2DObject;
 
+// Set up THREE postprocessing classes globally
+window.THREE.EffectComposer = EffectComposer;
+window.THREE.RenderPass = RenderPass;
+window.THREE.AfterimagePass = AfterimagePass;
+
 // Import Deepstream for multiplayer networking
 import { DeepstreamClient } from '@deepstream/client';
 
 // Import game components
 import './components/config.js';
 
-// Import game modules (postprocessing will be loaded dynamically)
+// Import game modules
 import './components/factory.js';
 import './components/materials.js';
 import './components/laser.js';
@@ -39,28 +49,9 @@ import './components/sound.js';
 import './components/deepstream.js';
 import './components/game.js';
 
-// Load postprocessing modules dynamically after THREE is set up
-async function loadPostprocessing() {
-  await import('./components/postprocessing/Pass.js');
-  await import('./components/postprocessing/MaskPass.js');
-  await import('./components/postprocessing/ShaderPass.js');
-  await import('./components/postprocessing/EffectsComposer.js');
-  await import('./components/postprocessing/RenderPass.js');
-  await import('./components/postprocessing/AfterimageShader.js');
-  await import('./components/postprocessing/AfterimagePass.js');
-
-  // Set up THREE postprocessing classes globally
-  window.THREE.EffectComposer = window.EffectComposer;
-  window.THREE.RenderPass = window.RenderPass;
-  window.THREE.AfterimagePass = window.AfterimagePass;
-}
-
 // Initialize the game when DOM is loaded
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   console.log('Makers21 - Three.js Version Loading...');
-
-  // Load postprocessing modules first
-  await loadPostprocessing();
 
   // Initialize Deepstream connection
   window.deepStream = {

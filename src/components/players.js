@@ -420,5 +420,28 @@ class Players{
   initShooting(enabled){
     this.useShooting = enabled;
   }
+  //////////////////////////////////////////////////////////
+  // Memory management - dispose of player resources
+  dispose() {
+    for (const nick in this.dict) {
+      const player = this.dict[nick];
+      if (player.obj) {
+        player.obj.traverse((object) => {
+          if (object.geometry) {
+            object.geometry.dispose();
+          }
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              object.material.forEach((m) => m.dispose());
+            } else {
+              object.material.dispose();
+            }
+          }
+        });
+      }
+    }
+    this.dict = {};
+    console.log('Players resources disposed');
+  }
 }
 window.Players = Players;

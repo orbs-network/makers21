@@ -901,5 +901,50 @@ class World {
 
     }
 
+    //////////////////////////////////////////////////////////
+    // Memory management - dispose of Three.js resources
+    dispose() {
+        // Dispose of all geometries and materials in the scene
+        this.scene.traverse((object) => {
+            if (object.geometry) {
+                object.geometry.dispose();
+            }
+            if (object.material) {
+                if (Array.isArray(object.material)) {
+                    object.material.forEach((material) => {
+                        this.disposeMaterial(material);
+                    });
+                } else {
+                    this.disposeMaterial(object.material);
+                }
+            }
+        });
+
+        // Dispose renderer and composer
+        if (this._renderer) {
+            this._renderer.dispose();
+        }
+        if (this.composer) {
+            this.composer.dispose();
+        }
+
+        // Clear players
+        if (this.players) {
+            this.players.dispose();
+        }
+
+        console.log('World resources disposed');
+    }
+
+    //////////////////////////////////////////////////////////
+    disposeMaterial(material) {
+        if (material.map) material.map.dispose();
+        if (material.lightMap) material.lightMap.dispose();
+        if (material.bumpMap) material.bumpMap.dispose();
+        if (material.normalMap) material.normalMap.dispose();
+        if (material.specularMap) material.specularMap.dispose();
+        if (material.envMap) material.envMap.dispose();
+        material.dispose();
+    }
 
 }
