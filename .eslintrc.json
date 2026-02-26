@@ -1,0 +1,37 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "prettier"
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "globals": {
+    "THREE": "readonly",
+    "game": "readonly",
+    "deepStream": "readonly",
+    "config": "readonly",
+    "Face": "readonly",
+    "World": "readonly",
+    "Game": "readonly",
+    "Players": "readonly",
+    "Player": "readonly",
+    "Shooting": "readonly",
+    "Sound": "readonly",
+    "Flag": "readonly",
+    "Laser": "readonly",
+    "Explode": "readonly"
+  },
+  "rules": {
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-console": "off",
+    "prefer-const": "warn",
+    "no-var": "warn",
+    "eqeqeq": ["warn", "always"]
+  }
+}
