@@ -1,45 +1,72 @@
 class Game /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     constructor() {
+        // Use centralized state manager
+        this.state = window.gameState;
+
         this.resetMembers();
-        this.loadLocalState();
-        this.useNeck = localStorage.getItem('disableNeck') !== 'true';
-        this.stillTargetEnabled = localStorage.getItem('stillTargetEnabled') === 'true';
-        this.disableConstantSpeed = localStorage.getItem("disableConstantSpeed") === 'true';
-        this.disableSound = localStorage.getItem("disableSound");
+
+        // Settings from gameState
+        this.useNeck = this.state.settings.useNeck;
+        this.stillTargetEnabled = this.state.settings.stillTargetEnabled;
+        this.disableConstantSpeed = this.state.settings.disableConstantSpeed;
+        this.disableSound = this.state.settings.disableSound;
     }
 
     //////////////////////////////////////////////////////////
+    // Getters/setters that proxy to gameState for backward compatibility
+    get moving() { return this.state.game.moving; }
+    set moving(v) { this.state.update('game.moving', v); }
+
+    get exploding() { return this.state.game.exploding; }
+    set exploding(v) { this.state.update('game.exploding', v); }
+
+    get holdingFlag() { return this.state.game.holdingFlag; }
+    set holdingFlag(v) { this.state.update('game.holdingFlag', v); }
+
+    get passingGate() { return this.state.game.passingGate; }
+    set passingGate(v) { this.state.update('game.passingGate', v); }
+
+    get gameOver() { return this.state.game.gameOver; }
+    set gameOver(v) { this.state.update('game.gameOver', v); }
+
+    get first() { return this.state.game.first; }
+    set first(v) { this.state.update('game.first', v); }
+
+    get tellingGatePass() { return this.state.game.tellingGatePass; }
+    set tellingGatePass(v) { this.state.update('game.tellingGatePass', v); }
+
+    get localState() { return this.state.local; }
+    set localState(v) {
+        if (v.nick !== undefined) this.state.update('local.nick', v.nick);
+        if (v.isRed !== undefined) this.state.update('local.isRed', v.isRed);
+    }
+
+    get mngrState() { return this.state.manager; }
+    set mngrState(v) { this.state.updateManagerState(v); }
+
+    //////////////////////////////////////////////////////////
     resetMembers() {
-        this.moving = false;
-        this.first = true;
-        this.exploding = false;
-        this.holdingFlag = false;
-        this.passingGate = null;
-        this.gameOver = false;
+        if (this.state) {
+            this.state.resetGame();
+        }
         this.targetPos = new THREE.Vector3();
         this.direction = new THREE.Vector3();
         this.tsRender = Date.now();
-        // NEED THIS! this.mngrState = null;
     }
 
     //////////////////////////////////////////////////////////
     loadLocalState() {
-        this.localState = {
-            nick: localStorage.getItem("nick"),
-            isRed: localStorage.getItem("isRed") === "true" // fix string
-        }
+        // State is loaded by GameState constructor
+        this.state.loadLocal();
     }
 
     //////////////////////////////////////////////////////////
     saveLocalState() {
-        // update localState
-        this.localState.isRed = document.getElementById('red').checked;
-        // ALREADY SET DURING EVENTS this.localState.nick = document.getElementById('nick').getAttribute('value');
-        // and save to storage
-        for (let p in this.localState) {
-            localStorage.setItem(p, this.localState[p]);
-        }
+        // update localState from UI
+        this.state.update('local.isRed', document.getElementById('red').checked);
+        // Save to localStorage
+        this.state.saveLocal();
     }
 
     //////////////////////////////////////////////////////////
@@ -62,7 +89,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     isJoined() {
-        return this.mngrState.red.includes(this.localState.nick) || this.mngrState.blue.includes(this.localState.nick);
+        return this.state.isJoined();
     }
 
     //////////////////////////////////////////////////////////

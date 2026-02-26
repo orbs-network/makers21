@@ -29,6 +29,12 @@ window.THREE.AfterimagePass = AfterimagePass;
 // Import Deepstream for multiplayer networking
 import { DeepstreamClient } from '@deepstream/client';
 
+// Import core modules
+import gameState from './core/GameState.js';
+
+// Make gameState available globally during migration
+window.gameState = gameState;
+
 // Import game components
 import './components/config.js';
 
