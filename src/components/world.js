@@ -328,12 +328,12 @@ class World {
 
         const planetTexture = this.textureLoader.load('/static/texture/2k_jupiter.jpg');
 
-        this.planet = new THREE.Mesh(new THREE.SphereBufferGeometry(10000, 32, 32), new THREE.MeshStandardMaterial({
+        this.planet = new THREE.Mesh(new THREE.SphereGeometry(10000, 32, 32), new THREE.MeshStandardMaterial({
             map: planetTexture,
             fog: false
         }));
 
-        this.moonCenter = new THREE.Mesh(new THREE.SphereBufferGeometry(10, 32, 32), new THREE.MeshBasicMaterial({
+        this.moonCenter = new THREE.Mesh(new THREE.SphereGeometry(10, 32, 32), new THREE.MeshBasicMaterial({
             transparent: true,
             opacity: 0,
             fog: false
@@ -354,7 +354,7 @@ class World {
 
         const moonTexture = this.textureLoader.load('/static/texture/2k_mercury.jpg');
 
-        this.moon = new THREE.Mesh(new THREE.SphereBufferGeometry(300, 32, 32), new THREE.MeshStandardMaterial({
+        this.moon = new THREE.Mesh(new THREE.SphereGeometry(300, 32, 32), new THREE.MeshStandardMaterial({
             map: moonTexture,
             fog: false
         }));

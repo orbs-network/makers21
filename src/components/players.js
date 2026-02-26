@@ -38,7 +38,7 @@ class Player{
       this.boundSphere.material.opacity = 0;
       this.obj.add(this.boundSphere);
       // lasser beam
-      var laserBeam	= new THREEx.LaserBeam();
+      const laserBeam = new THREEx.LaserBeam();
       this.obj.add(laserBeam.object3d);
       laserBeam.object3d.visible = false;
       laserBeam.object3d.rotateY(THREE.MathUtils.degToRad(90));
@@ -48,10 +48,12 @@ class Player{
 
     // SUPER SIMPLE GLOW EFFECT
     // use sprite because it appears the same from all angles
+    const textureLoader = new THREE.TextureLoader();
     const engineMaterial = new THREE.SpriteMaterial({
-      map: THREE.ImageUtils.loadTexture( 'images/nova_1.png' ),
+      map: textureLoader.load('images/nova_1.png'),
       depthWrite: false,
-      color: isRed? 0xffaaaa:0x9999ff , blending: THREE.AdditiveBlending
+      color: isRed ? 0xffaaaa : 0x9999ff,
+      blending: THREE.AdditiveBlending
     });
 
     const engineSprite = new THREE.Sprite( engineMaterial );
