@@ -1,0 +1,174 @@
+body {
+    color: #1c222d;
+    font-family: monospace;
+    background-color: #000;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+}
+
+/* .input_video needed???
+{
+    transform: rotateY(180deg);
+    -webkit-transform:rotateY(180deg); // Safari and Chrome
+    -moz-transform:rotateY(180deg); // Firefox
+} */
+
+.player-label{
+    background-color: transparent;
+    text-shadow:0 0 7px #FFF;
+    margin-top: 1.5em;
+}
+.hud-label{
+    background-color: transparent;
+    text-shadow:1 1 3px #000;
+    margin-top: 5em;
+    opacity: 0.3;
+}
+
+#flag-holder {
+    position: absolute;
+    bottom: 100px;
+    font-weight: bold;
+    font-size: xx-large;
+    text-align: center;
+    width: 100%;
+    display: none;
+}
+#fps {
+    position: absolute;
+    top:0;
+    left:0;
+    opacity: 0.3;
+    color: #fff;
+}
+#welcome {
+    position: absolute;
+    /* top: 0; */
+    /* right: 0; */
+    border: 1px solid silver;
+    padding: 65px 20px;
+    width: 800px;
+    text-align: center;
+    color: silver;
+    left: calc(50% - 400px);
+    top: 4%;
+    background-color: #0004;
+}
+.team-label {
+    width: 200px;
+    text-align: center;
+    margin: auto;
+}
+.btn {
+    padding: 0.5em 2em;
+    margin: 0.5em;
+    cursor: pointer;
+    /*font-size: 26px;*/
+    /*height: 48px;*/
+    color:silver;
+    background-color: #0004;
+    border: 1px solid silver;
+}
+#nick {
+    background-color: transparent;
+    color: gray;
+    border: 0;
+    border-bottom: 1px solid #fff;
+    padding: 0.2em;
+    outline: 0;
+    font-size: larger;
+    color: #fff;
+    width: 30%;
+}
+
+div{
+    padding: 0.2em;
+}
+.red{ color: #C03030}
+.blue{ color: #4040FF}
+
+
+#game-display{
+    padding:1em;
+    display:none;
+    font-size: larger;
+    position: absolute;
+    top: 2%;
+    right: 25%;
+    width: 50%;
+    background-color:#0004;
+    color:silver;
+    border: 1px solid silver;
+    text-align: center;
+}
+
+#game-over{
+    display:none;
+    position: absolute;
+    top: 130px;
+    right: 25%;
+    width: 50%;
+    border: 1px solid silver;
+    background-color: #0004;
+    text-align: center;
+    font-size: xx-large;
+}
+
+
+.control-panel {
+    background-color: #0000004D;
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 20px;
+    border-radius: 0 0 0 12px;
+    width: 400px;
+    text-align: center;
+}
+
+#face-display {
+    position: absolute;
+    top: 0px;
+    right: -100px;
+    width: 344;
+    height: 248;
+    /*border: 1px solid silver;*/
+    color: silver;
+}
+#face-display .cords {
+    position: absolute;
+    display: none;
+    color:#00FFA0;
+    top: 0px;
+    right:100px;
+}
+#face-x, #face-y {color: silver}
+
+.control-panel div {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 10px;
+}
+
+.control-panel div:last-child {
+    padding-bottom: 0px;
+}
+
+label {
+    color: white;
+    padding: 0 10px 0 10px;
+    width: 75px;
+}
+
+input {
+    vertical-align: middle;
+}
+
+.control-percentage {
+    width: 80px
+}
+
+#face-display {
+    /* display:none; */
+}
