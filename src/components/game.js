@@ -4,8 +4,8 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.resetMembers();
         this.loadLocalState();
         this.useNeck = localStorage.getItem('disableNeck') !== 'true';
-        this.stillTargetEnabled = localStorage.getItem('stillTargetEnabled') == 'true';
-        this.disableConstantSpeed = localStorage.getItem("disableConstantSpeed") == 'true';
+        this.stillTargetEnabled = localStorage.getItem('stillTargetEnabled') === 'true';
+        this.disableConstantSpeed = localStorage.getItem("disableConstantSpeed") === 'true';
         this.disableSound = localStorage.getItem("disableSound");
     }
 
@@ -66,7 +66,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     onError(error) {
         console.error(error);
-        alert(error);
+        this.setGameMsg(`Error: ${error}`);
     }
 
     //////////////////////////////////////////////////////////
@@ -117,7 +117,7 @@ class Game /*extends THREE.EventDispatcher*/ {
                 _this.onError(error);
                 return;
             }
-            if (result != 'ok') {
+            if (result !== 'ok') {
                 this.setGameMsg('join: ' + result);
             }
         });
@@ -140,8 +140,8 @@ class Game /*extends THREE.EventDispatcher*/ {
                 _this.onError(error);
                 return;
             }
-            if (result != 'ok') {
-                alert('leave: ' + result);
+            if (result !== 'ok') {
+                this.setGameMsg('leave: ' + result);
             }
         });
     }
@@ -236,10 +236,10 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     onblur() {
-        if (this.moving && !localStorage.getItem('debug') == "true") {
+        if (this.moving && localStorage.getItem('debug') !== "true") {
             this.startStop();
         }
-    };
+    }
 
     //////////////////////////////////////////////////////////
     initControls(init) {
@@ -286,8 +286,8 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.tid321 = setInterval(() => {
             const diff = this.mngrState.startTs - Date.now();
             if (diff > 0) {
-                var seconds = Math.floor(diff / 1000);
-                var tenth = parseInt((new Date(diff)).getMilliseconds() / 100);
+                const seconds = Math.floor(diff / 1000);
+                const tenth = parseInt((new Date(diff)).getMilliseconds() / 100);
                 this.setGameMsg(`GAME BEGINS IN ${seconds}:${tenth}`);
                 // ping only on last 3 sec - locked when ready
                 if (tenth === 0 && seconds <= 3) {
@@ -574,7 +574,7 @@ class Game /*extends THREE.EventDispatcher*/ {
                 _this.onError(error);
                 return;
             }
-            if (result != 'ok') {
+            if (result !== 'ok') {
                 this.setGameMsg('gatePass: ' + result);
                 this.playAudio('wrong');
                 return;
@@ -589,7 +589,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     passInGate(gate) {
         // correct far gate
-        if (this.localState.isRed == (gate.name == "redGate")) {
+        if (this.localState.isRed === (gate.name === "redGate")) {
             console.log('collect gatePass!', gate.name);
             // tell mngr
             this.tellGatePass(false);
@@ -625,7 +625,7 @@ class Game /*extends THREE.EventDispatcher*/ {
                 _this.onError(error);
                 return;
             }
-            if (result != 'ok') {
+            if (result !== 'ok') {
                 console.log('flagDrop: ' + result);
             }
         });

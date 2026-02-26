@@ -1,22 +1,18 @@
 
-function ExplodeMngr(scene){
+function ExplodeMngr(scene) {
   //////////////settings/////////
   const SECONDS = 2;
-  var movementSpeed = SIZE/100;
-  var totalObjects = 1000;
-  //var objectSize = 0.03;
-  //var sizeRandomness = 4000;
-  //var colors = [0xFF0FFF, 0xCCFF00, 0xFF000F, 0x996600, 0xFFFFFF];
+  const movementSpeed = SIZE / 100;
+  const totalObjects = 1000;
   /////////////////////////////////
-  var dirs = [];
-  var parts = [];
+  const dirs = [];
+  const parts = [];
   // var container = document.createElement('div');
   // document.body.appendChild( container );
 
   //////////////////////////////////////////////////////////////////////
-  function ExplodeAnimation(x,y,z, isRed)
-  {
-    var geometry = new THREE.BufferGeometry();
+  function ExplodeAnimation(x, y, z, isRed) {
+    const geometry = new THREE.BufferGeometry();
 
     // attributes
     const positions = new Float32Array( totalObjects * 3 ); // 3 vertices per point
@@ -48,7 +44,7 @@ function ExplodeMngr(scene){
     //   // depthTest: true,
     //   // sizeAttenuation: true
     // });
-    var particles = new THREE.Points( geometry, isRed? materials.redExplode : materials.blueExplode);
+    const particles = new THREE.Points(geometry, isRed ? materials.redExplode : materials.blueExplode);
 
     this.object = particles;
     this.status = true;
@@ -61,10 +57,10 @@ function ExplodeMngr(scene){
     this.started = Date.now();
 
     // animation
-    this.update = function(age){
-      if (this.status == true){
-        var index = 0;
-        var count = totalObjects;
+    this.update = function (age) {
+      if (this.status === true) {
+        let index = 0;
+        let count = totalObjects;
           const explosionColors = isRed ? explosionRedColors : explosionBlueColors;
 
           while(--count) {
@@ -94,7 +90,7 @@ function ExplodeMngr(scene){
   function beforeRender() {
     //requestAnimationFrame( render );
 
-    var pCount = parts.length;
+    let pCount = parts.length;
     const now = Date.now();
     let ended = [];
     while(pCount--) {

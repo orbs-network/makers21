@@ -30,9 +30,9 @@ function sendEvent(name, data){
 
 
 /////////////////////////////////////////////////////
-function subscribe(name, handler){
-    client.event.subscribe(name, (data)=>{
-        if (data.id == uuid) {
+function subscribe(name, handler) {
+    client.event.subscribe(name, (data) => {
+        if (data.id === uuid) {
             return;
         }
         //console.log('deepstram::event data', data);
@@ -40,23 +40,22 @@ function subscribe(name, handler){
     });
 }
 
-function throttle(func, wait, options) {
-    var context, args, result;
-    var timeout = null;
-    var previous = 0;
-    if (!options) options = {};
-    var later = function () {
+function throttle(func, wait, options = {}) {
+    let context, args, result;
+    let timeout = null;
+    let previous = 0;
+    const later = function () {
         previous = options.leading === false ? 0 : Date.now();
         timeout = null;
         result = func.apply(context, args);
         if (!timeout) context = args = null;
     };
-    return function () {
-        var now = Date.now();
+    return function (...callArgs) {
+        const now = Date.now();
         if (!previous && options.leading === false) previous = now;
-        var remaining = wait - (now - previous);
+        const remaining = wait - (now - previous);
         context = this;
-        args = arguments;
+        args = callArgs;
         if (remaining <= 0 || remaining > wait) {
             if (timeout) {
                 clearTimeout(timeout);
@@ -70,7 +69,7 @@ function throttle(func, wait, options) {
         }
         return result;
     };
-};
+}
 
 // heartbit every 5 min
 // setInterval(() => {
