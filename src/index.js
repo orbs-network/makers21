@@ -31,9 +31,13 @@ import { DeepstreamClient } from '@deepstream/client';
 
 // Import core modules
 import gameState from './core/GameState.js';
+import networkService from './services/NetworkService.js';
+import uiService from './services/UIService.js';
 
-// Make gameState available globally during migration
+// Make modules available globally during migration
 window.gameState = gameState;
+window.networkService = networkService;
+window.uiService = uiService;
 
 // Import game components
 import './components/config.js';
