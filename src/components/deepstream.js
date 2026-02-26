@@ -81,12 +81,26 @@ client.presence.subscribe((username, login)=> {
     console.log('presence changed ');
 });
 
+/////////////////////////////////////////////////////
+// Async RPC wrapper - converts callback-based RPC to Promise
+function rpcMake(type, data = {}) {
+    return new Promise((resolve, reject) => {
+        client.rpc.make('client', { type, ...data }, (error, result) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(result);
+            }
+        });
+    });
+}
 
 window.deepStream = {
-    sendThrot : throttle(sendEvent, 1000),
-    sendEvent:sendEvent,
+    sendThrot: throttle(sendEvent, 1000),
+    sendEvent: sendEvent,
     subscribe: subscribe,
-    client:client
+    client: client,
+    rpcMake: rpcMake
 }
 
 // run server

@@ -93,11 +93,14 @@ class World {
     }
 
     //////////////////////////////////////////////////////////
-    loadModels(cb) {
-        let arr = [];
+    // Returns a Promise that resolves when all models are loaded
+    // Also supports legacy callback pattern for backward compatibility
+    async loadModels(cb) {
+        const arr = [];
         arr.push(this.loadShip('airplane'));
         arr.push(this.loadModel('flag'));
-        Promise.all(arr).then(cb);
+        await Promise.all(arr);
+        if (cb) cb();
     }
 
     //////////////////////////////////////////////////////////

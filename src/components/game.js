@@ -43,19 +43,21 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 
     //////////////////////////////////////////////////////////
-    loadNeck(cb) {
+    // Async method to load face tracking (neck controls)
+    async loadNeck() {
         if (!this.useNeck) {
-            return cb();
+            return;
         }
         this.face = new Face();
-        this.face.startCamera(cb);
+        await this.face.startCamera();
     }
 
     //////////////////////////////////////////////////////////
-    loadAsync(cb) {
-        this.loadNeck(() => {
-            this.world.loadModels(cb);
-        });
+    // Async method to load all game assets
+    async loadAsync(cb) {
+        await this.loadNeck();
+        await this.world.loadModels();
+        if (cb) cb(); // Support legacy callback pattern
     }
 
     //////////////////////////////////////////////////////////
@@ -104,69 +106,59 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 
     //////////////////////////////////////////////////////////
-    onJoin() {
-        const _this = this;
+    async onJoin() {
         // save current local state
         this.saveLocalState();
-        deepStream.client.rpc.make('client', {
-            type: "join",
-            isRed: this.localState.isRed,
-            nick: this.localState.nick
-        }, (error, result) => {
-            if (error) {
-                _this.onError(error);
-                return;
-            }
+        try {
+            const result = await deepStream.rpcMake('join', {
+                isRed: this.localState.isRed,
+                nick: this.localState.nick
+            });
             if (result !== 'ok') {
                 this.setGameMsg('join: ' + result);
             }
-        });
+        } catch (error) {
+            this.onError(error);
+        }
         // update world
         this.world.setNick(this.localState.nick);
         this.world.setTeamPos(this.localState.isRed);
     }
 
     //////////////////////////////////////////////////////////
-    onLeave() {
+    async onLeave() {
         // save current local state
-        const _this = this;
         this.saveLocalState();
-        deepStream.client.rpc.make('client', {
-            type: "leave",
-            isRed: this.localState.isRed,
-            nick: this.localState.nick
-        }, (error, result) => {
-            if (error) {
-                _this.onError(error);
-                return;
-            }
+        try {
+            const result = await deepStream.rpcMake('leave', {
+                isRed: this.localState.isRed,
+                nick: this.localState.nick
+            });
             if (result !== 'ok') {
                 this.setGameMsg('leave: ' + result);
             }
-        });
+        } catch (error) {
+            this.onError(error);
+        }
     }
 
     //////////////////////////////////////////////////////////
-    onStart() {
-        //this.ping.play();
+    async onStart() {
         document.getElementById("req-start").style.display = 'block';
-        deepStream.client.rpc.make('client', {type: 'start', nick: this.localState.nick}, (error, result) => {
-            if (error) {
-                console.error(error);
-                return;
-            }
-            //this.onMngrState(result.state);
-        });
+        try {
+            await deepStream.rpcMake('start', { nick: this.localState.nick });
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     //////////////////////////////////////////////////////////
-    onReset() {
-        deepStream.client.rpc.make('client', {type: 'reset', nick: this.localState.nick}, (error, result) => {
-            if (error) {
-                console.error('reset', error);
-                return;
-            }
-        });
+    async onReset() {
+        try {
+            await deepStream.rpcMake('reset', { nick: this.localState.nick });
+        } catch (error) {
+            console.error('reset', error);
+        }
     }
 
     //////////////////////////////////////////////////////////
@@ -507,23 +499,18 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 
     //////////////////////////////////////////////////////////
-    connect() {
+    async connect() {
         document.getElementById('online').innerText = "connecting...";
-        // send join - receieve state
+        // send join - receive state
         deepStream.subscribe('mngr', this.onEvent.bind(this));
-        // broadcast online for 3 seconds
-        // to get response with state from server
-        let count = 0;
-        let interval = 300;
 
-        deepStream.client.rpc.make('client', {type: 'online'}, (error, result) => {
-            if (error) {
-                console.error(error);
-                this.onOffline();
-                return;
-            }
+        try {
+            const result = await deepStream.rpcMake('online');
             this.onMngrState(result.state);
-        });
+        } catch (error) {
+            console.error(error);
+            this.onOffline();
+        }
     }
 
     //////////////////////////////////////////////////////////
@@ -562,28 +549,22 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 
     //////////////////////////////////////////////////////////
-    tellGatePass(winGate) {
+    async tellGatePass(winGate) {
         this.tellingGatePass = true; // to avoid exploding - reset on mngr state
-        deepStream.client.rpc.make('client', {
-            type: "gatePass",
-            isRed: this.localState.isRed,
-            winGate: winGate,
-            nick: this.localState.nick
-        }, (error, result) => {
-            if (error) {
-                _this.onError(error);
-                return;
-            }
+        try {
+            const result = await deepStream.rpcMake('gatePass', {
+                isRed: this.localState.isRed,
+                winGate: winGate,
+                nick: this.localState.nick
+            });
             if (result !== 'ok') {
                 this.setGameMsg('gatePass: ' + result);
                 this.playAudio('wrong');
-                return;
-            }/*else{ - Receive it onMngrState
-        this.holdingFlag = true;
-        // SUCCESS - you are the holder of the flag
-        this.playAudio('success');
-      }*/
-        });
+            }
+            // Success is received via onMngrState
+        } catch (error) {
+            this.onError(error);
+        }
     }
 
     //////////////////////////////////////////////////////////
@@ -610,25 +591,18 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 
     //////////////////////////////////////////////////////////
-    tellDropFlag() {
-        // if(!this.holdingFlag){
-        //   return;
-        // }
-        //this.world.setFlagHolders(); - let mngr state take care of this
-
-        deepStream.client.rpc.make('client', {
-            type: "flagDrop",
-            isRed: this.localState.isRed,
-            nick: this.localState.nick
-        }, (error, result) => {
-            if (error) {
-                _this.onError(error);
-                return;
-            }
+    async tellDropFlag() {
+        try {
+            const result = await deepStream.rpcMake('flagDrop', {
+                isRed: this.localState.isRed,
+                nick: this.localState.nick
+            });
             if (result !== 'ok') {
                 console.log('flagDrop: ' + result);
             }
-        });
+        } catch (error) {
+            this.onError(error);
+        }
     }
 
     //////////////////////////////////////////////////////////
@@ -855,21 +829,19 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 
     //////////////////////////////////////////////////////////
-    doPassFlag(target) {
-        deepStream.client.rpc.make('client', {
-            type: "passFlag",
-            isRed: this.localState.isRed,
-            nick: this.localState.nick,
-            targetNick: target.nick
-        }, (error, result) => {
-            if (error) {
-                this.onError(error);
-                return;
-            }
-            if (result != 'ok') {
+    async doPassFlag(target) {
+        try {
+            const result = await deepStream.rpcMake('passFlag', {
+                isRed: this.localState.isRed,
+                nick: this.localState.nick,
+                targetNick: target.nick
+            });
+            if (result !== 'ok') {
                 this.setGameMsg('passFlag: ' + result);
             }
-        });
+        } catch (error) {
+            this.onError(error);
+        }
     }
 
     //////////////////////////////////////////////////////////

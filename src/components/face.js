@@ -37,25 +37,33 @@ class Face  {
         this.center = {x:0,y:0};
     }
     //////////////////////////////////////////////////////////
-    startCamera(cb){
-        this.onReady = cb;
-        this.faceMesh = new window.FaceMesh({
-            locateFile: file => {
-                return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/${file}`;
-            }
-        });
+    // Returns a Promise that resolves when face detection is ready
+    // Also supports legacy callback pattern for backward compatibility
+    startCamera(cb) {
+        return new Promise((resolve) => {
+            this.onReady = () => {
+                if (cb) cb();
+                resolve();
+            };
 
-        this.faceMesh.onResults(this.onResults.bind(this));
+            this.faceMesh = new window.FaceMesh({
+                locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/${file}`;
+                },
+            });
 
-        // Instantiate a camera. We'll feed each frame we receive into the solution.
-        const camera = new window.Camera(this.video, {
-            onFrame: async () => {
-                await this.faceMesh.send({ image: this.video });
-            },
-            width: 1280,
-            height: 720
+            this.faceMesh.onResults(this.onResults.bind(this));
+
+            // Instantiate a camera. We'll feed each frame we receive into the solution.
+            const camera = new window.Camera(this.video, {
+                onFrame: async () => {
+                    await this.faceMesh.send({ image: this.video });
+                },
+                width: 1280,
+                height: 720,
+            });
+            camera.start();
         });
-        camera.start();
     }
     //////////////////////////////////////////////////////////
     captureCenterXY(){
