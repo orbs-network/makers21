@@ -4,6 +4,10 @@ class Game /*extends THREE.EventDispatcher*/ {
         // Use centralized state manager
         this.state = window.gameState;
 
+        // Use extracted services
+        this.network = window.networkService;
+        this.ui = window.uiService;
+
         this.resetMembers();
 
         // Settings from gameState
@@ -64,7 +68,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     saveLocalState() {
         // update localState from UI
-        this.state.update('local.isRed', document.getElementById('red').checked);
+        this.state.update('local.isRed', this.ui.isRedSelected());
         // Save to localStorage
         this.state.saveLocal();
     }
@@ -137,10 +141,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         // save current local state
         this.saveLocalState();
         try {
-            const result = await deepStream.rpcMake('join', {
-                isRed: this.localState.isRed,
-                nick: this.localState.nick
-            });
+            const result = await this.network.join(this.localState.nick, this.localState.isRed);
             if (result !== 'ok') {
                 this.setGameMsg('join: ' + result);
             }
@@ -157,10 +158,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         // save current local state
         this.saveLocalState();
         try {
-            const result = await deepStream.rpcMake('leave', {
-                isRed: this.localState.isRed,
-                nick: this.localState.nick
-            });
+            const result = await this.network.leave(this.localState.nick, this.localState.isRed);
             if (result !== 'ok') {
                 this.setGameMsg('leave: ' + result);
             }
@@ -171,9 +169,9 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     async onStart() {
-        document.getElementById("req-start").style.display = 'block';
+        this.ui.showRequestStart();
         try {
-            await deepStream.rpcMake('start', { nick: this.localState.nick });
+            await this.network.start(this.localState.nick);
         } catch (error) {
             console.error(error);
         }
@@ -182,7 +180,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     async onReset() {
         try {
-            await deepStream.rpcMake('reset', { nick: this.localState.nick });
+            await this.network.reset(this.localState.nick);
         } catch (error) {
             console.error('reset', error);
         }
@@ -190,25 +188,21 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     uxInit() {
-        // handler for join
-        document.getElementById('join').addEventListener('click', this.onJoin.bind(this));
-        document.getElementById('leave').addEventListener('click', this.onLeave.bind(this));
-        document.getElementById('start').addEventListener('click', this.onStart.bind(this));
-        document.getElementById('reset').addEventListener('click', this.onReset.bind(this));
-
-        // [press any key to start]
-        document.body.addEventListener("keydown", this.keydown.bind(this));
-
-        // UI events
-        document.getElementById('nick').addEventListener('input', (e) => {
-            // show/hide chose team
-            document.getElementById('choose-team').style.display = (e.target.value.length > 2) ? 'block' : 'none';
-            if (e.target.value.length > 2) {
-                this.localState.nick = e.target.value;
-                this.saveLocalState();
-            }
+        // Initialize UI with event handlers
+        this.ui.init({
+            onJoin: this.onJoin.bind(this),
+            onLeave: this.onLeave.bind(this),
+            onStart: this.onStart.bind(this),
+            onReset: this.onReset.bind(this),
+            onKeydown: this.keydown.bind(this),
+            onNickChange: (value) => {
+                if (value.length > 2) {
+                    this.localState.nick = value;
+                    this.saveLocalState();
+                }
+            },
         });
-        // radio buttons and nick
+        // Set initial input values
         this.setInputs();
     }
 
@@ -282,22 +276,12 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     setInputs() {
-        // nick
-        const nick = this.localState.nick ? this.localState.nick : '';
-        document.getElementById('nick').setAttribute('value', nick);
-        // team radio
-        document.getElementById('red').checked = this.localState.isRed// setAttribute('checked', this.localState.isRed);
-        document.getElementById('blue').checked = !this.localState.isRed;//setAttribute('checked', !this.localState.isRed);
-        // show chosose-team only if text is filled
-        let display = (nick.length > 2) ? 'block' : 'none';
-        const choose = document.getElementById("choose-team");
-        choose.style.display = display;
+        this.ui.setInputs(this.localState.nick, this.localState.isRed);
     }
 
     //////////////////////////////////////////////////////////
     setGameMsg(html) {
-        document.getElementById('game-display').style.display = html ? "block" : "none";
-        document.getElementById('msg').innerHTML = html;
+        this.ui.setGameMsg(html);
     }
 
     //////////////////////////////////////////////////////////
@@ -327,8 +311,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     onGameStarted() {
-        document.getElementById('welcome').style.display = 'none';
-        document.getElementById('game-display').style.display = 'block';
+        this.ui.showGameDisplay();
 
         // either way update whos on ehich team
         this.world.setPlayerTeams(this.mngrState.red, this.mngrState.blue);
@@ -338,7 +321,6 @@ class Game /*extends THREE.EventDispatcher*/ {
         if (Date.now() < this.mngrState.startTs) {
             // show countdown
             this.show321();
-            //this.setGameMsg('game begins in:');
             return;
         } else { // happens after Reload
             // update world
@@ -365,29 +347,19 @@ class Game /*extends THREE.EventDispatcher*/ {
             this.setGameMsg('Press Space to start!');
 
             // start FPS loop
-            const fps = document.getElementById('fps');
-            this.frames = 0;
-            setInterval(() => {
-                fps.innerHTML = 'FPS: ' + this.frames;
-                this.frames = 0;
-            }, 1000);
+            this.ui.startFPSCounter();
         }
     }
 
     //////////////////////////////////////////////////////////
     onGameOver() {
-        document.getElementById('game-over').style.display = 'block';
-        const winnerTeam = this.mngrState.winnerIsRed ? 'red' : 'blue';
-        document.getElementById('game-over').className = winnerTeam;
-        document.getElementById('winnerNick').innerHTML = `${this.mngrState.winnerNick} has captured the flag!`;
-        document.getElementById('winnerIsRed').innerHTML = `${winnerTeam} TEAM IS THE WINNER`;
+        this.ui.showGameOver(this.mngrState.winnerNick, this.mngrState.winnerIsRed);
         this.moving = false;
         this.startUpdateLoop(false);
         this.startBorderLoop(false);
         this.stopWarning();
 
         this.resetAll();
-        //this.world.setTeamPos(null); // also sets players joined to null
     }
 
     //////////////////////////////////////////////////////////
@@ -402,9 +374,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         // reset from mngr
         if (state.needReset) {
             this.resetAll();
-            document.getElementById('game-display').style.display = 'none';
-            document.getElementById('req-start').style.display = 'none';
-            document.getElementById('welcome').style.display = 'block';
+            this.ui.showWelcome();
         }
 
         const joined = this.isJoined();
@@ -413,7 +383,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
 
         // online status
-        document.getElementById('online').innerText = "connected!";
+        this.ui.setOnlineStatus("connected!");
 
         //////////////////////////////////////////////////////////
         // game you have joined - is WON
@@ -421,7 +391,7 @@ class Game /*extends THREE.EventDispatcher*/ {
             this.onGameOver();
             return;
         }
-        document.getElementById('game-over').style.display = 'none';
+        this.ui.hideGameOver();
 
         //////////////////////////////////////////////////////////
         // game already started
@@ -456,57 +426,28 @@ class Game /*extends THREE.EventDispatcher*/ {
             }
             // game started but not joined
             else {
-                document.getElementById('welcome').style.display = "block";
-                document.getElementById('inputs').style.display = "none";
-                document.getElementById('teams').style.display = "none";
-                document.getElementById('started').innerText = "Game has started - please wait for next game to start";
+                this.ui.showWaitingForNextGame();
             }
             return;
         }
-        // show welcome as game isnt over and hasnt started yet
-        document.getElementById('welcome').style.display = "block";
 
-        // ready to start
-        document.getElementById('ready-text').innerText = state.ready ? "Ready to start" : "waiting for more players to join";
-
-        // joined section - show/hide
-        document.getElementById('inputs').style.display = "none";
-
-        //////////////////////////////////////////////////////////
-        // game pending  - show welcome
-        document.getElementById('started').innerText = "Game is pending";
-
-        // update teams
-        document.getElementById('red-team').innerHTML = state.red?.length ? state.red?.join() : '0 players';
-        document.getElementById('blue-team').innerHTML = state.blue?.length ? state.blue?.join() : '0 players';
-        // show teams
-        document.getElementById('teams').style.display = "block";
-
-        //////////////////////////////////////////////////////////
-        // not joined - show joined
-        document.getElementById('joined').style.display = joined ? "block" : "none";
-
-        // show [start] only of ready and joined team
-        document.getElementById('start').style.display = (state.ready && joined) ? '' : 'none';
+        // Show lobby state
+        this.ui.showLobby({
+            ready: state.ready,
+            red: state.red,
+            blue: state.blue,
+            joined: joined,
+            localNick: this.localState.nick,
+            localIsRed: this.localState.isRed,
+        });
 
         if (!joined) {
-            document.getElementById('inputs').style.display = "block";
-            // neutral
+            // neutral position
             this.world.setTeamPos(null);
             return;
         }
         // world team (on load after joined)
         this.world.setTeamPos(this.localState.isRed);
-
-        //////////////////////////////////////////////////////////
-        //joined
-        // set nick "joined as"
-        const team = this.localState.isRed ? 'red' : 'blue';
-
-        document.getElementById('nick-join').innerHTML = this.localState.nick;
-        document.getElementById('nick-join').setAttribute('class', team);
-        document.getElementById('team-join').innerHTML = team;
-        document.getElementById('team-join').setAttribute('class', team);
     }
 
     //////////////////////////////////////////////////////////
@@ -520,19 +461,18 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     onOffline() {
-        document.getElementById('online').innerText = "Could not connect, please reload to retry";
-        //alert('offline!!!');
+        this.ui.setOnlineStatus("Could not connect, please reload to retry");
         console.log('offline!!!');
     }
 
     //////////////////////////////////////////////////////////
     async connect() {
-        document.getElementById('online').innerText = "connecting...";
+        this.ui.setOnlineStatus("connecting...");
         // send join - receive state
-        deepStream.subscribe('mngr', this.onEvent.bind(this));
+        this.network.subscribe('mngr', this.onEvent.bind(this));
 
         try {
-            const result = await deepStream.rpcMake('online');
+            const result = await this.network.checkOnline();
             this.onMngrState(result.state);
         } catch (error) {
             console.error(error);
@@ -579,11 +519,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     async tellGatePass(winGate) {
         this.tellingGatePass = true; // to avoid exploding - reset on mngr state
         try {
-            const result = await deepStream.rpcMake('gatePass', {
-                isRed: this.localState.isRed,
-                winGate: winGate,
-                nick: this.localState.nick
-            });
+            const result = await this.network.gatePass(this.localState.nick, this.localState.isRed, winGate);
             if (result !== 'ok') {
                 this.setGameMsg('gatePass: ' + result);
                 this.playAudio('wrong');
@@ -620,10 +556,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     async tellDropFlag() {
         try {
-            const result = await deepStream.rpcMake('flagDrop', {
-                isRed: this.localState.isRed,
-                nick: this.localState.nick
-            });
+            const result = await this.network.flagDrop(this.localState.nick, this.localState.isRed);
             if (result !== 'ok') {
                 console.log('flagDrop: ' + result);
             }
@@ -699,17 +632,15 @@ class Game /*extends THREE.EventDispatcher*/ {
             // broadcast position
             cam.getWorldDirection(this.direction);
             const pos = cam.position.clone();
-            deepStream.sendEvent('player', {
+            this.network.broadcastPosition({
                 type: "pos",
                 nick: this.localState.nick,
                 moving: this.moving,
-                // new
                 pos: {
                     x: pos.x,
                     y: pos.y,
                     z: pos.z
                 },
-                // new
                 dir: {
                     x: this.direction.x,
                     y: this.direction.y,
@@ -808,7 +739,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         const gate = this.localState.isRed ? this.world.redGate : this.world.blueGate;
         //this.controls.lookAt(gate.position);
         // event explosion
-        deepStream.sendEvent('player', {
+        this.network.sendEvent('player', {
             type: "explode",
             flag: true,
             pos: cam.position.clone(),
@@ -827,7 +758,7 @@ class Game /*extends THREE.EventDispatcher*/ {
             // broadcast final pos
             let cam = this.world.camera;
             cam.getWorldDirection(direction);
-            deepStream.sendEvent('player', {
+            this.network.sendEvent('player', {
                 type: "explode",
                 flag: false,
                 pos: cam.position.clone(),
@@ -858,11 +789,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     async doPassFlag(target) {
         try {
-            const result = await deepStream.rpcMake('passFlag', {
-                isRed: this.localState.isRed,
-                nick: this.localState.nick,
-                targetNick: target.nick
-            });
+            const result = await this.network.passFlag(this.localState.nick, this.localState.isRed, target.nick);
             if (result !== 'ok') {
                 this.setGameMsg('passFlag: ' + result);
             }
@@ -898,7 +825,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         }
 
         // fire enemy
-        deepStream.sendEvent('player', {
+        this.network.sendEvent('player', {
             type: "fire",
             nick: this.localState.nick,
             targetNick: this.world.shooting.targetPlayer.nick
@@ -943,7 +870,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     render() {
         // FPS measure
-        this.frames++;
+        this.ui.incrementFrame();
 
         const now = Date.now();
         const delta = (now - this.tsRender);
@@ -988,33 +915,5 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 }
 
-//////////////////////////////////////////////////////////
-const game = new Game();
-window.onload = function () {
-    game.createWorld();
-    game.loadAsync(() => {
-        console.log('All models have been loaded');
-        game.uxInit();
-        //game.createWorld();
-        // init controls
-
-        game.world.createScene();
-        game.initControls(false);
-        game.world.setTeamPos(null);
-        game.connect();
-
-        function animate() {
-            // request another frame
-            requestAnimationFrame(animate);
-
-            // Put your drawing code here
-            game.render();
-        }
-
-        // start animating
-        animate();
-    });
-}
-window.onresize = game.onresize.bind(game);
-//window.onfocus = game.onfocus.bind(game);
-window.onblur = game.onblur.bind(game);
+// Make Game class available globally
+window.Game = Game;

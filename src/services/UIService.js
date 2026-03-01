@@ -33,6 +33,16 @@ class UIService {
       winnerIsRed: document.getElementById('winnerIsRed'),
       online: document.getElementById('online'),
       fps: document.getElementById('fps'),
+      // Lobby elements
+      inputs: document.getElementById('inputs'),
+      teams: document.getElementById('teams'),
+      started: document.getElementById('started'),
+      readyText: document.getElementById('ready-text'),
+      redTeam: document.getElementById('red-team'),
+      blueTeam: document.getElementById('blue-team'),
+      joined: document.getElementById('joined'),
+      nickJoin: document.getElementById('nick-join'),
+      teamJoin: document.getElementById('team-join'),
     };
   }
 
@@ -125,7 +135,7 @@ class UIService {
   }
 
   /**
-   * Show welcome screen
+   * Show welcome screen (hides game display and request start)
    */
   showWelcome() {
     if (this._elements.welcome) {
@@ -262,6 +272,93 @@ class UIService {
    */
   isRedSelected() {
     return this._elements.red ? this._elements.red.checked : false;
+  }
+
+  /**
+   * Show waiting message when game has started but player not joined
+   */
+  showWaitingForNextGame() {
+    if (this._elements.welcome) {
+      this._elements.welcome.style.display = 'block';
+    }
+    if (this._elements.inputs) {
+      this._elements.inputs.style.display = 'none';
+    }
+    if (this._elements.teams) {
+      this._elements.teams.style.display = 'none';
+    }
+    if (this._elements.started) {
+      this._elements.started.innerText = 'Game has started - please wait for next game to start';
+    }
+  }
+
+  /**
+   * Show lobby state (pending game)
+   * @param {Object} options - Lobby display options
+   */
+  showLobby(options) {
+    const { ready, red, blue, joined, localNick, localIsRed } = options;
+
+    // Show welcome screen
+    if (this._elements.welcome) {
+      this._elements.welcome.style.display = 'block';
+    }
+
+    // Ready status
+    if (this._elements.readyText) {
+      this._elements.readyText.innerText = ready ? 'Ready to start' : 'waiting for more players to join';
+    }
+
+    // Hide inputs initially
+    if (this._elements.inputs) {
+      this._elements.inputs.style.display = 'none';
+    }
+
+    // Game pending status
+    if (this._elements.started) {
+      this._elements.started.innerText = 'Game is pending';
+    }
+
+    // Update team lists
+    if (this._elements.redTeam) {
+      this._elements.redTeam.innerHTML = red?.length ? red.join() : '0 players';
+    }
+    if (this._elements.blueTeam) {
+      this._elements.blueTeam.innerHTML = blue?.length ? blue.join() : '0 players';
+    }
+
+    // Show teams
+    if (this._elements.teams) {
+      this._elements.teams.style.display = 'block';
+    }
+
+    // Show joined section based on join status
+    if (this._elements.joined) {
+      this._elements.joined.style.display = joined ? 'block' : 'none';
+    }
+
+    // Show start button only if ready and joined
+    if (this._elements.start) {
+      this._elements.start.style.display = (ready && joined) ? '' : 'none';
+    }
+
+    // If not joined, show inputs
+    if (!joined && this._elements.inputs) {
+      this._elements.inputs.style.display = 'block';
+    }
+
+    // If joined, show player info
+    if (joined) {
+      const team = localIsRed ? 'red' : 'blue';
+      if (this._elements.nickJoin) {
+        this._elements.nickJoin.innerHTML = localNick;
+        this._elements.nickJoin.className = team;
+      }
+      if (this._elements.teamJoin) {
+        this._elements.teamJoin.innerHTML = team;
+        this._elements.teamJoin.className = team;
+      }
+    }
   }
 
   /**

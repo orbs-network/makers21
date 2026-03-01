@@ -63,22 +63,34 @@ import './components/game.js';
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Makers21 - Three.js Version Loading...');
 
-  // Initialize Deepstream connection
-  window.deepStream = {
-    client: new DeepstreamClient('localhost:6020')
-  };
+  // Initialize Deepstream client
+  const deepStreamClient = new DeepstreamClient('wss://ws-makers.orbs.com:6021', {
+    subscriptionTimeout: 3000
+  });
+
+  // Initialize network service with the Deepstream client
+  networkService.init(deepStreamClient);
 
   // Create and initialize the game
   const game = new Game();
 
-  // Connect to server and start the game
-  game.connect();
+  // Create world first
   game.createWorld();
 
-  // Load game assets and start
+  // Load game assets and initialize
   game.loadAsync(() => {
-    console.log('Game assets loaded, initializing UI...');
+    console.log('Game assets loaded, initializing...');
+
+    // Initialize UI
     game.uxInit();
+
+    // Create scene and setup controls
+    game.world.createScene();
+    game.initControls(false);
+    game.world.setTeamPos(null);
+
+    // Connect to game server
+    game.connect();
 
     // Start the render loop
     function animate() {
