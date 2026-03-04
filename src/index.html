@@ -23,6 +23,18 @@
   <!-- Camera input for face tracking -->
   <video style="display: none;" class="input_video"></video>
 
+  <!-- Server selection dialog (hidden by default, shown via JS) -->
+  <div id="server-dialog" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: #222; padding: 30px; border-radius: 10px; text-align: center; border: 2px solid #444;">
+      <h2 style="color: #fff; margin-bottom: 20px;">Choose Server</h2>
+      <div style="margin-bottom: 15px;">
+        <label for="server-input" style="color: #ccc; display: block; margin-bottom: 8px;">Server address:</label>
+        <input type="text" id="server-input" style="width: 300px; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #666; background: #333; color: #fff;">
+      </div>
+      <input type="button" id="server-connect" class="btn" value="Connect" style="padding: 10px 30px; font-size: 16px; cursor: pointer;">
+    </div>
+  </div>
+
   <!-- Welcome screen -->
   <div id="welcome" style="display: none;">
     <h1>Makers2021 Welcome</h1>

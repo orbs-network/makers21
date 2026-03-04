@@ -66,27 +66,65 @@ async function loadGameModules() {
   await import('./components/game.js');
 }
 
+// Default server address
+const DEFAULT_SERVER = 'ws-makers.orbs.com:6021';
+
+/**
+ * Get server address from URL param or show dialog
+ * @returns {Promise<string>} Server address (without protocol)
+ */
+async function getServerAddress() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const serverParam = urlParams.get('server');
+
+  if (serverParam) {
+    console.log('Using server from URL param:', serverParam);
+    return serverParam;
+  }
+
+  // Show server dialog and wait for user input
+  return new Promise((resolve) => {
+    const dialog = document.getElementById('server-dialog');
+    const input = document.getElementById('server-input');
+    const connectBtn = document.getElementById('server-connect');
+
+    // Pre-populate with default
+    input.value = DEFAULT_SERVER;
+    dialog.style.display = 'flex';
+
+    // Handle connect button click
+    const handleConnect = () => {
+      const server = input.value.trim();
+      if (server) {
+        dialog.style.display = 'none';
+        // Update URL with the selected server (without reload)
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('server', server);
+        window.history.replaceState({}, '', newUrl);
+        resolve(server);
+      }
+    };
+
+    connectBtn.addEventListener('click', handleConnect);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleConnect();
+    });
+  });
+}
+
 // Initialize the game when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
   // Load game modules first (THREE is now available)
   await loadGameModules();
   console.log('Makers21 - Three.js Version Loading...');
 
-  // Check for server override in URL params (e.g., ?server=localhost:6020)
-  const urlParams = new URLSearchParams(window.location.search);
-  const serverParam = urlParams.get('server');
+  // Get server address (from URL param or dialog)
+  const serverHost = await getServerAddress();
 
-  // Determine server address
-  let serverAddress;
-  if (serverParam) {
-    // Use ws:// for localhost, wss:// for remote
-    const protocol = serverParam.includes('localhost') || serverParam.includes('127.0.0.1') ? 'ws://' : 'wss://';
-    serverAddress = protocol + serverParam;
-    console.log('Using server override:', serverAddress);
-  } else {
-    serverAddress = 'wss://ws-makers.orbs.com:6021';
-    console.log('Using default server:', serverAddress);
-  }
+  // Determine protocol: ws:// for localhost, wss:// for remote
+  const protocol = serverHost.includes('localhost') || serverHost.includes('127.0.0.1') ? 'ws://' : 'wss://';
+  const serverAddress = protocol + serverHost;
+  console.log('Connecting to server:', serverAddress);
 
   // Initialize Deepstream client
   const deepStreamClient = new DeepstreamClient(serverAddress, {
