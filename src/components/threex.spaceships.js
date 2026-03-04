@@ -3,7 +3,7 @@ window.THREEx = THREEx;
 
 THREEx.SpaceShips = {};
 
-THREEx.SpaceShips.baseUrl = '/';
+THREEx.SpaceShips.baseUrl = 'assets/';
 
 THREEx.SpaceShips._loadObjMtl = function (loaderPath, objBasename, mtlBasename, onLoad, onProgress, onError) {
 	const mtlLoader = new THREE.MTLLoader();

@@ -67,3 +67,5 @@ class ImprovedNoise {
     }
 
 }
+
+window.ImprovedNoise = ImprovedNoise;

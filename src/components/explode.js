@@ -171,3 +171,5 @@ const explosionBlueColors =[
     "#001d84",
     "#00092a",
 ];
+
+window.ExplodeMngr = ExplodeMngr;

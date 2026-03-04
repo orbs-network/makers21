@@ -389,3 +389,5 @@ class UnrealBloomPass extends Pass {
 
 UnrealBloomPass.BlurDirectionX = new THREE.Vector2( 1.0, 0.0 );
 UnrealBloomPass.BlurDirectionY = new THREE.Vector2( 0.0, 1.0 );
+
+window.UnrealBloomPass = UnrealBloomPass;

@@ -1,9 +1,7 @@
 ( function () {
 
 	const _lookDirection = new THREE.Vector3();
-
 	const _spherical = new THREE.Spherical();
-
 	const _target = new THREE.Vector3();
 
 	class NeckPersonControls {

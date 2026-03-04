@@ -120,3 +120,5 @@ class Flags  {
 		}
 	}
 }
+
+window.Flags = Flags;

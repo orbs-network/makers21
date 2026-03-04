@@ -38,3 +38,5 @@ var CopyShader = {
 		}`
 
 };
+
+window.CopyShader = CopyShader;

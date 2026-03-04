@@ -207,4 +207,6 @@ Sky.SkyShader = {
 
 };
 
+window.Sky = Sky;
+
 

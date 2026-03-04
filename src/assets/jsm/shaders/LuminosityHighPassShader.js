@@ -57,3 +57,5 @@ const LuminosityHighPassShader = {
 		}`
 
 };
+
+window.LuminosityHighPassShader = LuminosityHighPassShader;

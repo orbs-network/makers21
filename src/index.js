@@ -39,40 +39,66 @@ window.gameState = gameState;
 window.networkService = networkService;
 window.uiService = uiService;
 
-// Import game components
-import './components/config.js';
-
-// Import game modules
-import './components/factory.js';
-import './components/materials.js';
-import './components/laser.js';
-import './components/shooting.js';
-import './components/flag.js';
-import './components/physics.js';
-import './components/explode.js';
-import './components/threex.spaceships.js';
-import './components/world.js';
-import './components/players.js';
-import './components/face.js';
-import './components/neckControls.js';
-import './components/sound.js';
-import './components/deepstream.js';
-import './components/game.js';
+// Load game components dynamically after THREE is set up
+async function loadGameModules() {
+  await import('./assets/jsm/obejcts/Sky.js');
+  await import('./assets/jsm/obejcts/Lensflare.js');
+  await import('./assets/jsm/ImprovedNoise.js');
+  await import('./assets/jsm/postprocessing/Pass.js');
+  await import('./assets/jsm/shaders/LuminosityHighPassShader.js');
+  await import('./assets/jsm/shaders/CopyShader.js');
+  await import('./assets/jsm/postprocessing/UnrealBloomPass.js');
+  await import('./components/config.js');
+  await import('./components/factory.js');
+  await import('./components/materials.js');
+  await import('./components/laser.js');
+  await import('./components/shooting.js');
+  await import('./components/flag.js');
+  await import('./components/physics.js');
+  await import('./components/explode.js');
+  await import('./components/threex.spaceships.js');
+  await import('./components/world.js');
+  await import('./components/players.js');
+  await import('./components/face.js');
+  await import('./components/neckControls.js');
+  await import('./components/sound.js');
+  // deepstream.js removed - NetworkService handles all network communication
+  await import('./components/game.js');
+}
 
 // Initialize the game when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // Load game modules first (THREE is now available)
+  await loadGameModules();
   console.log('Makers21 - Three.js Version Loading...');
 
+  // Check for server override in URL params (e.g., ?server=localhost:6020)
+  const urlParams = new URLSearchParams(window.location.search);
+  const serverParam = urlParams.get('server');
+
+  // Determine server address
+  let serverAddress;
+  if (serverParam) {
+    // Use ws:// for localhost, wss:// for remote
+    const protocol = serverParam.includes('localhost') || serverParam.includes('127.0.0.1') ? 'ws://' : 'wss://';
+    serverAddress = protocol + serverParam;
+    console.log('Using server override:', serverAddress);
+  } else {
+    serverAddress = 'wss://ws-makers.orbs.com:6021';
+    console.log('Using default server:', serverAddress);
+  }
+
   // Initialize Deepstream client
-  const deepStreamClient = new DeepstreamClient('wss://ws-makers.orbs.com:6021', {
+  const deepStreamClient = new DeepstreamClient(serverAddress, {
     subscriptionTimeout: 3000
   });
 
-  // Initialize network service with the Deepstream client
-  networkService.init(deepStreamClient);
+  // Initialize network service with the Deepstream client (wait for connection)
+  await networkService.init(deepStreamClient);
 
   // Create and initialize the game
   const game = new Game();
+  window.game = game; // Expose globally for components
 
   // Create world first
   game.createWorld();

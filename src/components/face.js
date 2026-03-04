@@ -17,7 +17,9 @@ class Face  {
         this.faceX = document.getElementById('face-x');
         this.faceY = document.getElementById('face-y');
         this.faceDisplay = document.getElementById('face-display');
-        this.faceDisplay.style.display = 'block';
+        if (this.faceDisplay) {
+            this.faceDisplay.style.display = 'block';
+        }
 
         this.ret = {};
 
@@ -29,7 +31,7 @@ class Face  {
         this.canvas = document.getElementById('face-canvas');
         //document.body.appendChild(this.canvas);
 
-        this.canvasCtx = this.canvas.getContext("2d");
+        this.canvasCtx = this.canvas ? this.canvas.getContext("2d") : null;
         // const previewCoords = document.getElementById("preview-coords");
         // const previewDir = document.getElementById("preview-dir");
 
@@ -41,6 +43,15 @@ class Face  {
     // Also supports legacy callback pattern for backward compatibility
     startCamera(cb) {
         return new Promise((resolve) => {
+            // Check if FaceMesh library is available
+            if (!window.FaceMesh || !window.Camera) {
+                console.warn('FaceMesh or Camera not available - face tracking disabled');
+                this.enabled = false;
+                resolve();
+                return;
+            }
+
+            this.enabled = true;
             this.onReady = () => {
                 if (cb) cb();
                 resolve();
@@ -71,6 +82,10 @@ class Face  {
         this.center.y = this.orientation.y;
     }
     getDelta(){
+        // Return zero delta if face tracking is disabled
+        if (!this.enabled) {
+            return { x: 0, y: 0 };
+        }
         // x gimble, constraint on range of left/right
         let x = this.orientation.x - this.center.x;
 
@@ -89,6 +104,8 @@ class Face  {
     }
     //////////////////////////////////////////////////////////
     draw(results) {
+        if (!this.canvasCtx || !this.canvas) return;
+
         this.canvasCtx.save();
         this.canvasCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         // grid face
@@ -106,8 +123,8 @@ class Face  {
         this.canvasCtx.restore();
 
         // update x, y
-        this.faceX.innerHTML = this.orientation.x.toFixed(2);
-        this.faceY.innerHTML = this.orientation.y.toFixed(2);
+        if (this.faceX) this.faceX.innerHTML = this.orientation.x.toFixed(2);
+        if (this.faceY) this.faceY.innerHTML = this.orientation.y.toFixed(2);
     }
     //////////////////////////////////////////////////////////
     onResults(results) {
@@ -123,8 +140,10 @@ class Face  {
         this.orientation.x = results.multiFaceLandmarks[0][1].x;
         this.orientation.y = results.multiFaceLandmarks[0][1].y;
 
-        if(this.faceDisplay.offsetParent !== null){
+        if(this.faceDisplay && this.faceDisplay.offsetParent !== null){
             this.draw(results);
         }
     }
 }
+
+window.Face = Face;

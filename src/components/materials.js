@@ -1,11 +1,11 @@
-materials = {
+window.materials = {
     redPhong: new THREE.MeshPhongMaterial({
-        color: 0xFF0000,    // red (can also use a CSS color string here)
+        color: 0xFF0000,
         flatShading: true,
         side: THREE.DoubleSide
     }),
     bluePhong: new THREE.MeshPhongMaterial({
-        color: 0x0000FF,    // red (can also use a CSS color string here)
+        color: 0x0000FF,
         flatShading: true,
         side: THREE.DoubleSide
     }),
@@ -17,4 +17,4 @@ materials = {
         transparent: true,
         size: config.explodePartSize
     })
-}
+};

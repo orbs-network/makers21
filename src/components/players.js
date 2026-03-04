@@ -1,4 +1,3 @@
-let v3 = new THREE.Vector3(0,0,0);
 const lookDistance = SIZE * 2; // WAS 1000 - NEED TO CHECK
 
 //////////////////////////////////////////////////////////
@@ -257,7 +256,7 @@ class Players{
 
     this.useShooting = false;
 
-    deepStream.subscribe("player", this.onEvent.bind(this));
+    window.networkService.subscribe("player", this.onEvent.bind(this));
 
   }
   //////////////////////////////////////////////////////////

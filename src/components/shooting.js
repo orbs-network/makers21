@@ -1,6 +1,7 @@
 //////////////////////////////////////////////
 const HUD_Z_NEUTRAL = -0.7;
 const HUD_Z_ACTIVE = -1;
+const hPi = 0.5 * Math.PI;
 //////////////////////////////////////////////
 class Shooting {
   //////////////////////////////////////////////
@@ -280,3 +281,5 @@ class Shooting {
     }
   }
 }
+
+window.Shooting = Shooting;

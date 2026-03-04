@@ -13,8 +13,9 @@ class NetworkService {
   /**
    * Initialize the network service with a DeepStream client
    * @param {Object} deepStreamClient - DeepStream client instance
+   * @returns {Promise} - Resolves when connected
    */
-  init(deepStreamClient) {
+  async init(deepStreamClient) {
     this.client = deepStreamClient;
     this.uuid = window.deepStreamUUID || deepStreamClient.getUid();
 
@@ -27,7 +28,9 @@ class NetworkService {
       this.connected = connectionState === 'OPEN';
     });
 
-    this.client.login();
+    // Wait for login to complete before returning
+    await this.client.login();
+    console.log('NetworkService: logged in successfully');
   }
 
   /**

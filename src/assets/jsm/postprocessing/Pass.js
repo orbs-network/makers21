@@ -70,3 +70,6 @@ class FullScreenQuad {
 	}
 
 }
+
+window.Pass = Pass;
+window.FullScreenQuad = FullScreenQuad;

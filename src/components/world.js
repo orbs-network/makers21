@@ -37,7 +37,7 @@ class World {
                 // now we add it to the scene
 
                 object3d.children[0].material = new THREE.MeshPhongMaterial({
-                    map: this.textureLoader.load('models/SpaceFighter01/F01_512.jpg'),
+                    map: this.textureLoader.load('assets/models/SpaceFighter01/F01_512.jpg'),
                     // color: 0xff3333,
                     specular: 0xffffff,
                     shininess: 100,
@@ -55,7 +55,7 @@ class World {
             // load a resource
             this.loader.load(
                 // resource URL
-                'model/' + name + '.obj',
+                'assets/models/' + name + '.obj',
                 // called when resource is loaded
                 (object) => {
                     console.log('100% loaded');
@@ -112,6 +112,7 @@ class World {
 
         // renderer
         this._renderer = new THREE.WebGLRenderer();
+        this._renderer.setPixelRatio(window.devicePixelRatio);
         this._renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this._renderer.domElement);
 
@@ -266,7 +267,7 @@ class World {
             starVertices
         );
 
-        let sprite = this.textureLoader.load('/static/img/star.png');
+        let sprite = this.textureLoader.load('assets/img/star.png');
 
         let starMaterial = new THREE.PointsMaterial({
             opacity: 0.5,
@@ -312,8 +313,8 @@ class World {
 
         // lensflares
 
-        const textureFlare0 = this.textureLoader.load('/static/texture/lensflare/lensflare0_alpha.png');
-        const textureFlare3 = this.textureLoader.load('/static/texture/lensflare/lensflare3.png');
+        const textureFlare0 = this.textureLoader.load('assets/texture/lensflare/lensflare0_alpha.png');
+        const textureFlare3 = this.textureLoader.load('assets/texture/lensflare/lensflare3.png');
 
         let light = new THREE.PointLight(0xFFFFFF, 1.5, 2000);
         light.color.setHSL(0, 0, 0.2);
@@ -329,7 +330,7 @@ class World {
         light.add(lensflare);
 
 
-        const planetTexture = this.textureLoader.load('/static/texture/2k_jupiter.jpg');
+        const planetTexture = this.textureLoader.load('assets/texture/2k_jupiter.jpg');
 
         this.planet = new THREE.Mesh(new THREE.SphereGeometry(10000, 32, 32), new THREE.MeshStandardMaterial({
             map: planetTexture,
@@ -355,7 +356,7 @@ class World {
         this.scene.add(this.planet);
         this.scene.add(this.moonCenter);
 
-        const moonTexture = this.textureLoader.load('/static/texture/2k_mercury.jpg');
+        const moonTexture = this.textureLoader.load('assets/texture/2k_mercury.jpg');
 
         this.moon = new THREE.Mesh(new THREE.SphereGeometry(300, 32, 32), new THREE.MeshStandardMaterial({
             map: moonTexture,
@@ -396,7 +397,7 @@ class World {
 
         }
 
-        const groundTexture = this.textureLoader.load('/static/texture/2k_mars.jpg');
+        const groundTexture = this.textureLoader.load('assets/texture/2k_mars.jpg');
         groundTexture.wrapS = THREE.ClampToEdgeWrapping;
         groundTexture.wrapT = THREE.ClampToEdgeWrapping;
 
@@ -951,3 +952,5 @@ class World {
     }
 
 }
+
+window.World = World;

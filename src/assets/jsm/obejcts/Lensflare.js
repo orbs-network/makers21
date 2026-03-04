@@ -367,4 +367,7 @@ Lensflare.Geometry = ( function () {
 
 } )();
 
+window.Lensflare = Lensflare;
+window.LensflareElement = LensflareElement;
+
 

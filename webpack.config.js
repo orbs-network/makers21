@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
@@ -84,6 +85,10 @@ module.exports = (env, argv) => {
             }
           }
         ]
+      }),
+      // Provide Buffer polyfill for DeepStream client
+      new webpack.ProvidePlugin({
+        Buffer: ['buffer', 'Buffer'],
       })
     ],
 
@@ -108,6 +113,9 @@ module.exports = (env, argv) => {
         '@assets': path.resolve(__dirname, 'src/assets'),
         '@components': path.resolve(__dirname, 'src/components'),
         '@utils': path.resolve(__dirname, 'src/utils')
+      },
+      fallback: {
+        'buffer': require.resolve('buffer/')
       }
     },
 

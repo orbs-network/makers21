@@ -81,3 +81,5 @@ class Sound {
     }
   }
 }
+
+window.Sound = Sound;
