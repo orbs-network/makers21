@@ -15,17 +15,10 @@ class Lensflare extends THREE.Mesh {
 
 		// textures
 
-		const tempMap = new THREE.DataTexture( new Uint8Array( 16 * 16 * 3 ), 16, 16, THREE.RGBFormat );
-		tempMap.minFilter = THREE.NearestFilter;
-		tempMap.magFilter = THREE.NearestFilter;
-		tempMap.wrapS = THREE.ClampToEdgeWrapping;
-		tempMap.wrapT = THREE.ClampToEdgeWrapping;
+		const tempMap = new THREE.FramebufferTexture( 16, 16 );
+		const occlusionMap = new THREE.FramebufferTexture( 16, 16 );
 
-		const occlusionMap = new THREE.DataTexture( new Uint8Array( 16 * 16 * 3 ), 16, 16, THREE.RGBFormat );
-		occlusionMap.minFilter = THREE.NearestFilter;
-		occlusionMap.magFilter = THREE.NearestFilter;
-		occlusionMap.wrapS = THREE.ClampToEdgeWrapping;
-		occlusionMap.wrapT = THREE.ClampToEdgeWrapping;
+		let currentType = THREE.UnsignedByteType;
 
 		// material
 
@@ -152,6 +145,20 @@ class Lensflare extends THREE.Mesh {
 		this.onBeforeRender = function ( renderer, scene, camera ) {
 
 			renderer.getCurrentViewport( viewport );
+
+			const renderTarget = renderer.getRenderTarget();
+			const type = ( renderTarget !== null ) ? renderTarget.texture.type : THREE.UnsignedByteType;
+
+			if ( currentType !== type ) {
+
+				tempMap.dispose();
+				occlusionMap.dispose();
+
+				tempMap.type = occlusionMap.type = type;
+
+				currentType = type;
+
+			}
 
 			const invAspect = viewport.w / viewport.z;
 			const halfViewportWidth = viewport.z / 2.0;

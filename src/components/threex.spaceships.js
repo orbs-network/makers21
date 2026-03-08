@@ -166,6 +166,7 @@ THREEx.SpaceShips.Shoot = function () {
 	const texture = new THREE.Texture(canvas);
 	texture.needsUpdate = true;
 
+
 	// do the material
 	const material = new THREE.MeshBasicMaterial({
 		color: 0xffaacc,

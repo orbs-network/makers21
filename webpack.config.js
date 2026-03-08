@@ -101,6 +101,7 @@ module.exports = (env, argv) => {
 
     devServer: {
       static: path.join(__dirname, 'dist'),
+      host: '0.0.0.0',
       port: 3000,
       hot: true,
       open: true,

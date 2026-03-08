@@ -26,6 +26,11 @@ window.THREE.EffectComposer = EffectComposer;
 window.THREE.RenderPass = RenderPass;
 window.THREE.AfterimagePass = AfterimagePass;
 
+// Import MediaPipe for face tracking
+import '@mediapipe/camera_utils';
+import '@mediapipe/drawing_utils';
+import '@mediapipe/face_mesh';
+
 // Import Deepstream for multiplayer networking
 import { DeepstreamClient } from '@deepstream/client';
 
