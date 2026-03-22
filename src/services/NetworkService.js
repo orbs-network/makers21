@@ -18,6 +18,7 @@ class NetworkService {
   async init(deepStreamClient) {
     this.client = deepStreamClient;
     this.uuid = window.deepStreamUUID || deepStreamClient.getUid();
+    this.connected = true;
 
     this.client.on('error', (error, event, topic) => {
       console.error('DeepStream error:', error, event, topic);
@@ -28,9 +29,7 @@ class NetworkService {
       this.connected = connectionState === 'OPEN';
     });
 
-    // Wait for login to complete before returning
-    await this.client.login();
-    console.log('NetworkService: logged in successfully');
+    console.log('NetworkService: initialized with connected client');
   }
 
   /**
