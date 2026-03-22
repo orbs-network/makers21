@@ -54,7 +54,7 @@ class Shooting {
   }
   //////////////////////////////////////////////
   broadcastLock(flag) {
-    deepStream.sendEvent('player', {
+    game.network.sendEvent('player', {
       type: "lockOn",
       on: flag,
       nick: game.localState.nick,

@@ -31,6 +31,7 @@ class UIService {
       gameOver: document.getElementById('game-over'),
       winnerNick: document.getElementById('winnerNick'),
       winnerIsRed: document.getElementById('winnerIsRed'),
+      playAgain: document.getElementById('play-again'),
       online: document.getElementById('online'),
       fps: document.getElementById('fps'),
       // Lobby elements
@@ -66,6 +67,9 @@ class UIService {
     }
     if (this._elements.reset && handlers.onReset) {
       this._elements.reset.addEventListener('click', handlers.onReset);
+    }
+    if (this._elements.playAgain && handlers.onReset) {
+      this._elements.playAgain.addEventListener('click', handlers.onReset);
     }
 
     // Keyboard handler
@@ -147,6 +151,7 @@ class UIService {
     if (this._elements.reqStart) {
       this._elements.reqStart.style.display = 'none';
     }
+    this.hideGameOver();
   }
 
   /**

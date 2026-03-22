@@ -124,15 +124,47 @@ class Face  {
 
         this.canvasCtx.save();
         this.canvasCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
+            this.canvasCtx.restore();
+            return;
+        }
+
+        // Compute bounding box of face landmarks (normalized 0-1 coords)
+        const landmarks = results.multiFaceLandmarks[0];
+        let minX = 1, minY = 1, maxX = 0, maxY = 0;
+        for (const lm of landmarks) {
+            if (lm.x < minX) minX = lm.x;
+            if (lm.x > maxX) maxX = lm.x;
+            if (lm.y < minY) minY = lm.y;
+            if (lm.y > maxY) maxY = lm.y;
+        }
+        const bw = maxX - minX;
+        const bh = maxY - minY;
+        if (bw === 0 || bh === 0) { this.canvasCtx.restore(); return; }
+
+        // Remap landmarks so face is centered and scaled to ~80% of canvas
+        const fillRatio = 0.65;
+        const scale = Math.min(fillRatio / bw, fillRatio / bh);
+        const cx = (minX + maxX) / 2;
+        const cy = (minY + maxY) / 2;
+
+        const remapped = results.multiFaceLandmarks.map(face =>
+            face.map(lm => ({
+                x: (lm.x - cx) * scale + 0.5 + (50 / this.canvas.width),
+                y: (lm.y - cy) * scale + 0.45,
+                z: lm.z,
+            }))
+        );
+
         // grid face
-        for (const landmarks of results.multiFaceLandmarks) {
-            window.drawConnectors(this.canvasCtx, landmarks, window.FACEMESH_TESSELATION, {
+        for (const lm of remapped) {
+            window.drawConnectors(this.canvasCtx, lm, window.FACEMESH_TESSELATION, {
                 color: "#00FFA0",
                 lineWidth: 0.2
             });
         }
         // this landmark is the tip of the nose
-        drawLandmarks(this.canvasCtx, [results.multiFaceLandmarks[0][1]], {
+        drawLandmarks(this.canvasCtx, [remapped[0][1]], {
             color: "#880000",
             radius: 0.2
         });
@@ -144,7 +176,7 @@ class Face  {
     }
     //////////////////////////////////////////////////////////
     onResults(results) {
-        if(!results.multiFaceLandmarks)
+        if(!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0)
             return;
 
         if(this.onReady){
