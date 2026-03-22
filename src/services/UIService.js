@@ -77,7 +77,7 @@ class UIService {
     if (this._elements.nick && handlers.onNickChange) {
       this._elements.nick.addEventListener('input', (e) => {
         const value = e.target.value;
-        this.showChooseTeam(value.length > 2);
+        this.showChooseTeam(value.length >= 2);
         handlers.onNickChange(value);
       });
     }
@@ -98,16 +98,16 @@ class UIService {
     if (this._elements.blue) {
       this._elements.blue.checked = !isRed;
     }
-    this.showChooseTeam(nick && nick.length > 2);
+    this.showChooseTeam(nick && nick.length >= 2);
   }
 
   /**
    * Show/hide choose team section
    * @param {boolean} show - Whether to show
    */
-  showChooseTeam(show) {
+  showChooseTeam(enabled) {
     if (this._elements.chooseTeam) {
-      this._elements.chooseTeam.style.display = show ? 'block' : 'none';
+      this._elements.chooseTeam.classList.toggle('disabled', !enabled);
     }
   }
 

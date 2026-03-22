@@ -26,11 +26,12 @@ class Shooting {
     const label = document.createElement('div');
     label.className = 'hud-label';
     label.textContent = game.localState.nick;
-    //label.style.color = isRed ? '#F33':'33F';
     label.style.color = '#FFF';
     const obj = new THREE.CSS2DObject(label);
     obj.position.set(0, 0, 0);
+    obj.visible = false;
     this.hud.add(obj);
+    this.hudLabelObj = obj;
     this.hudLabel = label;
 
     return hud;

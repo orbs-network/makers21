@@ -44,21 +44,40 @@ body {
 }
 #welcome {
     position: absolute;
-    /* top: 0; */
-    /* right: 0; */
-    border: 1px solid silver;
-    padding: 65px 20px;
+    border: 1px solid #555;
+    padding: 50px 30px;
     width: 800px;
     text-align: center;
-    color: silver;
+    color: #ddd;
     left: calc(50% - 400px);
     top: 4%;
-    background-color: #0004;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 10;
+    border-radius: 8px;
+}
+#choose-team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+}
+#choose-team > div:first-child {
+    margin-bottom: 4px;
 }
 .team-label {
-    width: 200px;
-    text-align: center;
-    margin: auto;
+    width: 160px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.team-label label {
+    width: auto;
+}
+#choose-team.disabled {
+    opacity: 0.3;
+    pointer-events: none;
 }
 .btn {
     padding: 0.5em 2em;
@@ -97,10 +116,12 @@ div{
     top: 2%;
     right: 25%;
     width: 50%;
-    background-color:#0004;
-    color:silver;
-    border: 1px solid silver;
+    background-color: rgba(0, 0, 0, 0.85);
+    color: #ddd;
+    border: 1px solid #555;
     text-align: center;
+    z-index: 10;
+    border-radius: 8px;
 }
 
 #game-over{
@@ -109,10 +130,12 @@ div{
     top: 130px;
     right: 25%;
     width: 50%;
-    border: 1px solid silver;
-    background-color: #0004;
+    border: 1px solid #555;
+    background-color: rgba(0, 0, 0, 0.85);
     text-align: center;
     font-size: xx-large;
+    z-index: 10;
+    border-radius: 8px;
 }
 
 
