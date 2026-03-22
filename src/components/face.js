@@ -19,6 +19,16 @@ class Face  {
         this.faceDisplay = document.getElementById('face-display');
         if (this.faceDisplay) {
             this.faceDisplay.style.display = 'block';
+            // Toggle button
+            const toggle = document.getElementById('face-toggle');
+            if (toggle) {
+                toggle.addEventListener('click', () => {
+                    const canvas = document.getElementById('face-canvas');
+                    const hidden = canvas.style.display === 'none';
+                    canvas.style.display = hidden ? '' : 'none';
+                    toggle.textContent = hidden ? 'Hide' : 'Show';
+                });
+            }
         }
 
         this.ret = {};
@@ -59,7 +69,7 @@ class Face  {
 
             this.faceMesh = new window.FaceMesh({
                 locateFile: (file) => {
-                    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/${file}`;
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`;
                 },
             });
 
@@ -73,7 +83,13 @@ class Face  {
                 width: 1280,
                 height: 720,
             });
-            camera.start();
+            camera.start().then(() => {
+                console.log('Face tracking: camera started successfully');
+            }).catch((err) => {
+                console.error('Face tracking: camera failed to start:', err);
+                this.enabled = false;
+                resolve();
+            });
         });
     }
     //////////////////////////////////////////////////////////
@@ -140,7 +156,7 @@ class Face  {
         this.orientation.x = results.multiFaceLandmarks[0][1].x;
         this.orientation.y = results.multiFaceLandmarks[0][1].y;
 
-        if(this.faceDisplay && this.faceDisplay.offsetParent !== null){
+        if(this.faceDisplay && this.faceDisplay.style.display !== 'none'){
             this.draw(results);
         }
     }

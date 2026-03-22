@@ -54,6 +54,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         if (this.state) {
             this.state.resetGame();
         }
+        this._persistentMsg = '';
         this.targetPos = new THREE.Vector3();
         this.direction = new THREE.Vector3();
         this.tsRender = Date.now();
@@ -124,8 +125,8 @@ class Game /*extends THREE.EventDispatcher*/ {
             this.tid321 = null;
         }
 
-        // handle Flags
-        this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
+        // reset flags to gates (don't try to attach to holders during reset)
+        this.world.resetFlags();
         this.world.reset();
 
         // init controls
@@ -284,6 +285,15 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.ui.setGameMsg(html);
     }
 
+    setPersistentMsg(html) {
+        this._persistentMsg = html || '';
+        this.ui.setGameMsg(html);
+    }
+
+    clearPersistentMsg() {
+        this._persistentMsg = '';
+    }
+
     //////////////////////////////////////////////////////////
     show321() {
         this.tid321 = setInterval(() => {
@@ -420,8 +430,10 @@ class Game /*extends THREE.EventDispatcher*/ {
                     // play success if it was flag got captured
                     if (holdingFlag && !this.holdingFlag) {
                         // SUCCESS - you are the holder of the flag
-                        this.setGameMsg('Return the flag to you home gate');
+                        this.setPersistentMsg('Return the flag to your home gate');
                         this.playAudio('success');
+                    } else if (!holdingFlag && this.holdingFlag) {
+                        this.clearPersistentMsg();
                     }
                     this.holdingFlag = holdingFlag;
 
@@ -712,7 +724,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         // when exploding
         if (!this.exploding) {
             this.world.turnWarningEffect(false);
-            this.setGameMsg('');
+            this.setGameMsg(this._persistentMsg || '');
         }
         this.stopAudio('alarm');
         if (this.tidWarning) {

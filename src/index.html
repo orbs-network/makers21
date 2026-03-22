@@ -35,6 +35,24 @@
     </div>
   </div>
 
+  <!-- Camera / face tracking prompt -->
+  <div id="camera-prompt" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: #222; padding: 30px 40px; border-radius: 10px; text-align: center; border: 2px solid #444; max-width: 480px;">
+      <h2 style="color: #fff; margin-bottom: 12px;">Face Tracking Controls</h2>
+      <p style="color: #bbb; font-size: 14px; line-height: 1.6; margin-bottom: 8px;">
+        Makers21 uses your <strong style="color: #6cf;">webcam</strong> to track head movements for in-game flight controls — tilt your head to steer your spaceship!
+      </p>
+      <p style="color: #888; font-size: 13px; line-height: 1.5; margin-bottom: 20px;">
+        Your browser will ask for camera permission. The video stays local and is never sent to any server.
+        <br>You can also skip this and use <strong style="color: #ccc;">mouse + keyboard</strong> instead.
+      </p>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <input type="button" id="camera-enable" class="btn" value="Enable Camera" style="padding: 10px 24px; font-size: 15px; cursor: pointer; background: #2a4a2a; border-color: #4a4;">
+        <input type="button" id="camera-skip" class="btn" value="Use Keyboard" style="padding: 10px 24px; font-size: 15px; cursor: pointer;">
+      </div>
+    </div>
+  </div>
+
   <!-- Server selection dialog (shown when user needs to pick/change server) -->
   <div id="server-dialog" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center;">
     <div style="background: #222; padding: 30px; border-radius: 10px; text-align: center; border: 2px solid #444;">
@@ -102,6 +120,9 @@
     <div id="req-start" style="display:none">Requesting start from server...</div>
   </div>
 
+  <!-- Flag holder indicator -->
+  <div id="flag-holder"></div>
+
   <!-- Game display -->
   <div id="game-display">
     <span id="msg"></span>
@@ -115,12 +136,15 @@
   </div>
 
   <!-- Face mesh preview -->
-  <canvas style="position: fixed; height: 144px; width: 256px; left: 0; top: 0; transform: scale(-1, 1);"
-    class="output_canvas" width="256px" height="144px"></canvas>
-  <span id="preview-coords"
-    style="position: fixed; left: 10px; top: 10px; font-size: 14px; font-family: Arial; color: #00FFA0"></span>
-  <span id="preview-dir"
-    style="position: fixed; left: 170px; top: 10px; font-size: 14px; font-family: Arial; color: #00FFA0"></span>
+  <div id="face-display" style="position: fixed; left: 0; top: 0; z-index: 20; display: none;">
+    <canvas id="face-canvas" style="height: 144px; width: 256px; transform: scale(-1, 1);"
+      width="256" height="144"></canvas>
+    <div style="position: absolute; bottom: 4px; left: 4px; display: flex; gap: 8px;">
+      <span id="face-x" style="font-size: 12px; font-family: monospace; color: #00FFA0"></span>
+      <span id="face-y" style="font-size: 12px; font-family: monospace; color: #00FFA0"></span>
+    </div>
+    <button id="face-toggle" style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.5); color: #aaa; border: 1px solid #555; border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer; z-index: 21;">Hide</button>
+  </div>
 
   <!-- Audio elements -->
   <audio id="ping" preload="auto">

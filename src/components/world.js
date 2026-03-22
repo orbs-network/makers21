@@ -722,6 +722,17 @@ class World {
     }
 
     //////////////////////////////////////////////////////////
+    resetFlags() {
+        for (const name of ['red', 'blue']) {
+            const flag = this.flags.detach(name);
+            this.flags.moveToGate(name);
+            if (flag) this.scene.add(flag);
+        }
+        const el = document.getElementById('flag-holder');
+        if (el) el.style.display = 'none';
+    }
+
+    //////////////////////////////////////////////////////////
     return2Start(cb, controls, targetGate) {
         // target ts
         let dt = new Date();

@@ -26,10 +26,15 @@ window.THREE.EffectComposer = EffectComposer;
 window.THREE.RenderPass = RenderPass;
 window.THREE.AfterimagePass = AfterimagePass;
 
-// Import MediaPipe for face tracking
-import '@mediapipe/camera_utils';
-import '@mediapipe/drawing_utils';
-import '@mediapipe/face_mesh';
+// Import MediaPipe for face tracking and expose globally
+import { Camera } from '@mediapipe/camera_utils';
+import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
+import { FaceMesh, FACEMESH_TESSELATION } from '@mediapipe/face_mesh';
+window.Camera = Camera;
+window.FaceMesh = FaceMesh;
+window.drawConnectors = drawConnectors;
+window.drawLandmarks = drawLandmarks;
+window.FACEMESH_TESSELATION = FACEMESH_TESSELATION;
 
 // Import Deepstream for multiplayer networking
 import { DeepstreamClient } from '@deepstream/client';
@@ -214,6 +219,34 @@ function connectWithTimeout(serverHost, timeoutMs = 5000) {
   });
 }
 
+/**
+ * Show camera prompt if user hasn't explicitly disabled neck controls.
+ * Sets localStorage 'disableNeck' based on choice.
+ */
+function promptCameraChoice() {
+  // Skip if user already made a choice previously
+  if (localStorage.getItem('disableNeck') !== null) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    const dialog = document.getElementById('camera-prompt');
+    dialog.style.display = 'flex';
+
+    document.getElementById('camera-enable').addEventListener('click', () => {
+      localStorage.setItem('disableNeck', 'false');
+      dialog.style.display = 'none';
+      resolve();
+    });
+
+    document.getElementById('camera-skip').addEventListener('click', () => {
+      localStorage.setItem('disableNeck', 'true');
+      dialog.style.display = 'none';
+      resolve();
+    });
+  });
+}
+
 // Initialize the game when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
   // Load game modules first (THREE is now available)
@@ -238,6 +271,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('server-connecting').style.display = 'none';
   document.getElementById('server-dialog').style.display = 'none';
   await networkService.init(deepStreamClient);
+
+  // Prompt for camera/face tracking if not already decided
+  await promptCameraChoice();
+  // Update gameState in case the prompt just changed the setting
+  gameState.settings.useNeck = localStorage.getItem('disableNeck') !== 'true';
 
   // Create and initialize the game
   const game = new Game();

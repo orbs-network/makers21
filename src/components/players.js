@@ -37,7 +37,7 @@ class Player {
       this.boundSphere.material.opacity = 0;
       this.obj.add(this.boundSphere);
       // lasser beam
-      const laserBeam = new THREE.LaserBeam();
+      const laserBeam = new THREEx.LaserBeam();
       this.obj.add(laserBeam.object3d);
       laserBeam.object3d.visible = false;
       laserBeam.object3d.rotateY(THREE.MathUtils.degToRad(90));
@@ -49,7 +49,7 @@ class Player {
     // use sprite because it appears the same from all angles
     const textureLoader = new THREE.TextureLoader();
     const engineMaterial = new THREE.SpriteMaterial({
-      map: textureLoader.load('images/nova_1.png'),
+      map: textureLoader.load('assets/images/nova_1.png'),
       depthWrite: false,
       color: isRed ? 0xffaaaa : 0x9999ff,
       blending: THREE.AdditiveBlending
