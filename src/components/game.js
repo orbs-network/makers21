@@ -312,6 +312,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     onGameStarted() {
         this.ui.showGameDisplay();
+        if (this.world.shooting) this.world.shooting.hud.visible = true;
 
         // either way update whos on ehich team
         this.world.setPlayerTeams(this.mngrState.red, this.mngrState.blue);
@@ -354,6 +355,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     onGameOver() {
         this.ui.showGameOver(this.mngrState.winnerNick, this.mngrState.winnerIsRed);
+        if (this.world.shooting) this.world.shooting.hud.visible = false;
         this.moving = false;
         this.startUpdateLoop(false);
         this.startBorderLoop(false);

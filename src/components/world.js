@@ -203,6 +203,7 @@ class World {
         if (localStorage.getItem('shooting') !== 'false') {
             this.shooting = new Shooting();
             this._camera.add(this.shooting.createHUD())
+            this.shooting.hud.visible = false;
             this.players.initShooting(true);
         }
         console.log('shooting is ' + (this.shooting ? 'enabled' : 'disabled'));
