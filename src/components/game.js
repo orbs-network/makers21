@@ -794,9 +794,10 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 
     checkLockOnTarget(data) {
+        if (this.exploding) return;
         if (data.targetNick == this.localState.nick) {
             if (data.on) {
-                this.startWarning(`WARNING! ${data.nick} is locking on you!`);
+                this.startWarning(`WARNING! ${data.nick} is locking on you!`, true);
             } else {
                 this.stopWarning();
                 //this.setGameMsg(`${data.nick} lost aim on you`);

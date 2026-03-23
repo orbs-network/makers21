@@ -877,9 +877,12 @@ class World {
 
         // scene 3d 2d rendering
         //this._renderer.render(this.scene, this._camera);
-        this.composer.render();
-
-        this.renderer2d.render(this.scene, this._camera);
+        try {
+            this.composer.render();
+            this.renderer2d.render(this.scene, this._camera);
+        } catch (e) {
+            // Suppress PositionalAudio non-finite value errors
+        }
 
         return false; //not exploding
     }

@@ -99,6 +99,10 @@ class Player {
   }
   //////////////////////////////////////////////////////////
   onPos(data) {
+    // reject bad position data
+    if (!data.pos || !isFinite(data.pos.x) || !isFinite(data.pos.y) || !isFinite(data.pos.z)) return;
+    if (!data.dir || !isFinite(data.dir.x) || !isFinite(data.dir.y) || !isFinite(data.dir.z)) return;
+
     // position if not moving
     this.go2Target = false;
     this.moving = data.moving;
@@ -175,7 +179,7 @@ class Player {
 
     // play already installed sound
     let sound = this.obj.getObjectByName('sound_explode.wav');
-    if (sound) sound.play().catch(() => {});
+    if (sound) try { sound.play(); } catch(e) {}
   }
   //////////////////////////////////////////////////////////
   onFire(data) {
@@ -186,7 +190,7 @@ class Player {
     }
     // play already installed sound
     let sound = this.obj.getObjectByName('sound_laser.wav');
-    if (sound) sound.play().catch(() => {});
+    if (sound) try { sound.play(); } catch(e) {}
 
     this.laserBeam.object3d.visible = true;
     // auto hide
@@ -202,7 +206,7 @@ class Player {
   onLockOn(data, target) {
     // play already installed sound
     let sound = this.obj.getObjectByName('laser_up.wav');
-    if (sound) sound.play().catch(() => {});
+    if (sound) try { sound.play(); } catch(e) {}
 
     // timer for lock off
     this.tidLock = setTimeout(() => {
@@ -215,7 +219,7 @@ class Player {
   onLockOff(data, target) {
     // play already installed sound
     let sound = this.obj.getObjectByName('laser_down.wav');
-    if (sound) sound.play().catch(() => {});
+    if (sound) try { sound.play(); } catch(e) {}
   }
   //////////////////////////////////////////////////////////
   onLock(data, target) {

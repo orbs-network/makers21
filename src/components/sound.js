@@ -69,7 +69,7 @@ class Sound {
       if (s.name.indexOf('explode') === -1 && s.name.indexOf('laser') === -1) {
         // randomize the start of playing
         setTimeout(() => {
-          s.play().catch(() => {});
+          try { s.play(); } catch(e) {}
         }, Math.random() * 3000);
       }
     }
