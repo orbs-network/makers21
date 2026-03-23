@@ -81,18 +81,36 @@ class Player {
   //////////////////////////////////////////////////////////
   update(delta) {
     if (this.moving && this.go2Target) {
-      // position
-      this.obj.position.x += this.xPerMS * delta;
-      this.obj.position.y += this.yPerMS * delta;
-      this.obj.position.z += this.zPerMS * delta;
+      // Track elapsed time since last update
+      this.interpElapsed += delta;
 
-      // Direction
-      this.dir.x += this.rxPerMS * delta;
-      this.dir.y += this.ryPerMS * delta;
-      this.dir.z += this.rzPerMS * delta;
-      this.obj.lookAt(this.dir.x * lookDistance, this.dir.y * lookDistance, this.dir.z * lookDistance);
+      // Stop interpolation after target time to prevent overshoot
+      if (this.interpElapsed >= this.interpDuration) {
+        // Snap to target position
+        this.obj.position.set(this.targetPos.x, this.targetPos.y, this.targetPos.z);
+        this.dir.copy(this.targetDir);
+        this.go2Target = false;
+      } else {
+        // Interpolate position
+        this.obj.position.x += this.xPerMS * delta;
+        this.obj.position.y += this.yPerMS * delta;
+        this.obj.position.z += this.zPerMS * delta;
+
+        // Interpolate direction using slerp (keeps unit length)
+        const t = Math.min(this.interpElapsed / this.interpDuration, 1);
+        this.dir.copy(this.startDir).lerp(this.targetDir, t);
+      }
+
+      // Normalize direction and apply lookAt
+      this.dir.normalize();
+      this.obj.lookAt(
+        this.obj.position.x + this.dir.x * lookDistance,
+        this.obj.position.y + this.dir.y * lookDistance,
+        this.obj.position.z + this.dir.z * lookDistance
+      );
     }
-  }//////////////////////////////////////////////////////////
+  }
+  //////////////////////////////////////////////////////////
   hadPos() {
     // return false if all zero
     return (this.obj.position.x || this.obj.position.y || this.obj.position.z);
@@ -115,30 +133,41 @@ class Player {
     if (!this.moving || !this.hadPos()) {
       this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
       this.obj.lookAt(data.dir.x * lookDistance, data.dir.y * lookDistance, data.dir.z * lookDistance);
+      // Initialize direction vector
+      if (!this.dir) this.dir = new THREE.Vector3();
+      this.dir.set(data.dir.x, data.dir.y, data.dir.z).normalize();
       return;
     }
 
-    // important??? or time?
-    //game.world.camera.updateMatrixWorld();
-    //this.obj.updateMatrixWorld();
-    const timeToTarget = config.updateInterval;
+    // Use actual time since last update (not assumed 100ms)
+    const now = Date.now();
+    const timeToTarget = this.lastPosTime ? Math.min(now - this.lastPosTime, 500) : config.updateInterval;
+    this.lastPosTime = now;
+
     this.obj.updateMatrix();
 
-    // Position
+    // Store target for snap-on-completion
+    if (!this.targetPos) this.targetPos = new THREE.Vector3();
+    if (!this.targetDir) this.targetDir = new THREE.Vector3();
+    if (!this.startDir) this.startDir = new THREE.Vector3();
+
+    this.targetPos.set(data.pos.x, data.pos.y, data.pos.z);
+    this.targetDir.set(data.dir.x, data.dir.y, data.dir.z).normalize();
+
+    // Position velocity
     this.go2Target = true;
+    this.interpElapsed = 0;
+    this.interpDuration = timeToTarget;
     this.xPerMS = (data.pos.x - this.obj.position.x) / timeToTarget;
     this.yPerMS = (data.pos.y - this.obj.position.y) / timeToTarget;
     this.zPerMS = (data.pos.z - this.obj.position.z) / timeToTarget;
 
-    // rotation
+    // Direction: store start for lerp
     if (!this.dir) {
-      // first time
       this.dir = new THREE.Vector3();
       this.obj.getWorldDirection(this.dir);
     }
-    this.rxPerMS = (data.dir.x - this.dir.x) / timeToTarget;
-    this.ryPerMS = (data.dir.y - this.dir.y) / timeToTarget;
-    this.rzPerMS = (data.dir.z - this.dir.z) / timeToTarget;
+    this.startDir.copy(this.dir).normalize();
   }
   //////////////////////////////////////////////////////////
   onExplode(data, explode) {

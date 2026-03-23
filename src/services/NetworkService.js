@@ -192,7 +192,7 @@ class NetworkService {
    * @param {Object} positionData - Position data to broadcast
    */
   broadcastPosition(positionData) {
-    this.sendEventThrottled('player', positionData);
+    this.sendEvent('player', positionData);
   }
 }
 
