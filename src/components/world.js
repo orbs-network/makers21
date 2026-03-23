@@ -517,6 +517,18 @@ class World {
         return null
     }
 
+    /**
+     * Check if player is within the torus hole (XY plane distance from gate center)
+     * Gates face along Z axis, so the hole opening is in the XY plane
+     */
+    isInGateHole(gate) {
+        const dx = this._camera.position.x - gate.position.x;
+        const dy = this._camera.position.y - gate.position.y;
+        const xyDistance = Math.sqrt(dx * dx + dy * dy);
+        // Inner hole radius = GATE_SIZE - tube radius = GATE_SIZE - GATE_SIZE/3 = GATE_SIZE * 2/3
+        return xyDistance < GATE_SIZE * 2 / 3;
+    }
+
     //////////////////////////////////////////////////////////
     checkCrossBorders() {
         return false;

@@ -694,13 +694,23 @@ class Game /*extends THREE.EventDispatcher*/ {
         if (!this.passingGate && gate) {
             console.log(`enter ${gate.name}`);
             this.passingGate = gate; // reset this flag during explosion
+            this.passedThroughHole = false; // track if player was in the actual hole
+            return true; // avoid collision check
+        }
+        // while inside detection sphere, check if in the hole
+        if (this.passingGate && gate) {
+            if (this.world.isInGateHole(gate)) {
+                this.passedThroughHole = true;
+            }
             return true; // avoid collision check
         }
         // exit of gate pass
         if (this.passingGate && !gate) {
-            console.log(`exit ${this.passingGate.name}`);
-            // pass confirmed- logic in this func call
-            this.passInGate(this.passingGate);
+            console.log(`exit ${this.passingGate.name}, throughHole=${this.passedThroughHole}`);
+            // only confirm pass if player actually flew through the hole
+            if (this.passedThroughHole) {
+                this.passInGate(this.passingGate);
+            }
             this.passingGate = null;
             return true; // avoid collision check
         }
