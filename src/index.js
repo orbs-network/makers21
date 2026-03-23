@@ -267,9 +267,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Hide overlays
-  document.getElementById('server-connecting').style.display = 'none';
+  // Keep overlay visible, update status text through loading phases
+  const loadingText = document.getElementById('connecting-text');
+  const loadingBar = document.getElementById('connect-progress');
   document.getElementById('server-dialog').style.display = 'none';
+
+  loadingText.textContent = 'Connected. Initializing network...';
+  loadingBar.style.transition = 'width 0.3s';
+  loadingBar.style.width = '30%';
   await networkService.init(deepStreamClient);
 
   // Prompt for camera/face tracking if not already decided
@@ -278,6 +283,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   gameState.settings.useNeck = localStorage.getItem('disableNeck') !== 'true';
 
   // Create and initialize the game
+  loadingText.textContent = 'Loading game assets...';
+  loadingBar.style.width = '50%';
   const game = new Game();
   window.game = game; // Expose globally for components
 
@@ -287,6 +294,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load game assets and initialize
   game.loadAsync(() => {
     console.log('Game assets loaded, initializing...');
+    loadingText.textContent = 'Creating scene...';
+    loadingBar.style.width = '80%';
 
     // Initialize UI
     game.uxInit();
@@ -296,8 +305,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     game.initControls(false);
     game.world.setTeamPos(null);
 
+    loadingText.textContent = 'Connecting to game...';
+    loadingBar.style.width = '95%';
+
     // Connect to game server
     game.connect();
+
+    // Hide loading overlay once everything is ready
+    loadingBar.style.width = '100%';
+    setTimeout(() => {
+      document.getElementById('server-connecting').style.display = 'none';
+    }, 300);
 
     // Start the render loop
     function animate() {
