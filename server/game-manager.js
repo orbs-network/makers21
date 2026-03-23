@@ -81,8 +81,10 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       this.dummies = [];
       if(this.tidMoveDum){
         clearInterval(this.tidMoveDum);
-        this.tidMoveDum =- 0;
+        this.tidMoveDum = 0;
       }
+      // reset activity tracking
+      this.lastActivity = {};
     }
     //////////////////////////////////////////////////////////
     reset(){
@@ -93,19 +95,31 @@ class GameManager /*extends THREE.EventDispatcher*/ {
     }
     //////////////////////////////////////////////////////////
     init(){
-      //$('#reset').click(this.reset.bind(this));
-      //setFields
-
-      // this.client.event.subscribe('player', (data)=>{
-      //   console.log('player ', data);
-      // })
-
-      // this.client.event.subscribe('mngr-ui', (data)=>{
-      //   this.tellState();
-      // });
-
-      // rpcServer.
       this.client.rpc.provide('client', this.onClient.bind(this));
+
+      // Track player activity for disconnect detection
+      this.lastActivity = {}; // nick → timestamp
+      this.client.event.subscribe('player', (data) => {
+        if (data.nick) {
+          this.lastActivity[data.nick] = Date.now();
+        }
+      });
+
+      // Check for disconnected flag holders every 5 seconds
+      this.tidDisconnectCheck = setInterval(() => {
+        if (!this.state.started) return;
+        const now = Date.now();
+        const timeout = 10000; // 10 seconds
+
+        for (const flagHolder of ['redHolder', 'blueHolder']) {
+          const nick = this.state[flagHolder];
+          if (nick && this.lastActivity[nick] && (now - this.lastActivity[nick] > timeout)) {
+            console.log(`Auto-dropping flag: ${nick} inactive for ${timeout}ms`);
+            this.state[flagHolder] = null;
+            this.tellState();
+          }
+        }
+      }, 5000);
     }
     //////////////////////////////////////////////////////////
     onClient(data, res){
