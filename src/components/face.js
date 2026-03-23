@@ -1,10 +1,10 @@
 // based on:
 // https://google.github.io/mediapipe/solutions/face_mesh.html#resources
 // https://github.com/tensorflow/tfjs-models/tree/master/face-landmarks-detection
-class Face  {
+class Face {
 
     //////////////////////////////////////////////////////////
-    constructor(){
+    constructor() {
         //this.drawVideo = false;
         // Our input frames will come from here.
         //const videoElement = document.getElementsByClassName("input_video")[0];
@@ -45,8 +45,8 @@ class Face  {
         // const previewCoords = document.getElementById("preview-coords");
         // const previewDir = document.getElementById("preview-dir");
 
-        this.orientation = {x:0,y:0};
-        this.center = {x:0,y:0};
+        this.orientation = { x: 0, y: 0 };
+        this.center = { x: 0, y: 0 };
     }
     //////////////////////////////////////////////////////////
     // Returns a Promise that resolves when face detection is ready
@@ -93,11 +93,11 @@ class Face  {
         });
     }
     //////////////////////////////////////////////////////////
-    captureCenterXY(){
+    captureCenterXY() {
         this.center.x = this.orientation.x;
         this.center.y = this.orientation.y;
     }
-    getDelta(){
+    getDelta() {
         // Return zero delta if face tracking is disabled
         if (!this.enabled) {
             return { x: 0, y: 0 };
@@ -106,9 +106,9 @@ class Face  {
         let x = this.orientation.x - this.center.x;
 
         // limit left right look
-        if(config.maxFaceX){
+        if (config.maxFaceX) {
             const ax = Math.abs(x);
-            if(ax >= config.maxFaceX){
+            if (ax >= config.maxFaceX) {
                 const sign = ax / x;
                 x = config.maxFaceX * sign;
             }
@@ -164,10 +164,10 @@ class Face  {
             });
         }
         // this landmark is the tip of the nose
-        drawLandmarks(this.canvasCtx, [remapped[0][1]], {
-            color: "#880000",
-            radius: 0.2
-        });
+        // drawLandmarks(this.canvasCtx, [remapped[0][1]], {
+        //     color: "#FF00FF",
+        //     radius: 0.2
+        // });
         this.canvasCtx.restore();
 
         // update x, y
@@ -176,10 +176,10 @@ class Face  {
     }
     //////////////////////////////////////////////////////////
     onResults(results) {
-        if(!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0)
+        if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0)
             return;
 
-        if(this.onReady){
+        if (this.onReady) {
             this.onReady();
             this.onReady = null;
         }
@@ -188,7 +188,7 @@ class Face  {
         this.orientation.x = results.multiFaceLandmarks[0][1].x;
         this.orientation.y = results.multiFaceLandmarks[0][1].y;
 
-        if(this.faceDisplay && this.faceDisplay.style.display !== 'none'){
+        if (this.faceDisplay && this.faceDisplay.style.display !== 'none') {
             this.draw(results);
         }
     }
