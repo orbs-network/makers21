@@ -837,8 +837,8 @@ class Game /*extends THREE.EventDispatcher*/ {
             //this.world.shooting.firing = false;
         });
 
-        // pass the flag to friend
-        if (this.world.shooting.friend && this.holdingFlag) {
+        // pass the flag to friend (not if they're exploding)
+        if (this.world.shooting.friend && this.holdingFlag && !this.world.shooting.targetPlayer.exploding) {
             this.doPassFlag(this.world.shooting.targetPlayer);
             return;
         }

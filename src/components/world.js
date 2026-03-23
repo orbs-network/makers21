@@ -688,7 +688,9 @@ class World {
             console.log('attachFlagToHolder', flagName, holderNick);
             const holder = this.players.getPlayer(holderNick);
             if (!holder || !holder.obj) {
-                console.error('failed to get player', holderNick);
+                console.warn('Flag holder not found yet, keeping at gate:', holderNick);
+                this.flags.moveToGate(flagName);
+                this.scene.add(flag);
                 return;
             }
             this.flags.attachTo(flagName, holder);
