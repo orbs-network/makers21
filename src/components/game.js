@@ -212,11 +212,12 @@ class Game /*extends THREE.EventDispatcher*/ {
         // cant start while exploding
         if (!this.moving && this.exploding) {
             this.playAudio('wrong');
-            console.log('cant start while exploding');
+            console.log('*** startStop BLOCKED: exploding=true');
             return;
         }
         this.stopWarning();
         this.moving = !this.moving;
+        console.log(`*** startStop: moving=${this.moving}`);
         this.controls.autoForward = !this.disableConstantSpeed && this.moving;
         this.controls.enabled = this.moving;
         //this.controls
@@ -273,6 +274,7 @@ class Game /*extends THREE.EventDispatcher*/ {
             this.controls.lookSpeed = config.lookSpeed;
         }
         this.controls.enabled = init;
+        console.log(`*** initControls: enabled=${init}`);
     }
 
     //////////////////////////////////////////////////////////
@@ -373,6 +375,7 @@ class Game /*extends THREE.EventDispatcher*/ {
             this.world.shooting.hudLabelObj.visible = false;
         }
         this.moving = false;
+        console.log('*** onGameOver: moving=false');
         this.startUpdateLoop(false);
         this.startBorderLoop(false);
         this.stopWarning();
@@ -746,6 +749,7 @@ class Game /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     doExplode(msg) {
         this.exploding = true;
+        console.log(`*** doExplode: exploding=true, msg=${msg || 'BOOM!!!'}`);
         this.passingGate = null;
 
         this.stopWarning();
@@ -785,6 +789,7 @@ class Game /*extends THREE.EventDispatcher*/ {
             this.world.turnWarningEffect(false);
             this.controls.lookAt(gate.position);
             this.exploding = false;
+            console.log('*** return2Start complete: exploding=false');
             // broadcast final pos
             let cam = this.world.camera;
             cam.getWorldDirection(direction);
@@ -912,6 +917,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
         const collision = this.world.render(delta);
         if (collision) {
+            console.log('*** collision detected in render loop');
             this.doExplode();
         }
 

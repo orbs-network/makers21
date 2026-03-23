@@ -80,35 +80,38 @@ class Player {
   }
   //////////////////////////////////////////////////////////
   update(delta) {
-    if (this.moving && this.go2Target) {
-      // Track elapsed time since last update
-      this.interpElapsed += delta;
+    if (!this.moving) return;
 
-      // Stop interpolation after target time to prevent overshoot
-      if (this.interpElapsed >= this.interpDuration) {
-        // Snap to target position
-        this.obj.position.set(this.targetPos.x, this.targetPos.y, this.targetPos.z);
-        this.dir.copy(this.targetDir);
-        this.go2Target = false;
-      } else {
-        // Interpolate position
-        this.obj.position.x += this.xPerMS * delta;
-        this.obj.position.y += this.yPerMS * delta;
-        this.obj.position.z += this.zPerMS * delta;
+    // Always move forward along current direction (dead reckoning)
+    const speed = this.currentSpeed || config.distancePerMS;
+    this.obj.position.x += this.dir.x * speed * delta;
+    this.obj.position.y += this.dir.y * speed * delta;
+    this.obj.position.z += this.dir.z * speed * delta;
 
-        // Interpolate direction using slerp (keeps unit length)
-        const t = Math.min(this.interpElapsed / this.interpDuration, 1);
-        this.dir.copy(this.startDir).lerp(this.targetDir, t);
-      }
+    // Smoothly correct toward target position if we have one
+    if (this.targetPos) {
+      const dx = this.targetPos.x - this.obj.position.x;
+      const dy = this.targetPos.y - this.obj.position.y;
+      const dz = this.targetPos.z - this.obj.position.z;
 
-      // Normalize direction and apply lookAt
-      this.dir.normalize();
-      this.obj.lookAt(
-        this.obj.position.x + this.dir.x * lookDistance,
-        this.obj.position.y + this.dir.y * lookDistance,
-        this.obj.position.z + this.dir.z * lookDistance
-      );
+      // Blend toward target — stronger correction when further off
+      const correctionRate = 0.05; // 5% per frame
+      this.obj.position.x += dx * correctionRate;
+      this.obj.position.y += dy * correctionRate;
+      this.obj.position.z += dz * correctionRate;
     }
+
+    // Smoothly rotate direction toward target direction
+    if (this.targetDir) {
+      this.dir.lerp(this.targetDir, 0.08).normalize();
+    }
+
+    // Apply direction
+    this.obj.lookAt(
+      this.obj.position.x + this.dir.x * lookDistance,
+      this.obj.position.y + this.dir.y * lookDistance,
+      this.obj.position.z + this.dir.z * lookDistance
+    );
   }
   //////////////////////////////////////////////////////////
   hadPos() {
@@ -121,53 +124,61 @@ class Player {
     if (!data.pos || !isFinite(data.pos.x) || !isFinite(data.pos.y) || !isFinite(data.pos.z)) return;
     if (!data.dir || !isFinite(data.dir.x) || !isFinite(data.dir.y) || !isFinite(data.dir.z)) return;
 
-    // position if not moving
-    this.go2Target = false;
+    const wasMoving = this.moving;
     this.moving = data.moving;
 
     // necesseraly
     this.exploding = false;
     this.show();
 
-    // pos dir correction
-    if (!this.moving || !this.hadPos()) {
-      this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
-      this.obj.lookAt(data.dir.x * lookDistance, data.dir.y * lookDistance, data.dir.z * lookDistance);
-      // Initialize direction vector
-      if (!this.dir) this.dir = new THREE.Vector3();
-      this.dir.set(data.dir.x, data.dir.y, data.dir.z).normalize();
-      return;
-    }
+    // Initialize direction on first update
+    if (!this.dir) this.dir = new THREE.Vector3();
 
-    // Use actual time since last update (not assumed 100ms)
-    const now = Date.now();
-    const timeToTarget = this.lastPosTime ? Math.min(now - this.lastPosTime, 500) : config.updateInterval;
-    this.lastPosTime = now;
-
-    this.obj.updateMatrix();
-
-    // Store target for snap-on-completion
+    // Always update position and direction from server data
     if (!this.targetPos) this.targetPos = new THREE.Vector3();
     if (!this.targetDir) this.targetDir = new THREE.Vector3();
-    if (!this.startDir) this.startDir = new THREE.Vector3();
 
     this.targetPos.set(data.pos.x, data.pos.y, data.pos.z);
     this.targetDir.set(data.dir.x, data.dir.y, data.dir.z).normalize();
 
-    // Position velocity
-    this.go2Target = true;
-    this.interpElapsed = 0;
-    this.interpDuration = timeToTarget;
-    this.xPerMS = (data.pos.x - this.obj.position.x) / timeToTarget;
-    this.yPerMS = (data.pos.y - this.obj.position.y) / timeToTarget;
-    this.zPerMS = (data.pos.z - this.obj.position.z) / timeToTarget;
-
-    // Direction: store start for lerp
-    if (!this.dir) {
-      this.dir = new THREE.Vector3();
-      this.obj.getWorldDirection(this.dir);
+    // Not moving or first position — snap immediately
+    if (!this.moving || !this.hadPos()) {
+      this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
+      this.dir.copy(this.targetDir);
+      this.obj.lookAt(
+        this.obj.position.x + this.dir.x * lookDistance,
+        this.obj.position.y + this.dir.y * lookDistance,
+        this.obj.position.z + this.dir.z * lookDistance
+      );
+      // Reset speed tracking so we don't get a huge jump on resume
+      this.currentSpeed = 0;
+      this.lastPosTime = null;
+      return;
     }
-    this.startDir.copy(this.dir).normalize();
+
+    // Just started moving — snap to position first, then dead reckon from here
+    if (!wasMoving && this.moving) {
+      this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
+      this.dir.copy(this.targetDir);
+      this.currentSpeed = config.distancePerMS;
+      this.lastPosTime = Date.now();
+      return;
+    }
+
+    // Calculate speed from distance between moving updates
+    const now = Date.now();
+    if (this.lastPosTime) {
+      const dt = now - this.lastPosTime;
+      if (dt > 0 && dt < 500) {
+        const dist = this.targetPos.distanceTo(this.obj.position);
+        // Clamp speed to reasonable range (0.5x to 2x normal speed)
+        const measuredSpeed = dist / dt;
+        const minSpeed = config.distancePerMS * 0.5;
+        const maxSpeed = config.distancePerMS * 2;
+        this.currentSpeed = Math.max(minSpeed, Math.min(maxSpeed, measuredSpeed));
+      }
+    }
+    this.lastPosTime = now;
   }
   //////////////////////////////////////////////////////////
   onExplode(data, explode) {
