@@ -37,7 +37,7 @@ class GameState {
     // Settings (from localStorage)
     this.settings = {
       useNeck: localStorage.getItem('disableNeck') !== 'true',
-      stillTargetEnabled: localStorage.getItem('stillTargetEnabled') === 'true',
+      stillTargetEnabled: localStorage.getItem('stillTargetEnabled') !== 'false',
       disableConstantSpeed: localStorage.getItem('disableConstantSpeed') === 'true',
       disableSound: localStorage.getItem('disableSound') === 'true',
     };

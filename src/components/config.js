@@ -18,8 +18,8 @@ const toRad = (Math.PI / 180);
 // Main game configuration object
 const config = {
   size: SIZE,
-  distancePerMS: SIZE / 9000, // half court in 15 sec
-  gateTurnPerSec: 0.15,
+  distancePerMS: SIZE / 10588, // half court in ~17.5 sec (85% of original speed)
+  gateTurnPerSec: 0.1275, // 85% of 0.15
   vertLimit: 0.90,
   maxFaceX: 0, // zero should turn it off 0.2, gimble in face.js 0 is zero max face turn is 0.2
   playSphereFactor: 1.6, // control shooting sphere size

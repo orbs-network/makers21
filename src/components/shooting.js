@@ -7,19 +7,34 @@ class Shooting {
   //////////////////////////////////////////////
   constructor() {
     //this.raycaster = new THREE.Raycaster();
-    this.isRed = "uninitialized!!!";
+    this.isRed = null;
     this.friend = false;
   }
   //////////////////////////////////////////////
   createHUD() {
     const hud = new THREE.Group();
+    const ringMat = () => new THREE.LineBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.1 });
     for (let i = 0; i < 4; i++) {
-      hud.add(new THREE.Mesh(new THREE.RingGeometry(0.025, 0.03, 128, 1, hPi * i + 0.2, hPi - 0.4), new THREE.LineBasicMaterial({
-        color: `#ffffff`,
-        transparent: true,
-        opacity: 0.1
-      })))
+      hud.add(new THREE.Mesh(new THREE.RingGeometry(0.025, 0.03, 128, 1, hPi * i + 0.2, hPi - 0.4), ringMat()));
     }
+
+    // Crosshair lines (hidden until locked)
+    const crossMat = new THREE.LineBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0 });
+    const crossSize = 0.012;
+    const gap = 0.004;
+    const makeLineGeo = (x1, y1, x2, y2) => {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute([x1, y1, 0, x2, y2, 0], 3));
+      return g;
+    };
+    this.crosshairs = [
+      new THREE.Line(makeLineGeo(-crossSize, 0, -gap, 0), crossMat.clone()),
+      new THREE.Line(makeLineGeo(gap, 0, crossSize, 0), crossMat.clone()),
+      new THREE.Line(makeLineGeo(0, -crossSize, 0, -gap), crossMat.clone()),
+      new THREE.Line(makeLineGeo(0, gap, 0, crossSize), crossMat.clone()),
+    ];
+    this.crosshairs.forEach(c => hud.add(c));
+
     hud.position.set(0, 0, HUD_Z_NEUTRAL);
     this.hud = hud;
 
@@ -53,6 +68,22 @@ class Shooting {
     this.hudLabel.style.opacity = opacity;
   }
   //////////////////////////////////////////////
+  setCrosshairVisible(visible) {
+    this.crosshairs.forEach(c => { c.material.opacity = visible ? 1 : 0; });
+  }
+  //////////////////////////////////////////////
+  setRingThickness(thick) {
+    // Swap ring geometry between normal and thick
+    const inner = thick ? 0.022 : 0.025;
+    const outer = thick ? 0.035 : 0.03;
+    this.hud.children.forEach((child, i) => {
+      if (i < 4 && child.geometry) {
+        child.geometry.dispose();
+        child.geometry = new THREE.RingGeometry(inner, outer, 128, 1, hPi * i + 0.2, hPi - 0.4);
+      }
+    });
+  }
+  //////////////////////////////////////////////
   broadcastLock(flag) {
     game.network.sendEvent('player', {
       type: "lockOn",
@@ -75,15 +106,13 @@ class Shooting {
     return true;
   }
   //////////////////////////////////////////////
-  // onNewTarget(target, players) {
-  //   if(this.tidNewTarget) clearTimeout(this.tidNewTarget);
-  //   this.tidNewTarget = setTimeout(()=>{
-  //     this.onNewTargetDly(target, players);
-  //   }, 50);
-  // }
-  //////////////////////////////////////////////
   onNewTarget(target, players) {
     this.tidNewTarget = 0; // reset async proc
+
+    // Validate target is still valid (may have gone stale during debounce)
+    if (target && (!target.visible && target.material?.opacity === 0)) {
+      target = null;
+    }
 
     // REMINDER 'target' is the sphere THREEJS mesh object
     // hide bounding sphere for others
@@ -98,13 +127,12 @@ class Shooting {
       // hide sphere
       this.targetPlayer.showBoundingSphere(false);
 
-      // release lock
-      if (this.locked) {
-        // sound
+      // release lock — skip sound if we just fired (avoid double beep)
+      if (this.locked && !game.firing) {
         game.stopAudio('laser_up');
         game.playAudio('laser_down');
-        this.lock = false
       }
+      this.locked = false;
     }
 
     // release locked
@@ -119,21 +147,6 @@ class Shooting {
       // set friend
       this.friend = this.isRed === this.targetPlayer.isRed;
     }
-    // no target
-    // else{
-    //   this.friend = false;
-    //   // reset enemy lock
-    //   if(this.tsEnemyLock){
-    //     this.tsEnemyLock = 0;
-    //     // stop laser up either way
-    //     game.stopAudio('laser_up');
-    //     // play lasert down
-    //     if(wasLocked){
-
-    //     }
-    //   }
-    //   return;
-    // }
   }
   //////////////////////////////////////////////
   updateLock() {
@@ -149,10 +162,12 @@ class Shooting {
         this.hud.rotateZ(diff / (config.targetLockMs * 5));
 
       } else {
-        this.hudLabel.textContent = "Target locked!"
+        this.hudLabel.textContent = "FIRE [F]"
         game.stopAudio('laser_up');
         game.playAudio('locked');
         this.hud.rotation.z = 0;
+        this.setRingThickness(true);
+        this.setCrosshairVisible(true);
       }
     }
   }
@@ -169,9 +184,17 @@ class Shooting {
   }
   //////////////////////////////////////////////
   update(raycaster, players) {
-    if (!game.moving) return;
+    if (this.isRed === null) return;
     if (game.exploding) return;
     if (game.firing) return;
+
+    // Allow lock timer to keep counting even when stopped
+    if (!game.moving) {
+      if (this.tsEnemyLock) {
+        this.updateLock();
+      }
+      return;
+    }
 
     // use those later
     //raycaster.near = config.raycastNear;
@@ -264,6 +287,9 @@ class Shooting {
   //////////////////////////////////////////////
   changeHudState() {
     this.setHudOpacity(0.3);
+    // reset locked state visuals
+    this.setRingThickness(false);
+    this.setCrosshairVisible(false);
     // neutral
     if (!this.target) {
       // COLOR

@@ -175,7 +175,7 @@ class Player {
 
     // play already installed sound
     let sound = this.obj.getObjectByName('sound_explode.wav');
-    if (sound) sound.play();
+    if (sound) sound.play().catch(() => {});
   }
   //////////////////////////////////////////////////////////
   onFire(data) {
@@ -186,7 +186,7 @@ class Player {
     }
     // play already installed sound
     let sound = this.obj.getObjectByName('sound_laser.wav');
-    if (sound) sound.play();
+    if (sound) sound.play().catch(() => {});
 
     this.laserBeam.object3d.visible = true;
     // auto hide
@@ -202,7 +202,7 @@ class Player {
   onLockOn(data, target) {
     // play already installed sound
     let sound = this.obj.getObjectByName('laser_up.wav');
-    if (sound) sound.play();
+    if (sound) sound.play().catch(() => {});
 
     // timer for lock off
     this.tidLock = setTimeout(() => {
@@ -215,7 +215,7 @@ class Player {
   onLockOff(data, target) {
     // play already installed sound
     let sound = this.obj.getObjectByName('laser_down.wav');
-    if (sound) sound.play();
+    if (sound) sound.play().catch(() => {});
   }
   //////////////////////////////////////////////////////////
   onLock(data, target) {
@@ -388,7 +388,9 @@ class Players {
   boundSpheres() {
     let all = [];
     for (let nick in this.dict) {
-      all.push(this.dict[nick].boundSphere);
+      if (this.dict[nick].boundSphere) {
+        all.push(this.dict[nick].boundSphere);
+      }
     }
     return all;
   }

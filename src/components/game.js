@@ -524,7 +524,7 @@ class Game /*extends THREE.EventDispatcher*/ {
             const begin = sound.getAttribute('begin');
             sound.currentTime = begin ? parseFloat(begin) : 0;
 
-            let prms = sound.play();
+            let prms = sound.play().catch(() => {});
             if (cb) {
                 prms.then(cb);
             }
@@ -849,10 +849,8 @@ class Game /*extends THREE.EventDispatcher*/ {
             targetNick: this.world.shooting.targetPlayer.nick
         });
 
-        // hide player TODO: ???
-
-        // reset shooting
-        //this.world.shooting.onFire();
+        // reset shooting state after fire
+        this.world.shooting.resetHUD();
     }
 
     //////////////////////////////////////////////////////////
