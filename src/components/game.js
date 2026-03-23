@@ -545,6 +545,8 @@ class Game /*extends THREE.EventDispatcher*/ {
             // Success is received via onMngrState
         } catch (error) {
             this.onError(error);
+        } finally {
+            this.tellingGatePass = false;
         }
     }
 
