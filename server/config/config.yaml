@@ -2,4 +2,4 @@
 serverName: makerz
 showLogo: true
 dependencyInitializationTimeout: 2000
-logLevel: 1
+logLevel: 3
