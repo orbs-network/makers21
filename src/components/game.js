@@ -379,6 +379,9 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.startUpdateLoop(false);
         this.startBorderLoop(false);
         this.stopWarning();
+        if (this.world.sound) {
+            this.world.sound.pause();
+        }
     }
 
     //////////////////////////////////////////////////////////
