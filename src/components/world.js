@@ -825,6 +825,7 @@ class World {
 
     //////////////////////////////////////////////////////////
     onresize(e) {
+        if (!this.camera) return;
         // 3D
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();

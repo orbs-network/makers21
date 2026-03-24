@@ -151,12 +151,11 @@ div{
 }
 
 #face-display {
-    position: absolute;
-    top: 0px;
-    right: -100px;
-    width: 344;
-    height: 248;
-    /*border: 1px solid silver;*/
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 256px;
+    height: 144px;
     color: silver;
 }
 #face-display .cords {

@@ -137,13 +137,9 @@
   </div>
 
   <!-- Face mesh preview -->
-  <div id="face-display" style="position: fixed; left: 0; top: 0; z-index: 20; display: none;">
+  <div id="face-display" style="position: fixed; left: 0; bottom: 0; z-index: 20; display: none; width: 256px; height: 144px;">
     <canvas id="face-canvas" style="height: 144px; width: 256px; transform: scale(-1, 1);"
       width="256" height="144"></canvas>
-    <div style="position: absolute; bottom: 4px; left: 4px; display: flex; gap: 8px;">
-      <span id="face-x" style="font-size: 12px; font-family: monospace; color: #00FFA0"></span>
-      <span id="face-y" style="font-size: 12px; font-family: monospace; color: #00FFA0"></span>
-    </div>
     <button id="face-toggle" style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.5); color: #aaa; border: 1px solid #555; border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer; z-index: 21;">Hide</button>
   </div>
 
