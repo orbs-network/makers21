@@ -82,29 +82,37 @@ class Player {
   update(delta) {
     if (!this.moving) return;
 
-    // Always move forward along current direction (dead reckoning)
-    const speed = this.currentSpeed || config.distancePerMS;
+    const speed = config.distancePerMS;
+
+    // Determine steering direction
+    if (this.targetPos) {
+      // Vector from current position to target
+      const toTarget = this._toTarget || (this._toTarget = new THREE.Vector3());
+      toTarget.set(
+        this.targetPos.x - this.obj.position.x,
+        this.targetPos.y - this.obj.position.y,
+        this.targetPos.z - this.obj.position.z
+      );
+      const dist = toTarget.length();
+
+      if (dist > 0.1) {
+        // Steer toward target position — blend rate based on distance
+        // Far away: steer harder. Close: rely more on targetDir for look
+        const steerBlend = Math.min(dist * 0.003, 0.12) * (delta / 16);
+        toTarget.normalize();
+        this.dir.lerp(toTarget, steerBlend).normalize();
+      } else {
+        // Close enough to target — steer toward look direction
+        this.dir.lerp(this.targetDir, 0.06 * (delta / 16)).normalize();
+      }
+    } else if (this.targetDir) {
+      this.dir.lerp(this.targetDir, 0.06 * (delta / 16)).normalize();
+    }
+
+    // Always move forward at constant speed
     this.obj.position.x += this.dir.x * speed * delta;
     this.obj.position.y += this.dir.y * speed * delta;
     this.obj.position.z += this.dir.z * speed * delta;
-
-    // Smoothly correct toward target position if we have one
-    if (this.targetPos) {
-      const dx = this.targetPos.x - this.obj.position.x;
-      const dy = this.targetPos.y - this.obj.position.y;
-      const dz = this.targetPos.z - this.obj.position.z;
-
-      // Blend toward target — stronger correction when further off
-      const correctionRate = 0.05; // 5% per frame
-      this.obj.position.x += dx * correctionRate;
-      this.obj.position.y += dy * correctionRate;
-      this.obj.position.z += dz * correctionRate;
-    }
-
-    // Smoothly rotate direction toward target direction
-    if (this.targetDir) {
-      this.dir.lerp(this.targetDir, 0.08).normalize();
-    }
 
     // Apply direction
     this.obj.lookAt(
@@ -150,35 +158,15 @@ class Player {
         this.obj.position.y + this.dir.y * lookDistance,
         this.obj.position.z + this.dir.z * lookDistance
       );
-      // Reset speed tracking so we don't get a huge jump on resume
-      this.currentSpeed = 0;
-      this.lastPosTime = null;
       return;
     }
 
-    // Just started moving — snap to position first, then dead reckon from here
+    // Just started moving — snap to position first, then steer from here
     if (!wasMoving && this.moving) {
       this.obj.position.set(data.pos.x, data.pos.y, data.pos.z);
       this.dir.copy(this.targetDir);
-      this.currentSpeed = config.distancePerMS;
-      this.lastPosTime = Date.now();
       return;
     }
-
-    // Calculate speed from distance between moving updates
-    const now = Date.now();
-    if (this.lastPosTime) {
-      const dt = now - this.lastPosTime;
-      if (dt > 0 && dt < 500) {
-        const dist = this.targetPos.distanceTo(this.obj.position);
-        // Clamp speed to reasonable range (0.5x to 2x normal speed)
-        const measuredSpeed = dist / dt;
-        const minSpeed = config.distancePerMS * 0.5;
-        const maxSpeed = config.distancePerMS * 2;
-        this.currentSpeed = Math.max(minSpeed, Math.min(maxSpeed, measuredSpeed));
-      }
-    }
-    this.lastPosTime = now;
   }
   //////////////////////////////////////////////////////////
   onExplode(data, explode) {

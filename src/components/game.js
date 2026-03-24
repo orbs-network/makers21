@@ -657,20 +657,20 @@ class Game /*extends THREE.EventDispatcher*/ {
 
             // broadcast position
             cam.getWorldDirection(this.direction);
-            const pos = cam.position.clone();
+            const pos = cam.position;
             this.network.broadcastPosition({
                 type: "pos",
                 nick: this.localState.nick,
                 moving: this.moving,
                 pos: {
-                    x: pos.x,
-                    y: pos.y,
-                    z: pos.z
+                    x: Math.round(pos.x * 100) / 100,
+                    y: Math.round(pos.y * 100) / 100,
+                    z: Math.round(pos.z * 100) / 100
                 },
                 dir: {
-                    x: this.direction.x,
-                    y: this.direction.y,
-                    z: this.direction.z
+                    x: Math.round(this.direction.x * 10000) / 10000,
+                    y: Math.round(this.direction.y * 10000) / 10000,
+                    z: Math.round(this.direction.z * 10000) / 10000
                 },
             });
         }, config.updateInterval);
