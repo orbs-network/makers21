@@ -860,6 +860,13 @@ class Game /*extends THREE.EventDispatcher*/ {
             return;
         }
 
+        // block firing at exploding friend while holding flag
+        if (this.world.shooting.friend && this.holdingFlag) {
+            this.setGameMsg("Can't pass flag — teammate is down!");
+            this.playAudio('wrong');
+            return;
+        }
+
         // fire enemy
         this.network.sendEvent('player', {
             type: "fire",
