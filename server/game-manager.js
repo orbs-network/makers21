@@ -33,7 +33,7 @@ class GameManager /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     addDumTeam(isRed, indx){
       const nick = (isRed? 'red':'blue') + '_dummie_'+ indx;
-      console.log('add dummie', nick);
+      //console.log('add dummie', nick);
       const dum = {
         nick: nick,
         pos:{
@@ -123,7 +123,7 @@ class GameManager /*extends THREE.EventDispatcher*/ {
     }
     //////////////////////////////////////////////////////////
     onClient(data, res){
-      console.log('###################################################### xxxx ',data);
+      //console.log('onClient', data.type);
       switch(data.type){
         case 'online':
           this.onOnline(data, res);
@@ -159,7 +159,7 @@ class GameManager /*extends THREE.EventDispatcher*/ {
     }
     //////////////////////////////////////////////////////////
     tellState(){
-      console.log('tell state');
+      //console.log('tell state');
       this.client.event.emit('mngr',{
         type:"state",
         state:this.state

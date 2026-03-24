@@ -706,7 +706,7 @@ class World {
                 return;
             }
             this.flags.attachTo(flagName, holder);
-            //this.flags.setPosPlayer(flagName);
+            this.scene.add(flag);
         } else { // return to gate
             const gateName = flagIsRed ? 'blue' : 'red';
             console.log('attachFlagToGate', flagName, 'gate=' + gateName);
