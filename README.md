@@ -73,52 +73,40 @@ cd makers21
 npm install
 ```
 
-## Running the Server
+## Running
 
-The game server uses Deepstream for real-time multiplayer synchronization.
+### 1. Start the game server
 
 ```bash
-# Start the Deepstream server
 npm run start-server
 ```
 
-This runs the server with the configuration from `./server/config/config.yaml`.
+This launches the Deepstream server (default port `6020`) with the game manager that handles player connections, team assignments, game state, flag events, and position broadcasting. Config is in `server/config/config.yaml`.
 
-The server handles:
-- Player connections and team assignments
-- Game state management (start, reset, scoring)
-- Flag capture and pass events
-- Broadcasting player positions to all clients
+### 2. Start the client
 
-## Running the Client
-
-### Development Mode
+**Development** (with hot reload):
 
 ```bash
-# Start the webpack dev server with hot reload
-npx webpack serve --mode=development
+npm run dev
 ```
 
-This starts a development server at `http://localhost:3000` with hot module replacement.
+Opens at `http://localhost:3000`.
 
-### Production Build
+**Production**:
 
 ```bash
-# Build for production
-npx webpack --mode=production
+npm run build
 ```
 
-The built files will be in the `dist/` directory:
-- `dist/index.html` - Three.js version
-- `dist/aframe.html` - A-Frame VR version
+Built files go to `dist/`. Serve them with any static server (nginx, `npx http-server dist`, etc.).
 
-You can serve these files with any static file server:
+### Connecting to a remote server
 
-```bash
-# Using a simple HTTP server
-npx http-server dist
-# or
-npx live-server dist
+Pass the server IP as a query parameter:
+
+```
+http://localhost:3000/?server=YOUR_SERVER_IP
 ```
 
 ## Game Controls
