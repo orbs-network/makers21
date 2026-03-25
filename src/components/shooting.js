@@ -40,7 +40,8 @@ class Shooting {
 
     const label = document.createElement('div');
     label.className = 'hud-label';
-    label.textContent = game.localState.nick;
+    const teamDot = game.localState.isRed ? '🔴' : '🔵';
+    label.textContent = `${teamDot} ${game.localState.nick}`;
     label.style.color = '#FFF';
     const obj = new THREE.CSS2DObject(label);
     obj.position.set(0, 0, 0);
@@ -297,7 +298,8 @@ class Shooting {
       // SIZE
       this.hud.position.z = HUD_Z_NEUTRAL;
       // TEXT
-      this.hudLabel.textContent = game.localState.nick;
+      const teamDot = game.localState.isRed ? '🔴' : '🔵';
+      this.hudLabel.textContent = `${teamDot} ${game.localState.nick}`;
     } else {
       this.setHudOpacity(1);
       // red if emnemy

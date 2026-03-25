@@ -14,16 +14,17 @@ body {
     -moz-transform:rotateY(180deg); // Firefox
 } */
 
-.player-label{
+.player-label {
     background-color: transparent;
-    text-shadow:0 0 7px #FFF;
+    text-shadow: 0 0 7px #FFF;
     margin-top: 1.5em;
 }
-.hud-label{
+
+.hud-label {
     background-color: transparent;
-    text-shadow:1 1 3px #000;
-    margin-top: 5em;
-    opacity: 0.3;
+    text-shadow: 1 1 3px #000;
+    margin-top: 3.5em;
+    opacity: 0.5;
 }
 
 #flag-holder {
@@ -35,13 +36,15 @@ body {
     width: 100%;
     display: none;
 }
+
 #fps {
     position: absolute;
-    top:0;
-    left:0;
+    top: 0;
+    left: 0;
     opacity: 0.3;
     color: #fff;
 }
+
 #welcome {
     position: absolute;
     border: 1px solid #555;
@@ -55,6 +58,7 @@ body {
     z-index: 10;
     border-radius: 8px;
 }
+
 #choose-team {
     display: flex;
     flex-direction: column;
@@ -62,9 +66,11 @@ body {
     gap: 4px;
     margin-top: 8px;
 }
-#choose-team > div:first-child {
+
+#choose-team>div:first-child {
     margin-bottom: 4px;
 }
+
 .team-label {
     width: 160px;
     text-align: left;
@@ -72,23 +78,27 @@ body {
     align-items: center;
     gap: 8px;
 }
+
 .team-label label {
     width: auto;
 }
+
 #choose-team.disabled {
     opacity: 0.3;
     pointer-events: none;
 }
+
 .btn {
     padding: 0.5em 2em;
     margin: 0.5em;
     cursor: pointer;
     /*font-size: 26px;*/
     /*height: 48px;*/
-    color:silver;
+    color: silver;
     background-color: #0004;
     border: 1px solid silver;
 }
+
 #nick {
     background-color: transparent;
     color: gray;
@@ -101,16 +111,22 @@ body {
     width: 30%;
 }
 
-div{
+div {
     padding: 0.2em;
 }
-.red{ color: #C03030}
-.blue{ color: #4040FF}
+
+.red {
+    color: #C03030
+}
+
+.blue {
+    color: #4040FF
+}
 
 
-#game-display{
-    padding:1em;
-    display:none;
+#game-display {
+    padding: 1em;
+    display: none;
     font-size: larger;
     position: absolute;
     top: 2%;
@@ -124,8 +140,8 @@ div{
     border-radius: 8px;
 }
 
-#game-over{
-    display:none;
+#game-over {
+    display: none;
     position: absolute;
     top: 130px;
     right: 25%;
@@ -151,21 +167,14 @@ div{
 }
 
 #face-display {
-    position: fixed;
-    bottom: 0;
-    left: 0;
     width: 256px;
     height: 144px;
-    color: silver;
 }
-#face-display .cords {
-    position: absolute;
-    display: none;
-    color:#00FFA0;
-    top: 0px;
-    right:100px;
+
+#face-x,
+#face-y {
+    color: silver
 }
-#face-x, #face-y {color: silver}
 
 .control-panel div {
     display: flex;

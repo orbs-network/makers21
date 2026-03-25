@@ -220,6 +220,9 @@ class UIService {
   showGameOver(winnerNick, winnerIsRed) {
     const winnerTeam = winnerIsRed ? 'red' : 'blue';
 
+    if (this._elements.gameDisplay) {
+      this._elements.gameDisplay.style.display = 'none';
+    }
     if (this._elements.gameOver) {
       this._elements.gameOver.style.display = 'block';
       this._elements.gameOver.className = winnerTeam;

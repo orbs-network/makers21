@@ -136,11 +136,16 @@
     <input type="button" id="play-again" class="btn" value="Play Again">
   </div>
 
-  <!-- Face mesh preview -->
-  <div id="face-display" style="position: fixed; left: 0; bottom: 0; z-index: 20; display: none; width: 256px; height: 144px;">
-    <canvas id="face-canvas" style="height: 144px; width: 256px; transform: scale(-1, 1);"
-      width="256" height="144"></canvas>
-    <button id="face-toggle" style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.5); color: #aaa; border: 1px solid #555; border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer; z-index: 21;">Hide</button>
+  <!-- Face control panel -->
+  <div id="face-panel" style="position: fixed; left: 0; bottom: 0; z-index: 20; display: none; width: 256px; overflow: hidden;">
+    <div id="face-display" style="width: 256px; height: 144px; display: block;">
+      <canvas id="face-canvas" style="height: 144px; width: 256px; transform: scale(-1, 1);"
+        width="256" height="144"></canvas>
+    </div>
+    <div style="display: flex; height: 24px; background: rgba(0,0,0,0.6); border-top: 1px solid #00FFA044; font-family: monospace; font-size: 11px;">
+      <button id="control-toggle" style="flex: 1; background: none; border: none; color: #00FFA0; cursor: pointer;" title="Press M to toggle">🖱 Mouse [M]</button>
+      <button id="face-toggle" style="padding: 0 8px; background: none; border: none; border-left: 1px solid #00FFA044; color: #00FFA0; cursor: pointer;" title="Press S to toggle">Hide [S]</button>
+    </div>
   </div>
 
   <!-- Audio elements -->

@@ -205,6 +205,41 @@ class Game /*extends THREE.EventDispatcher*/ {
         });
         // Set initial input values
         this.setInputs();
+
+        // Show face control panel (toolbar always visible for toggle)
+        const facePanel = document.getElementById('face-panel');
+        if (facePanel) {
+            facePanel.style.display = 'block';
+            // Hide face canvas if not using face controls
+            const faceDisplay = document.getElementById('face-display');
+            if (faceDisplay && !this.useNeck) {
+                faceDisplay.style.display = 'none';
+            }
+        }
+
+        // Hide/show face canvas button
+        const faceToggle = document.getElementById('face-toggle');
+        if (faceToggle) {
+            faceToggle.addEventListener('click', () => {
+                const faceDisplay = document.getElementById('face-display');
+                const hidden = faceDisplay.style.display === 'none';
+                faceDisplay.style.display = hidden ? 'block' : 'none';
+                faceToggle.textContent = hidden ? 'Hide [S]' : 'Show [S]';
+            });
+        }
+
+        // Control toggle button (mouse/face)
+        const controlToggle = document.getElementById('control-toggle');
+        if (controlToggle) {
+            controlToggle.addEventListener('click', this.toggleControls.bind(this));
+            controlToggle.innerHTML = this.useNeck ? '🖱 Mouse [M]' : '📷 Face [M]';
+            // Gray out if face not available (started with mouse)
+            if (!this.face) {
+                controlToggle.style.opacity = '0.3';
+                controlToggle.style.cursor = 'default';
+                controlToggle.innerHTML = '🖱 Mouse';
+            }
+        }
     }
 
     //////////////////////////////////////////////////////////
@@ -275,6 +310,53 @@ class Game /*extends THREE.EventDispatcher*/ {
         }
         this.controls.enabled = init;
         console.log(`*** initControls: enabled=${init}`);
+    }
+
+    //////////////////////////////////////////////////////////
+    toggleControls() {
+        // Can only toggle to face if face was initialized at startup
+        if (!this.useNeck && !this.face) {
+            this.setGameMsg('Face controls not available — restart with camera enabled');
+            this.playAudio('wrong');
+            return;
+        }
+
+        // Stop movement first
+        if (this.moving) {
+            this.startStop();
+        }
+
+        // Toggle mode
+        this.useNeck = !this.useNeck;
+        this.state.settings.useNeck = this.useNeck;
+        localStorage.setItem('disableNeck', this.useNeck ? 'false' : 'true');
+
+        // Destroy old controls
+        if (this.controls) {
+            this.controls.enabled = false;
+            if (this.controls.dispose) this.controls.dispose();
+        }
+        this.controls = null;
+
+        // Recreate controls
+        this.initControls(false);
+
+        // Update UI toggle button
+        const toggleBtn = document.getElementById('control-toggle');
+        const faceDisplay = document.getElementById('face-display');
+        if (this.useNeck) {
+            if (toggleBtn) toggleBtn.innerHTML = '🖱 Mouse [M]';
+            if (faceDisplay) faceDisplay.style.display = 'block';
+            // Start camera if not running
+            if (this.face && !this.face.enabled) {
+                this.face.startCamera();
+            }
+            this.setGameMsg('Switched to face controls');
+        } else {
+            if (toggleBtn) toggleBtn.innerHTML = '📷 Face [M]';
+            if (faceDisplay) faceDisplay.style.display = 'none';
+            this.setGameMsg('Switched to mouse controls');
+        }
     }
 
     //////////////////////////////////////////////////////////
@@ -375,7 +457,11 @@ class Game /*extends THREE.EventDispatcher*/ {
             this.world.shooting.hudLabelObj.visible = false;
         }
         this.moving = false;
-        console.log('*** onGameOver: moving=false');
+        if (this.controls) {
+            this.controls.autoForward = false;
+            this.controls.enabled = false;
+        }
+        console.log('*** onGameOver: moving=false, controls disabled');
         this.startUpdateLoop(false);
         this.startBorderLoop(false);
         this.stopWarning();
@@ -905,7 +991,15 @@ class Game /*extends THREE.EventDispatcher*/ {
             case "KeyF":
                 this.doFire();
                 break;
-
+            case "KeyM":
+                this.toggleControls();
+                break;
+            case "KeyS":
+                if (this.useNeck) {
+                    const faceToggle = document.getElementById('face-toggle');
+                    if (faceToggle) faceToggle.click();
+                }
+                break;
 
         }
         //return false;

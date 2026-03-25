@@ -14,22 +14,7 @@ class Face {
         this.video.style.display = "none";
         document.body.appendChild(this.video);
 
-        this.faceX = document.getElementById('face-x');
-        this.faceY = document.getElementById('face-y');
         this.faceDisplay = document.getElementById('face-display');
-        if (this.faceDisplay) {
-            this.faceDisplay.style.display = 'block';
-            // Toggle button
-            const toggle = document.getElementById('face-toggle');
-            if (toggle) {
-                toggle.addEventListener('click', () => {
-                    const canvas = document.getElementById('face-canvas');
-                    const hidden = canvas.style.display === 'none';
-                    canvas.style.display = hidden ? '' : 'none';
-                    toggle.textContent = hidden ? 'Hide' : 'Show';
-                });
-            }
-        }
 
         this.ret = {};
 
@@ -124,6 +109,7 @@ class Face {
 
         this.canvasCtx.save();
         this.canvasCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.canvasCtx.globalAlpha = 0.6;
         if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
             this.canvasCtx.restore();
             return;
