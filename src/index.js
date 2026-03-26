@@ -78,10 +78,10 @@ async function loadGameModules() {
 
 // Default server address
 const DEFAULT_SERVER = 'ws-makers.orbs.com';
-const WS_PORT = 6020;
-
-// Determine protocol once
-const WS_PROTOCOL = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+// Determine protocol and port based on page protocol
+const IS_SECURE = window.location.protocol === 'https:';
+const WS_PROTOCOL = IS_SECURE ? 'wss://' : 'ws://';
+const WS_PORT = IS_SECURE ? 443 : 6020;
 
 /**
  * Get server address from URL param or show dialog
