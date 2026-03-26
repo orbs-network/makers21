@@ -260,6 +260,7 @@ class GameManager /*extends THREE.EventDispatcher*/ {
     }
     //////////////////////////////////////////////////////////
     onGatePass(data, res){
+      console.log('onGatePass', data.nick, 'isRed:', data.isRed, 'winGate:', data.winGate);
       // win
       if(data.winGate){
         this.state.winnerNick = data.nick;
@@ -272,20 +273,26 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       }
 
       const flagHolder = data.isRed? 'blueHolder':'redHolder';
+      console.log('flagHolder field:', flagHolder, 'current:', this.state[flagHolder]);
       // flag is captured
       if(!this.state[flagHolder]){
         this.setFlagHolder(flagHolder, data.nick, res);
+        console.log('flag captured by', data.nick);
       }else{
+        console.log('flag already held by', this.state[flagHolder]);
         res.send(`${this.state[flagHolder]} has already captured the flag`);
       }
     }
     //////////////////////////////////////////////////////////
     onFlagDrop(data, res){
+      console.log('onFlagDrop', data.nick, 'isRed:', data.isRed);
       const flagHolder = data.isRed? 'blueHolder':'redHolder';
       // flag is dropped - assset dropper is indeed the holder
       if(this.state[flagHolder] === data.nick){
+        console.log('flag dropped by', data.nick);
         this.setFlagHolder(flagHolder, null, res);
       }else{
+        console.log('flag drop rejected:', data.nick, 'is not holder, holder is:', this.state[flagHolder]);
         res.send(`The flag is not held by [${data.nick}] to drop`);
       }
     }
