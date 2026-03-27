@@ -9,7 +9,6 @@ module.exports = (env, argv) => {
   return {
     entry: {
       main: './src/index.js',
-      aframe: './src/aframe-version/index.js'
     },
 
     output: {
@@ -67,12 +66,6 @@ module.exports = (env, argv) => {
         filename: 'index.html',
         chunks: ['main'],
         title: 'Makers 2021 - Three.js Version'
-      }),
-      new HtmlWebpackPlugin({
-        template: './src/aframe-version/index.html',
-        filename: 'aframe.html',
-        chunks: ['aframe'],
-        title: 'Makers 2021 - A-Frame Version'
       }),
       new CopyWebpackPlugin({
         patterns: [

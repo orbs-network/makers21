@@ -15,7 +15,6 @@ Makers21 is a "Capture the Flag" style game where two teams (Red and Blue) pilot
 - 3D particle explosion effects
 - Positional audio system
 - Post-processing effects (bloom, motion trails)
-- Mobile-optimized A-Frame version for VR/WebXR
 - Keyboard fallback controls
 
 ## Tech Stack
@@ -24,7 +23,6 @@ Makers21 is a "Capture the Flag" style game where two teams (Red and Blue) pilot
 - **MediaPipe Face Mesh** - Webcam-based head tracking
 - **Deepstream** - Real-time multiplayer synchronization
 - **Webpack/Babel** - Build system
-- **A-Frame** - Alternative VR version
 
 ## Project Structure
 
@@ -42,7 +40,6 @@ makers21/
 │   │   ├── deepstream.js    # Network layer
 │   │   ├── explode.js       # Particle effects
 │   │   └── sound.js         # 3D audio system
-│   ├── aframe-version/      # A-Frame VR implementation
 │   ├── assets/              # Models, textures, audio
 │   ├── index.js             # Main entry point
 │   └── index.html           # Game HTML
