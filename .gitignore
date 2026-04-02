@@ -5,3 +5,10 @@ dist/
 .DS_Store
 *.crt
 *.pem
+
+# Local notes/research (not tracked)
+ignore/
+
+# Claude Code local config
+.claude/
+CLAUDE.md
