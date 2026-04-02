@@ -143,7 +143,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.saveLocalState();
         // check team size limit before sending RPC
         const MAX_TEAM_SIZE = 6;
-        const team = this.localState.isRed ? this.managerState.red : this.managerState.blue;
+        const team = this.localState.isRed ? this.mngrState?.red : this.mngrState?.blue;
         if (team && team.length >= MAX_TEAM_SIZE) {
             this.setGameMsg(`Team is full (max ${MAX_TEAM_SIZE} players)`);
             return;
@@ -530,6 +530,11 @@ class Game /*extends THREE.EventDispatcher*/ {
                         this.setPersistentMsg('Return the flag to your home gate');
                         this.playAudio('success');
                     } else if (!holdingFlag && this.holdingFlag) {
+                        // Flag was passed to a teammate (not dropped — drop happens in explode)
+                        const newHolder = this.localState.isRed ? this.mngrState.blueHolder : this.mngrState.redHolder;
+                        if (newHolder && !this.exploding) {
+                            this.setGameMsg(`Flag passed to ${newHolder}`);
+                        }
                         this.clearPersistentMsg();
                     }
                     this.holdingFlag = holdingFlag;

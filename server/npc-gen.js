@@ -30,10 +30,6 @@ const TEAM_HOME = {
   red: BLUE_GATE,   // red defends blue gate area
   blue: RED_GATE    // blue defends red gate area
 };
-const TEAM_ATTACK = {
-  red: RED_GATE,    // red attacks toward red gate
-  blue: BLUE_GATE   // blue attacks toward blue gate
-};
 
 // --- Parse args ---
 // Usage: node npc-gen.js num=3 serverHost=localhost:6020
@@ -60,8 +56,11 @@ if (npcNum > MAX_TEAM_SIZE) {
 
 console.log(`NPC Generator: ${npcNum} red, ${npcNum - 1} blue, server: ${serverAddr}`);
 
-// --- NPC state ---
+// --- Game & NPC state ---
 const npcs = []; // { nick, isRed, role, pos, dir, exploding, explodeTimer, orbitAngle, phase }
+let gameStarted = false;
+let gameStartTs = 0; // timestamp when game actually begins (after countdown)
+let gameOver = false;
 
 // --- Helpers ---
 function rand(min, max) {
@@ -135,35 +134,86 @@ function createNPCs() {
 function createNPC(isRed, role) {
   const nick = nextName();
   const home = TEAM_HOME[isRed ? 'red' : 'blue'];
+  const inward = isRed ? -1 : 1; // direction toward arena center from home gate
 
-  // Start near home gate with some offset
+  // Start near home gate
   const pos = {
-    x: home.x + rand(-80, 80),
-    y: home.y + rand(-30, 30),
-    z: home.z + (isRed ? -1 : 1) * rand(20, 80) // offset toward center from gate
+    x: rand(-60, 60),
+    y: home.y + rand(-20, 20),
+    z: home.z + inward * rand(20, 60)
   };
 
-  return {
+  const base = {
     nick,
     isRed,
     role,
     pos,
-    dir: { x: 0, y: 0, z: isRed ? -1 : 1 }, // face toward opponent gate initially
+    dir: normalize({ x: rand(-0.2, 0.2), y: rand(-0.05, 0.05), z: inward }),
     exploding: false,
     explodeTimer: null,
-    holdingFlag: false,
-    // orbit params for defenders
-    orbitAngle: rand(0, Math.PI * 2),
-    orbitRadius: rand(40, 120),
-    orbitSpeed: rand(0.3, 0.8), // radians per second
-    orbitYOffset: rand(-30, 30),
-    // attack params
-    phase: 'outbound', // outbound (toward enemy gate) or 'inbound' (back home)
-    attackProgress: rand(0, 1), // 0..1 along the path
-    attackSpeed: rand(0.02, 0.05), // progress per second
-    // Slight lateral variation for attackers
-    lateralOffset: { x: rand(-60, 60), y: rand(-20, 20) }
+    holdingFlag: false
   };
+
+  if (role === 'defend') {
+    // 4 waypoints in a diamond around the gate, fly point-to-point clockwise
+    const centerZ = home.z + inward * 140; // offset toward arena center
+    const R = rand(160, 220); // diamond radius — large enough for smooth turns
+    const yBase = GATE_Y;
+    base.waypoints = [
+      { x:  R, y: yBase + rand(5, 25),  z: centerZ },          // right
+      { x:  0, y: yBase + rand(-20, -5), z: centerZ - inward * R }, // toward gate
+      { x: -R, y: yBase + rand(5, 25),  z: centerZ },          // left
+      { x:  0, y: yBase + rand(-20, -5), z: centerZ + inward * R }, // away from gate
+    ];
+    base.waypointIndex = Math.floor(rand(0, 4)); // start at random point
+    base.waypointThreshold = rand(100, 140); // start turning well before reaching waypoint
+  } else {
+    // Elliptical oval between gates — always curving, never a 180
+    base.ovalCenterZ = 0; // midpoint of arena
+    base.ovalRadiusZ = SIZE * 0.8; // 400 units along Z (won't quite reach gates)
+    base.ovalRadiusX = rand(100, 180); // width of the oval
+    base.ovalDir = Math.random() < 0.5 ? 1 : -1; // CW or CCW
+    base.ovalYCenter = GATE_Y + rand(-20, 20);
+    base.ovalYAmplitude = rand(15, 30);
+  }
+
+  return base;
+}
+
+// --- Movement system ---
+// Core idea: compute desired direction from the NPC's ACTUAL position on its
+// flight pattern (tangent to orbit/oval), then smoothly turn toward it.
+// No target-point chasing. No turn budgets. Always smooth.
+
+const MAX_TURN_RATE = 0.8; // rad/s — realistic head-tracking turn rate
+
+function smoothTurn(npc, desiredDir, deltaSec) {
+  const dot = Math.min(1, Math.max(-1,
+    npc.dir.x * desiredDir.x + npc.dir.y * desiredDir.y + npc.dir.z * desiredDir.z
+  ));
+  const angleBetween = Math.acos(dot);
+  if (angleBetween < 0.001) return; // already aligned
+
+  const maxAngle = MAX_TURN_RATE * deltaSec;
+  const blend = Math.min(maxAngle / angleBetween, 1.0);
+
+  npc.dir = normalize({
+    x: npc.dir.x + (desiredDir.x - npc.dir.x) * blend,
+    y: npc.dir.y + (desiredDir.y - npc.dir.y) * blend,
+    z: npc.dir.z + (desiredDir.z - npc.dir.z) * blend
+  });
+}
+
+function moveForward(npc, deltaSec) {
+  const movePerSec = SPEED * 1000;
+  npc.pos.x += npc.dir.x * movePerSec * deltaSec;
+  npc.pos.y += npc.dir.y * movePerSec * deltaSec;
+  npc.pos.z += npc.dir.z * movePerSec * deltaSec;
+
+  // Safety clamp (orbit math keeps them in bounds normally)
+  npc.pos.x = Math.max(-SIZE * 0.95, Math.min(SIZE * 0.95, npc.pos.x));
+  npc.pos.y = Math.max(10, Math.min(HEIGHT - 10, npc.pos.y));
+  npc.pos.z = Math.max(-SIZE * 0.95, Math.min(SIZE * 0.95, npc.pos.z));
 }
 
 function updateNPC(npc, deltaSec) {
@@ -174,78 +224,67 @@ function updateNPC(npc, deltaSec) {
   } else {
     updateAttacker(npc, deltaSec);
   }
+  moveForward(npc, deltaSec);
 }
 
+// --- Defender: fly between 4 waypoints in a diamond around the gate ---
 function updateDefender(npc, deltaSec) {
-  // Orbit around own team's gate
-  const gate = TEAM_HOME[npc.isRed ? 'red' : 'blue'];
+  const wp = npc.waypoints[npc.waypointIndex];
 
-  npc.orbitAngle += npc.orbitSpeed * deltaSec;
-
-  const targetX = gate.x + Math.cos(npc.orbitAngle) * npc.orbitRadius;
-  const targetY = gate.y + npc.orbitYOffset + Math.sin(npc.orbitAngle * 0.7) * 15;
-  const targetZ = gate.z + Math.sin(npc.orbitAngle) * npc.orbitRadius * (npc.isRed ? -1 : 1);
-
-  // Steer toward target
-  steerToward(npc, targetX, targetY, targetZ, deltaSec);
-}
-
-function updateAttacker(npc, deltaSec) {
-  // Fly between home gate and enemy gate
-  const home = TEAM_HOME[npc.isRed ? 'red' : 'blue'];
-  const enemy = TEAM_ATTACK[npc.isRed ? 'red' : 'blue'];
-
-  npc.attackProgress += npc.attackSpeed * deltaSec * (npc.phase === 'outbound' ? 1 : -1);
-
-  if (npc.attackProgress >= 1) {
-    npc.attackProgress = 1;
-    npc.phase = 'inbound';
-    // Wait a bit near enemy gate (handled by slow progress)
-  } else if (npc.attackProgress <= 0) {
-    npc.attackProgress = 0;
-    npc.phase = 'outbound';
-  }
-
-  // Interpolate between home and enemy with some curve
-  const t = npc.attackProgress;
-  // Slight arc in Y
-  const arcY = Math.sin(t * Math.PI) * 40;
-
-  const targetX = home.x + (enemy.x - home.x) * t + npc.lateralOffset.x * Math.sin(t * Math.PI);
-  const targetY = home.y + (enemy.y - home.y) * t + arcY + npc.lateralOffset.y;
-  const targetZ = home.z + (enemy.z - home.z) * t;
-
-  steerToward(npc, targetX, targetY, targetZ, deltaSec);
-}
-
-function steerToward(npc, targetX, targetY, targetZ, deltaSec) {
-  const dx = targetX - npc.pos.x;
-  const dy = targetY - npc.pos.y;
-  const dz = targetZ - npc.pos.z;
+  // Direction toward current waypoint
+  const dx = wp.x - npc.pos.x;
+  const dy = wp.y - npc.pos.y;
+  const dz = wp.z - npc.pos.z;
   const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-  if (dist < 0.1) return;
+  // Close enough? Advance to next waypoint
+  if (dist < npc.waypointThreshold) {
+    npc.waypointIndex = (npc.waypointIndex + 1) % npc.waypoints.length;
+    return; // will pick up new waypoint next tick
+  }
 
-  // Target direction
-  const targetDir = normalize({ x: dx, y: dy, z: dz });
+  const desiredDir = normalize({ x: dx, y: dy, z: dz });
+  smoothTurn(npc, desiredDir, deltaSec);
+}
 
-  // Smooth steering (lerp direction)
-  const blend = Math.min(0.1 * deltaSec * 3, 0.5);
-  npc.dir.x += (targetDir.x - npc.dir.x) * blend;
-  npc.dir.y += (targetDir.y - npc.dir.y) * blend;
-  npc.dir.z += (targetDir.z - npc.dir.z) * blend;
-  npc.dir = normalize(npc.dir);
+// --- Attacker: elliptical oval between gates using tangent direction ---
+function updateAttacker(npc, deltaSec) {
+  const cx = 0;
+  const cz = npc.ovalCenterZ; // 0 = arena center
+  const rx = npc.ovalRadiusX;
+  const rz = npc.ovalRadiusZ;
 
-  // Move at game speed
-  const movePerSec = SPEED * 1000;
-  npc.pos.x += npc.dir.x * movePerSec * deltaSec;
-  npc.pos.y += npc.dir.y * movePerSec * deltaSec;
-  npc.pos.z += npc.dir.z * movePerSec * deltaSec;
+  // Map position to a "circular" angle by scaling the ellipse axes
+  const dx = npc.pos.x - cx;
+  const dz = npc.pos.z - cz;
+  // Scale Z by rx/rz so the ellipse maps to a circle for angle computation
+  const scaledDz = dz * (rx / rz);
+  const currentAngle = Math.atan2(scaledDz, dx);
 
-  // Clamp to arena bounds
-  npc.pos.x = Math.max(-SIZE, Math.min(SIZE, npc.pos.x));
-  npc.pos.y = Math.max(5, Math.min(HEIGHT, npc.pos.y));
-  npc.pos.z = Math.max(-SIZE, Math.min(SIZE, npc.pos.z));
+  // Tangent direction on the ellipse:
+  // Ellipse: (rx*cos(a), rz*sin(a)), tangent: (-rx*sin(a), rz*cos(a))
+  const tangentX = -Math.sin(currentAngle) * rx * npc.ovalDir;
+  const tangentZ = Math.cos(currentAngle) * rz * npc.ovalDir;
+
+  // Radial correction — pull back toward the ellipse surface
+  const desiredX = cx + Math.cos(currentAngle) * rx;
+  const desiredZ = cz + Math.sin(currentAngle) * rz;
+  const errorX = desiredX - npc.pos.x;
+  const errorZ = desiredZ - npc.pos.z;
+  const corrX = Math.max(-0.3, Math.min(0.3, errorX * 0.008));
+  const corrZ = Math.max(-0.3, Math.min(0.3, errorZ * 0.004));
+
+  // Vertical arc — peak in the middle of each leg
+  const desiredY = npc.ovalYCenter + Math.sin(currentAngle * 2) * npc.ovalYAmplitude;
+  const yComponent = Math.max(-0.2, Math.min(0.2, (desiredY - npc.pos.y) * 0.012));
+
+  const desiredDir = normalize({
+    x: tangentX + corrX,
+    y: yComponent,
+    z: tangentZ + corrZ
+  });
+
+  smoothTurn(npc, desiredDir, deltaSec);
 }
 
 // --- Explosion handling ---
@@ -279,14 +318,9 @@ function explodeNPC(npc, client) {
 
   // Recover after delay — return to start position
   npc.explodeTimer = setTimeout(() => {
+    if (gameOver) return; // don't recover after game ends
     npc.exploding = false;
-    const home = TEAM_HOME[npc.isRed ? 'red' : 'blue'];
-    npc.pos = {
-      x: home.x + rand(-80, 80),
-      y: home.y + rand(-30, 30),
-      z: home.z + (npc.isRed ? -1 : 1) * rand(20, 80)
-    };
-    npc.dir = { x: 0, y: 0, z: npc.isRed ? -1 : 1 };
+    resetNPCToStart(npc);
 
     // Broadcast recovery
     client.event.emit('player', {
@@ -301,20 +335,48 @@ function explodeNPC(npc, client) {
   }, EXPLODE_RECOVERY_MS);
 }
 
+// --- Game lifecycle helpers ---
+function resetNPCToStart(npc) {
+  const home = TEAM_HOME[npc.isRed ? 'red' : 'blue'];
+  // Spread NPCs along the start line like real players do
+  const hHalf = HEIGHT / 4;
+  npc.pos = {
+    x: rand(-SIZE * 0.15, SIZE * 0.15),
+    y: Math.floor(rand(hHalf, hHalf * 2)),
+    z: home.z
+  };
+  npc.dir = normalize({
+    x: rand(-0.3, 0.3),
+    y: rand(-0.1, 0.1),
+    z: npc.isRed ? -1 : 1
+  });
+  npc.exploding = false;
+  npc.holdingFlag = false;
+  if (npc.explodeTimer) {
+    clearTimeout(npc.explodeTimer);
+    npc.explodeTimer = null;
+  }
+}
+
+async function rejoinAll(client) {
+  for (const npc of npcs) {
+    resetNPCToStart(npc);
+    client.rpc.make('client', {
+      type: 'join',
+      nick: npc.nick,
+      isRed: npc.isRed
+    }, (err, result) => {
+      if (err) console.error(`Re-join failed for ${npc.nick}:`, err);
+      else console.log(`${npc.nick} re-joined: ${result}`);
+    });
+  }
+}
+
 // --- Main ---
 async function main() {
   const client = new DeepstreamClient(serverAddr);
-
-  await new Promise((resolve, reject) => {
-    client.login(null, (success, _data) => {
-      if (success) {
-        console.log('Connected to DeepStream');
-        resolve();
-      } else {
-        reject(new Error('Login failed'));
-      }
-    });
-  });
+  await client.login();
+  console.log('Connected to DeepStream');
 
   // Create NPC definitions
   createNPCs();
@@ -350,25 +412,58 @@ async function main() {
     }
   });
 
-  // Listen for manager state to track flag holders
+  // Listen for manager state — track game lifecycle and flag holders
   client.event.subscribe('mngr', (data) => {
-    if (data.type === 'state') {
-      const state = data.state;
-      // Track which NPCs hold flags
+    if (data.type !== 'state') return;
+    const state = data.state;
+
+    // --- Game start ---
+    if (state.started && !gameStarted) {
+      gameStarted = true;
+      gameOver = false;
+      gameStartTs = state.startTs || Date.now();
+      console.log(`Game started! Flying begins at ${new Date(gameStartTs).toISOString()}`);
+      // Reset NPC positions to start lines
       for (const npc of npcs) {
-        const flagField = npc.isRed ? 'blueHolder' : 'redHolder';
-        const wasHolding = npc.holdingFlag;
-        npc.holdingFlag = (state[flagField] === npc.nick);
-        if (npc.holdingFlag && !wasHolding) {
-          console.log(`${npc.nick} received the flag!`);
-        }
+        resetNPCToStart(npc);
+      }
+    }
+
+    // --- Game over (winner declared) ---
+    if (state.winnerNick && !gameOver) {
+      gameOver = true;
+      console.log(`Game over! Winner: ${state.winnerNick} (${state.winnerIsRed ? 'RED' : 'BLUE'})`);
+    }
+
+    // --- Game reset ---
+    if (state.needReset) {
+      gameStarted = false;
+      gameOver = false;
+      gameStartTs = 0;
+      console.log('Game reset. Waiting for next game...');
+      // Re-join NPCs (reset clears rosters)
+      rejoinAll(client);
+    }
+
+    // --- Track flag holders ---
+    for (const npc of npcs) {
+      const flagField = npc.isRed ? 'blueHolder' : 'redHolder';
+      const wasHolding = npc.holdingFlag;
+      npc.holdingFlag = (state[flagField] === npc.nick);
+      if (npc.holdingFlag && !wasHolding) {
+        console.log(`${npc.nick} received the flag!`);
       }
     }
   });
 
-  // Position broadcast loop
+  // Position broadcast loop — only fly when game is active
   const uuid = client.getUid();
   setInterval(() => {
+    // Don't move before game starts or after game over
+    if (!gameStarted || gameOver) return;
+    // Respect the countdown — don't move until startTs
+    if (Date.now() < gameStartTs) return;
+
     const deltaSec = UPDATE_INTERVAL / 1000;
 
     for (const npc of npcs) {
