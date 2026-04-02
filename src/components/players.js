@@ -207,7 +207,7 @@ class Player {
 
     // play already installed sound
     let sound = this.obj.getObjectByName('sound_explode.wav');
-    if (sound) try { sound.play(); } catch(e) {}
+    if (sound) try { sound.play(); } catch (e) { }
   }
   //////////////////////////////////////////////////////////
   onFire(data) {
@@ -218,7 +218,7 @@ class Player {
     }
     // play already installed sound
     let sound = this.obj.getObjectByName('sound_laser.wav');
-    if (sound) try { sound.play(); } catch(e) {}
+    if (sound) try { sound.play(); } catch (e) { }
 
     this.laserBeam.object3d.visible = true;
     // auto hide
@@ -234,7 +234,7 @@ class Player {
   onLockOn(data, target) {
     // play already installed sound
     let sound = this.obj.getObjectByName('laser_up.wav');
-    if (sound) try { sound.play(); } catch(e) {}
+    if (sound) try { sound.play(); } catch (e) { }
 
     // timer for lock off
     this.tidLock = setTimeout(() => {
@@ -247,7 +247,7 @@ class Player {
   onLockOff(data, target) {
     // play already installed sound
     let sound = this.obj.getObjectByName('laser_down.wav');
-    if (sound) try { sound.play(); } catch(e) {}
+    if (sound) try { sound.play(); } catch (e) { }
   }
   //////////////////////////////////////////////////////////
   onLock(data, target) {
@@ -272,8 +272,8 @@ class Player {
     const playerLabelDiv = document.createElement('div');
     playerLabelDiv.className = 'player-label';
     playerLabelDiv.textContent = nick || "WHO DIS?";
-    playerLabelDiv.style.color = isRed ? '#F00' : '#3366FF';
-    playerLabelDiv.style.textShadow = '0 0 7px #000';
+    playerLabelDiv.style.color = isRed ? 'rgb(200, 0, 0)' : 'rgb(0, 128, 255)';
+    playerLabelDiv.style.textShadow = '0 0 4px #000, 0 0 8px #000, 0 0 12px #000';
     this.playerLabelDiv = playerLabelDiv;
     this.playerLabelObj = new THREE.CSS2DObject(playerLabelDiv);
     this.playerLabelObj.position.set(0, 0, 0);
