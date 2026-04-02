@@ -8,7 +8,9 @@ If you can move your head, you can fly a spaceship, shoot enemies, capture flags
 
 ---
 
-[![Makers21 Demo](https://img.youtube.com/vi/wz4GonJ0T_Y/maxresdefault.jpg)](https://youtu.be/wz4GonJ0T_Y)
+https://github.com/user-attachments/assets/37d80d71-d99b-4ff7-b6e5-0f469f3b2b4d
+
+[Watch in full quality on YouTube](https://youtu.be/wz4GonJ0T_Y)
 
 ---
 
