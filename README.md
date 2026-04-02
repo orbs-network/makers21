@@ -1,139 +1,115 @@
 # Makers21
 
-A multiplayer 3D spaceship game built with Three.js featuring head/face tracking controls via webcam.
+**A multiplayer 3D space game that anyone can play — even with just their head.**
 
-## Overview
+Makers21 was built for a friend who became paralyzed in an accident. He can only move his neck and face. We wanted him to be able to play with his friends — not as a spectator, not with a handicap — but as an equal. So we built a capture-the-flag space game controlled entirely by webcam head tracking, running in the browser with zero installation.
 
-Makers21 is a "Capture the Flag" style game where two teams (Red and Blue) pilot spacecraft, competing to capture the enemy's flag and return it to their own gate to score. The game supports real-time multiplayer through Deepstream and offers an innovative control scheme using webcam-based head tracking.
+If you can move your head, you can fly a spaceship, shoot enemies, capture flags, and compete in real-time multiplayer. No special hardware. No downloads. Just open a link and play.
 
-## Features
+---
 
-- Real-time multiplayer (2+ players)
-- Head/face tracking controls via webcam (MediaPipe Face Mesh)
-- Team-based gameplay (Red vs Blue)
-- Capture-the-flag game mode
-- 3D particle explosion effects
-- Positional audio system
-- Post-processing effects (bloom, motion trails)
-- Keyboard fallback controls
+[![Makers21 Demo](https://img.youtube.com/vi/wz4GonJ0T_Y/maxresdefault.jpg)](https://youtu.be/wz4GonJ0T_Y)
 
-## Tech Stack
+---
 
-- **Three.js** - 3D rendering and scene management
-- **MediaPipe Face Mesh** - Webcam-based head tracking
-- **Deepstream** - Real-time multiplayer synchronization
-- **Webpack/Babel** - Build system
+## Why This Exists
 
-## Project Structure
+People with quadriplegia, ALS, muscular dystrophy, and other conditions that limit mobility are often excluded from multiplayer gaming — or stuck playing solo-friendly titles while their friends play together. Existing adaptive controllers are expensive and still can't match the speed of standard gamepads.
 
-```
-makers21/
-├── src/
-│   ├── components/          # Game components
-│   │   ├── game.js          # Main game orchestrator
-│   │   ├── world.js         # 3D scene setup
-│   │   ├── face.js          # Face detection (MediaPipe)
-│   │   ├── neckControls.js  # Head tracking camera controls
-│   │   ├── players.js       # Player management
-│   │   ├── shooting.js      # Targeting mechanics
-│   │   ├── flag.js          # Flag capture logic
-│   │   ├── deepstream.js    # Network layer
-│   │   ├── explode.js       # Particle effects
-│   │   └── sound.js         # 3D audio system
-│   ├── assets/              # Models, textures, audio
-│   ├── index.js             # Main entry point
-│   └── index.html           # Game HTML
-├── server/
-│   ├── index.js             # Deepstream server
-│   ├── game-manager.js      # Game state management
-│   └── config/              # Server configuration
-├── dist/                    # Build output
-├── webpack.config.js        # Webpack configuration
-└── package.json
-```
+Makers21 takes a different approach: **the game itself is the adaptive controller.** Head tracking is the native input — not an afterthought or accessibility mode. Every player uses the same controls, so disabled and able-bodied players compete on equal footing.
 
-## Prerequisites
+## Key Highlights
 
-- Node.js (v14 or higher recommended)
+- **Play with your head** — Webcam tracks your face movements to steer, aim, and play. No hands needed.
+- **Equal playing field** — Head tracking is the native control for everyone. Disabled and able-bodied players compete with the same skills — no advantage, no handicap.
+- **3D multiplayer in the browser** — Real-time team-based capture-the-flag in space. Just share a link.
+- **Open source, open for development** — Built to be extended, forked, and improved by the community.
+
+## How It Works
+
+Your webcam feeds into [MediaPipe Face Mesh](https://google.github.io/mediapipe/solutions/face_mesh.html), which tracks 468 facial landmarks in real time. Head tilt and rotation map to ship controls — look left to turn left, look up to climb. The game runs on [Three.js](https://threejs.org/) with a [Deepstream](https://deepstream.io/) server syncing all players in real time.
+
+No data leaves your machine — the video stays local, only control signals are sent to the game.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14+)
 - npm
-- A webcam (for head tracking controls)
+- A webcam (or use mouse+keyboard fallback)
 - Modern browser with WebGL support
 
-## Installation
+### Install and Run
 
 ```bash
-# Clone the repository
-git clone https://github.com/uv-orbs/makers21.git
+git clone https://github.com/orbs-network/makers21.git
 cd makers21
-
-# Install dependencies
 npm install
-```
 
-## Running
-
-### 1. Start the game server
-
-```bash
+# Terminal 1 — start the game server
 npm run start-server
-```
 
-This launches the Deepstream server (default port `6020`) with the game manager that handles player connections, team assignments, game state, flag events, and position broadcasting. Config is in `server/config/config.yaml`.
-
-### 2. Start the client
-
-**Development** (with hot reload):
-
-```bash
+# Terminal 2 — start the client (dev mode with hot reload)
 npm run dev
 ```
 
-Opens at `http://localhost:3000`.
-
-**Production**:
-
-```bash
-npm run build
-```
-
-Built files go to `dist/`. Serve them with any static server (nginx, `npx http-server dist`, etc.).
-
-### Connecting to a remote server
-
-Pass the server IP as a query parameter:
+Opens at `http://localhost:3000`. To connect to a remote server:
 
 ```
 http://localhost:3000/?server=YOUR_SERVER_IP
 ```
 
+### Production Build
+
+```bash
+npm run build
+```
+
+Built files go to `dist/`. Serve with any static server (nginx, etc.).
+
 ## Game Controls
 
-### Head Tracking (Default)
-- Move your head to control the ship's direction
-- The ship moves forward automatically
-- Look left/right to turn
-- Look up/down to change altitude
+| Control | Head Tracking | Keyboard/Mouse |
+|---|---|---|
+| Steer | Tilt/turn your head | Arrow keys or WASD |
+| Look around | Move your head | Mouse |
+| Movement | Automatic forward flight | Automatic forward flight |
 
-### Keyboard (Fallback)
-- Arrow keys or WASD for movement
-- Mouse for looking around
+**Gameplay:** Join Red or Blue team. Fly to the enemy gate, grab their flag, bring it back to yours. Pass flags to teammates. Avoid getting shot.
 
-## Gameplay
+## Contributing
 
-1. **Join a Team** - Select Red or Blue team
-2. **Navigate** - Use head tracking or keyboard to pilot your ship
-3. **Capture the Flag** - Fly to the enemy gate and grab their flag
-4. **Return to Score** - Bring the flag back to your own gate
-5. **Pass the Flag** - Transfer the flag to nearby teammates
-6. **Avoid Getting Hit** - Enemy targeting and boundary collisions cause explosions
+Makers21 is open source and open for contributions. Some ideas:
 
-## Configuration
+- **New game modes** — deathmatch, racing, cooperative missions
+- **Input methods** — eye tracking, voice control, single-switch support
+- **Accessibility** — screen reader support, audio cues, colorblind modes
+- **Gameplay** — new weapons, power-ups, maps, ship models
+- **Infrastructure** — matchmaking, lobbies, spectator mode
 
-Game constants can be adjusted in `src/components/config.js`:
-- `SIZE` - Game area dimensions
-- `distancePerMS` - Movement speed
-- `targetLockMs` - Time to lock onto a target
-- `shootingRange` - Maximum targeting distance
+If you work with people with disabilities and want to try the game, [open an issue](https://github.com/orbs-network/makers21/issues) — we'd love to hear from you.
+
+## Tech Stack
+
+| Component | Technology |
+|---|---|
+| 3D Engine | Three.js |
+| Face Tracking | MediaPipe Face Mesh |
+| Multiplayer | Deepstream |
+| Build System | Webpack + Babel |
+
+## Who Is This For
+
+- **Players with physical disabilities** — quadriplegia, ALS, muscular dystrophy, or any condition that limits hand use
+- **Rehabilitation centers** — a fun, social activity for patients in recovery
+- **Disability gaming organizations** — a free, open-source, zero-install game to share with your community
+- **Developers** — a starting point for building accessible multiplayer games
+- **Anyone** — it's a fun space game, head tracking or not
+
+## The Story Behind Makers21
+
+Makers21 was created by [Orbs](https://www.orbs.com/), a blockchain infrastructure company. When one of our community members had an accident that left him paralyzed, our dev team decided to build something for him — a game he could play with his friends using only his face. This is that game, and we're releasing it to the world so others in similar situations can benefit too.
 
 ## License
 
