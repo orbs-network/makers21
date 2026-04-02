@@ -313,8 +313,12 @@ class Players {
       p.exploding = false;
       p.go2Target = false;
       if (p.tidLock) {
-        clearTimeout(this.tidLock);
+        clearTimeout(p.tidLock);
         p.tidLock = 0;
+      }
+      // clear bounding sphere from previous lock-on
+      if (p.boundSphere) {
+        p.boundSphere.material.opacity = 0;
       }
       // hide from scene
       p.show(false);

@@ -137,12 +137,12 @@
   </div>
 
   <!-- Face control panel -->
-  <div id="face-panel" style="position: fixed; left: 0; bottom: 0; z-index: 20; display: none; width: 256px; overflow: hidden;">
+  <div id="face-panel" style="position: fixed; left: 0; top: 0; z-index: 20; display: none; width: 256px; overflow: hidden;">
     <div id="face-display" style="width: 256px; height: 144px; display: block;">
       <canvas id="face-canvas" style="height: 144px; width: 256px; transform: scale(-1, 1);"
         width="256" height="144"></canvas>
     </div>
-    <div style="display: flex; height: 24px; background: rgba(0,0,0,0.6); border-top: 1px solid #00FFA044; font-family: monospace; font-size: 11px;">
+    <div style="display: none; height: 24px; background: rgba(0,0,0,0.6); border-top: 1px solid #00FFA044; font-family: monospace; font-size: 11px;">
       <button id="control-toggle" style="flex: 1; background: none; border: none; color: #00FFA0; cursor: pointer;" title="Press M to toggle">🖱 Mouse [M]</button>
       <button id="face-toggle" style="padding: 0 8px; background: none; border: none; border-left: 1px solid #00FFA044; color: #00FFA0; cursor: pointer;" title="Press S to toggle">Hide [S]</button>
     </div>
@@ -155,7 +155,7 @@
   <audio id="success" preload="auto">
     <source src="assets/sounds/sound/success.wav" type="audio/wav">
   </audio>
-  <audio id="wrong" preload="auto">
+  <audio id="wrong" preload="auto" dur="0.3">
     <source src="assets/sounds/sound/wrong.mp3" type="audio/mpeg">
   </audio>
   <audio id="laser" preload="auto">

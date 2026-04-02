@@ -224,15 +224,30 @@ class Game /*extends THREE.EventDispatcher*/ {
             }
         }
 
-        // Hide/show face canvas button
+        // S key: toggle face view AND control mode together
+        // Showing face = face steering, hiding face = mouse steering
+        const self = this;
+        const toggleFaceAndControls = async () => {
+            // Initialize face tracking if not loaded
+            if (!self.face) {
+                self.face = new Face();
+                await self.face.startCamera();
+            }
+            const faceDisplay = document.getElementById('face-display');
+            const wantFace = faceDisplay && faceDisplay.style.display === 'none';
+            // Switch control mode to match
+            if (wantFace && !self.useNeck) {
+                self.toggleControls();
+            } else if (!wantFace && self.useNeck) {
+                self.toggleControls();
+            }
+        };
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyS') toggleFaceAndControls();
+        });
         const faceToggle = document.getElementById('face-toggle');
         if (faceToggle) {
-            faceToggle.addEventListener('click', () => {
-                const faceDisplay = document.getElementById('face-display');
-                const hidden = faceDisplay.style.display === 'none';
-                faceDisplay.style.display = hidden ? 'block' : 'none';
-                faceToggle.textContent = hidden ? 'Hide [S]' : 'Show [S]';
-            });
+            faceToggle.addEventListener('click', toggleFaceAndControls);
         }
 
         // Control toggle button (mouse/face)
@@ -308,6 +323,9 @@ class Game /*extends THREE.EventDispatcher*/ {
             } else {
                 this.controls = new THREE.FirstPersonControls(this.world.camera, this.world.renderer.domElement);
             }
+            // Disable WASD movement — we only use auto-forward and mouse/face look
+            this.controls.onKeyDown = () => {};
+            this.controls.onKeyUp = () => {};
             this.controls.activeLook = true;
             this.controls.movementSpeed = config.distancePerMS;
             this.controls.constrainVertical = true;
@@ -458,6 +476,8 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     onGameOver() {
+        this.clearPersistentMsg();
+        this.setGameMsg('');
         this.ui.showGameOver(this.mngrState.winnerNick, this.mngrState.winnerIsRed);
         if (this.world.shooting) {
             this.world.shooting.hud.visible = false;
@@ -627,6 +647,13 @@ class Game /*extends THREE.EventDispatcher*/ {
             this.stopAudio(id);
             const begin = sound.getAttribute('begin');
             sound.currentTime = begin ? parseFloat(begin) : 0;
+
+            // Auto-stop after 'dur' attribute (seconds) if set
+            const dur = sound.getAttribute('dur');
+            if (dur) {
+                const ms = parseFloat(dur) * 1000;
+                setTimeout(() => this.stopAudio(id), ms);
+            }
 
             let prms = sound.play().catch(() => {});
             if (cb) {
@@ -1007,10 +1034,6 @@ class Game /*extends THREE.EventDispatcher*/ {
                 this.toggleControls();
                 break;
             case "KeyS":
-                if (this.useNeck) {
-                    const faceToggle = document.getElementById('face-toggle');
-                    if (faceToggle) faceToggle.click();
-                }
                 break;
 
         }
