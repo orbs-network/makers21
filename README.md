@@ -54,7 +54,7 @@ npm run start-server
 npm run dev
 ```
 
-Opens at `http://localhost:3000`. To connect to a remote server:
+Opens at `http://localhost:3000`. The game server runs on port **6020** by default. To connect to a remote server:
 
 ```
 http://localhost:3000/?server=YOUR_SERVER_IP
@@ -76,7 +76,11 @@ Built files go to `dist/`. Serve with any static server (nginx, etc.).
 | Look around | Move your head | Mouse |
 | Movement | Automatic forward flight | Automatic forward flight |
 
+| Toggle face/mouse | **S** | **S** |
+
 **Gameplay:** Join Red or Blue team. Fly to the enemy gate, grab their flag, bring it back to yours. Pass flags to teammates. Avoid getting shot.
+
+> **Tip:** Press **S** to toggle between face tracking and mouse control. Useful for development and debugging without a webcam.
 
 ## Contributing
 
@@ -109,7 +113,16 @@ If you work with people with disabilities and want to try the game, [open an iss
 
 ## The Story Behind Makers21
 
-Makers21 was created by [Orbs](https://www.orbs.com/), a blockchain infrastructure company. When one of our community members had an accident that left him paralyzed, our dev team decided to build something for him — a game he could play with his friends using only his face. This is that game, and we're releasing it to the world so others in similar situations can benefit too.
+[Orbs](https://www.orbs.com/) has always believed in using technology for good. In 2021, we entered **Makers for Heroes** — a contest dedicated to building products for people with disabilities. A member of our community, an avid gamer, had been in an accident that left him paralyzed. He could only move his neck and face. We wanted to build something that would let him play with his friends again — not with a handicap, but as an equal.
+
+The result was Makers21: a multiplayer capture-the-flag space game controlled entirely by webcam head tracking. **The project won first place in its category.** We're now releasing it to the world as open source so others in similar situations can benefit too.
+
+## Credits
+
+- [@talkol](https://github.com/talkol) — Orbs CTO, came up with the idea to use face tracking and the webcam for game control
+- [@degeneddy](https://github.com/degeneddy) — Transformed the game from a simple mesh 3D prototype into a full space scene with spaceships, planets, and mountains
+- [@doronaviguy](https://github.com/doronaviguy) — Built the multiplayer server infrastructure
+- Everyone at [Orbs](https://www.orbs.com/) who made this possible
 
 ## License
 

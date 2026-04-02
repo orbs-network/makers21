@@ -272,7 +272,8 @@ class Player {
     const playerLabelDiv = document.createElement('div');
     playerLabelDiv.className = 'player-label';
     playerLabelDiv.textContent = nick || "WHO DIS?";
-    playerLabelDiv.style.color = isRed ? '#F00' : '#00F';
+    playerLabelDiv.style.color = isRed ? '#F00' : '#3366FF';
+    playerLabelDiv.style.textShadow = '0 0 7px #000';
     this.playerLabelDiv = playerLabelDiv;
     this.playerLabelObj = new THREE.CSS2DObject(playerLabelDiv);
     this.playerLabelObj.position.set(0, 0, 0);
