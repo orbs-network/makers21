@@ -273,9 +273,21 @@ class Player {
     playerLabelDiv.className = 'player-label';
     playerLabelDiv.textContent = nick || "WHO DIS?";
     playerLabelDiv.style.color = isRed ? '#F00' : '#00F';
+    this.playerLabelDiv = playerLabelDiv;
     this.playerLabelObj = new THREE.CSS2DObject(playerLabelDiv);
     this.playerLabelObj.position.set(0, 0, 0);
     this.obj.add(this.playerLabelObj);
+  }
+  //////////////////////////////////////////////////////////
+  showFlagIcon(flagColor) {
+    // flagColor: 'red', 'blue', or null to hide
+    if (!this.playerLabelDiv) return;
+    if (flagColor) {
+      const color = flagColor === 'red' ? '#F00' : '#00F';
+      this.playerLabelDiv.innerHTML = `<span style="color:${color}">&#9873;</span> ${this.nick}`;
+    } else {
+      this.playerLabelDiv.textContent = this.nick;
+    }
   }
 }
 
@@ -362,6 +374,19 @@ class Players {
   update(delta) {
     for (let nick in this.dict) {
       this.dict[nick].update(delta);
+    }
+  }
+  //////////////////////////////////////////////////////////
+  updateFlagIcons(redHolder, blueHolder) {
+    for (const nick in this.dict) {
+      const p = this.dict[nick];
+      if (nick === redHolder) {
+        p.showFlagIcon('red');
+      } else if (nick === blueHolder) {
+        p.showFlagIcon('blue');
+      } else {
+        p.showFlagIcon(null);
+      }
     }
   }
   //////////////////////////////////////////////////////////

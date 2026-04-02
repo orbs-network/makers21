@@ -733,6 +733,9 @@ class World {
             this.attachFlagToHolderOrGate(mngrState.redHolder, true);
             this.attachFlagToHolderOrGate(mngrState.blueHolder, false);
         }
+
+        // Update flag icons on player labels
+        this.players.updateFlagIcons(mngrState.redHolder, mngrState.blueHolder);
     }
 
     //////////////////////////////////////////////////////////
