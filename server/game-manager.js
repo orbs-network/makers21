@@ -1,4 +1,5 @@
 const dummyInterval = 1000;
+const MAX_TEAM_SIZE = 6;
 class GameManager /*extends THREE.EventDispatcher*/ {
     //////////////////////////////////////////////////////////
     constructor(deepStream){
@@ -216,6 +217,11 @@ class GameManager /*extends THREE.EventDispatcher*/ {
       // add to team
       let add = data.isRed? this.state.red : this.state.blue;
       let rmv = data.isRed? this.state.blue : this.state.red;
+      // check team size limit
+      if(add.length >= MAX_TEAM_SIZE){
+        res.send(`Team is full (max ${MAX_TEAM_SIZE} players)`);
+        return;
+      }
       // add nick
       if(!add.includes(data.nick)){
         add.push(data.nick);

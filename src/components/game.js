@@ -141,6 +141,13 @@ class Game /*extends THREE.EventDispatcher*/ {
     async onJoin() {
         // save current local state
         this.saveLocalState();
+        // check team size limit before sending RPC
+        const MAX_TEAM_SIZE = 6;
+        const team = this.localState.isRed ? this.managerState.red : this.managerState.blue;
+        if (team && team.length >= MAX_TEAM_SIZE) {
+            this.setGameMsg(`Team is full (max ${MAX_TEAM_SIZE} players)`);
+            return;
+        }
         try {
             const result = await this.network.join(this.localState.nick, this.localState.isRed);
             if (result !== 'ok') {

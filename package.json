@@ -7,6 +7,7 @@
     "dev": "webpack serve --mode development",
     "build": "webpack --mode production",
     "start-server": "DEEPSTREAM_CONFIG_DIRECTORY=./server/config/config.yaml node ./server/index.js",
+    "npc-gen": "node ./server/npc-gen.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.js\"",
