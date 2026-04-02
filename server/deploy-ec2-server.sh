@@ -5,8 +5,8 @@ INSTANCE_NAME="makers26"
 REGION="eu-central-1"
 INSTANCE_TYPE="t3.micro"
 DISK_SIZE=32
-KEY_NAME="OrbsSharedSSH"
-SSH_PUB_KEY_PATH="$HOME/.ssh/OrbsSharedSSH.pub"
+KEY_NAME="YOUR_SSH_KEY_NAME"
+SSH_PUB_KEY_PATH="$HOME/.ssh/YOUR_SSH_KEY.pub"
 AMI_ID="" # resolved below
 
 # Ubuntu 22.04 LTS AMI (latest, x86_64) in eu-central-1
@@ -160,7 +160,7 @@ echo "  Public IP:      $PUBLIC_IP"
 echo "  Region:         $REGION"
 echo "============================================"
 echo ""
-echo "SSH:  ssh -i ~/.ssh/OrbsSharedSSH ubuntu@$PUBLIC_IP"
+echo "SSH:  ssh -i ~/.ssh/$KEY_NAME ubuntu@$PUBLIC_IP"
 echo ""
 echo "Ports open:"
 echo "  22   - SSH"
