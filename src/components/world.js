@@ -210,7 +210,6 @@ class World {
 
         if (!this.simpleRendering) {
 
-            // Deddy
             this.createSpace();
         }
     }
@@ -546,7 +545,7 @@ class World {
     }
 
     ////////////////////////////////////////////////////////
-    // AMI rename to also obstacles
+    // TODO: rename to also check obstacles
     checkGateCollision() {
         // calculate objects intersecting the picking ray
         // false- non recursive to avoid coliding with internal sphere

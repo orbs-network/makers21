@@ -136,7 +136,7 @@ INSTANCE_ID=$(aws ec2 run-instances \
   --security-group-ids "$SG_ID" \
   --block-device-mappings "DeviceName=/dev/xvda,Ebs={VolumeSize=$DISK_SIZE,VolumeType=gp3}" \
   --user-data "$USER_DATA" \
-  --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$INSTANCE_NAME},{Key=owner,Value=yuval},{Key=description,Value=makers re-launch}]" \
+  --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$INSTANCE_NAME},{Key=owner,Value=orbs},{Key=description,Value=makers re-launch}]" \
   --query 'Instances[0].InstanceId' \
   --output text)
 

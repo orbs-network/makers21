@@ -172,7 +172,7 @@ class GameManager /*extends THREE.EventDispatcher*/ {
         res.send('Sorry, game already started!');
         return;
       }
-      // AMI create obstacles here and return
+      // TODO: create obstacles here and return
 
       res.send('ok');
 
