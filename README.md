@@ -115,6 +115,8 @@ If you work with people with disabilities and want to try the game, [open an iss
 
 ## The Story Behind Makers21
 
+![Winners](winners.jpeg)
+
 [Orbs](https://www.orbs.com/) has always believed in using technology for good. In 2021, we entered **Makers for Heroes** — a contest dedicated to building products for people with disabilities. A member of our community, an avid gamer, had been in an accident that left him paralyzed. He could only move his neck and face. We wanted to build something that would let him play with his friends again — not with a handicap, but as an equal.
 
 The result was Makers21: a multiplayer capture-the-flag space game controlled entirely by webcam head tracking. **The project won first place in its category.** We're now releasing it to the world as open source so others in similar situations can benefit too.
