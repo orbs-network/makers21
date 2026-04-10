@@ -236,11 +236,16 @@ class Player {
     let sound = this.obj.getObjectByName('laser_up.wav');
     if (sound) try { sound.play(); } catch (e) { }
 
-    // timer for lock off
+    // auto-hide sphere after lock timeout (safety net)
+    if (this.tidLock) clearTimeout(this.tidLock);
     this.tidLock = setTimeout(() => {
       this.onLockOff(data, target);
+      // hide sphere on the target being locked onto
+      if (target && target.boundSphere) {
+        target.showBoundingSphere(false);
+      }
       this.tidLock = 0;
-    }, config.targetLockMs)
+    }, config.targetLockMs + 500) // slightly longer than lock duration
 
   }
   //////////////////////////////////////////////////////////
@@ -248,6 +253,10 @@ class Player {
     // play already installed sound
     let sound = this.obj.getObjectByName('laser_down.wav');
     if (sound) try { sound.play(); } catch (e) { }
+    // hide sphere on target
+    if (target && target.boundSphere) {
+      target.showBoundingSphere(false);
+    }
   }
   //////////////////////////////////////////////////////////
   onLock(data, target) {
