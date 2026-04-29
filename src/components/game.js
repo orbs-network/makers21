@@ -60,19 +60,6 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.tsRender = Date.now();
     }
 
-    //////////////////////////////////////////////////////////
-    loadLocalState() {
-        // State is loaded by GameState constructor
-        this.state.loadLocal();
-    }
-
-    //////////////////////////////////////////////////////////
-    saveLocalState() {
-        // update localState from UI
-        this.state.update('local.isRed', this.ui.isRedSelected());
-        // Save to localStorage
-        this.state.saveLocal();
-    }
 
     //////////////////////////////////////////////////////////
     // Async method to load face tracking (neck controls)
@@ -138,54 +125,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 
     //////////////////////////////////////////////////////////
-    async onJoin() {
-        // save current local state
-        this.saveLocalState();
-        // check team size limit before sending RPC
-        const MAX_TEAM_SIZE = 6;
-        const team = this.localState.isRed ? this.mngrState?.red : this.mngrState?.blue;
-        if (team && team.length >= MAX_TEAM_SIZE) {
-            this.setGameMsg(`Team is full (max ${MAX_TEAM_SIZE} players)`);
-            return;
-        }
-        try {
-            const result = await this.network.join(this.localState.nick, this.localState.isRed);
-            if (result !== 'ok') {
-                this.setGameMsg('join: ' + result);
-            }
-        } catch (error) {
-            this.onError(error);
-        }
-        // update world
-        this.world.setNick(this.localState.nick);
-        this.world.setTeamPos(this.localState.isRed);
-    }
-
-    //////////////////////////////////////////////////////////
-    async onLeave() {
-        // save current local state
-        this.saveLocalState();
-        try {
-            const result = await this.network.leave(this.localState.nick, this.localState.isRed);
-            if (result !== 'ok') {
-                this.setGameMsg('leave: ' + result);
-            }
-        } catch (error) {
-            this.onError(error);
-        }
-    }
-
-    //////////////////////////////////////////////////////////
-    async onStart() {
-        this.ui.showRequestStart();
-        try {
-            await this.network.start(this.localState.nick);
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    //////////////////////////////////////////////////////////
     async onReset() {
         try {
             await this.network.reset(this.localState.nick);
@@ -196,22 +135,11 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     uxInit() {
-        // Initialize UI with event handlers
+        // Initialize in-game UI handlers (lobby is in lobby.html — separate page)
         this.ui.init({
-            onJoin: this.onJoin.bind(this),
-            onLeave: this.onLeave.bind(this),
-            onStart: this.onStart.bind(this),
             onReset: this.onReset.bind(this),
             onKeydown: this.keydown.bind(this),
-            onNickChange: (value) => {
-                if (value.length > 2) {
-                    this.localState.nick = value;
-                    this.saveLocalState();
-                }
-            },
         });
-        // Set initial input values
-        this.setInputs();
 
         // Show face control panel (toolbar always visible for toggle)
         const facePanel = document.getElementById('face-panel');
@@ -385,11 +313,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 
     //////////////////////////////////////////////////////////
-    setInputs() {
-        this.ui.setInputs(this.localState.nick, this.localState.isRed);
-    }
-
-    //////////////////////////////////////////////////////////
     setGameMsg(html) {
         this.ui.setGameMsg(html);
     }
@@ -499,97 +422,54 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     onMngrState(state) {
-        this.tellingGatePass = false; //- must have been finished
+        this.tellingGatePass = false;
 
-        // store
         this.mngrState = state;
-        // to add dummies during game
         this.world.setPlayerTeams(state.red, state.blue);
 
-        // reset from mngr
+        // host reset triggered from server (returns to lobby)
         if (state.needReset) {
-            this.resetAll();
-            this.ui.showWelcome();
+            window.location.href = `/?room=${this.roomId || ''}`;
+            return;
         }
 
-        const joined = this.isJoined();
-        // update players module - to avoid events
-        this.world.players.gameJoined = joined;
+        // user is always joined here (lobby ensured team selection before redirect)
+        this.world.players.gameJoined = true;
 
-
-        // online status
-        this.ui.setOnlineStatus("connected!");
-
-        //////////////////////////////////////////////////////////
-        // game you have joined - is WON
-        if (joined && state.winnerNick) {
+        // game won
+        if (state.winnerNick) {
             this.onGameOver();
             return;
         }
         this.ui.hideGameOver();
 
-        //////////////////////////////////////////////////////////
-        // game already started
+        // game in progress (always — server starts engine before redirect)
         if (state.started) {
-            // first means hasnt moved, after reload
-            if (joined) {
-                if (this.first) {
-                    // return/start game
-                    this.onGameStarted();
-                } else {
-                    // Ongoing game update (not first since reload)
+            if (this.first) {
+                this.onGameStarted();
+            } else {
+                // Ongoing game update
+                const holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
+                this.world.setFlagHolders(holdingFlag, this.localState, this.mngrState);
 
-                    // Handle Flags
-                    const holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
-
-                    this.world.setFlagHolders(holdingFlag, this.localState, this.mngrState);
-
-                    // play success if it was flag got captured
-                    if (holdingFlag && !this.holdingFlag) {
-                        // SUCCESS - you are the holder of the flag
-                        this.setPersistentMsg('Return the flag to your home gate');
-                        this.playAudio('success');
-                    } else if (!holdingFlag && this.holdingFlag) {
-                        // Flag was passed to a teammate (not dropped — drop happens in explode)
-                        const newHolder = this.localState.isRed ? this.mngrState.blueHolder : this.mngrState.redHolder;
-                        if (newHolder && !this.exploding) {
-                            this.setGameMsg(`Flag passed to ${newHolder}`);
-                        }
-                        this.clearPersistentMsg();
+                if (holdingFlag && !this.holdingFlag) {
+                    this.setPersistentMsg('Return the flag to your home gate');
+                    this.playAudio('success');
+                } else if (!holdingFlag && this.holdingFlag) {
+                    const newHolder = this.localState.isRed ? this.mngrState.blueHolder : this.mngrState.redHolder;
+                    if (newHolder && !this.exploding) {
+                        this.setGameMsg(`Flag passed to ${newHolder}`);
                     }
-                    this.holdingFlag = holdingFlag;
+                    this.clearPersistentMsg();
+                }
+                this.holdingFlag = holdingFlag;
 
-                    // drop flag if exploding during this update from nanager
-                    if (this.exploding) {
-                        this.setGameMsg('Flag was dropped during explosion');
-                        this.tellDropFlag();
-                    }
+                if (this.exploding) {
+                    this.setGameMsg('Flag was dropped during explosion');
+                    this.tellDropFlag();
                 }
             }
-            // game started but not joined
-            else {
-                this.ui.showWaitingForNextGame();
-            }
-            return;
         }
-
-        // Show lobby state
-        this.ui.showLobby({
-            ready: state.ready,
-            red: state.red,
-            blue: state.blue,
-            joined: joined,
-            localNick: this.localState.nick,
-            localIsRed: this.localState.isRed,
-        });
-
-        if (!joined) {
-            // neutral position
-            this.world.setTeamPos(null);
-            return;
-        }
-        // world team (on load after joined)
-        this.world.setTeamPos(this.localState.isRed);
     }
 
     //////////////////////////////////////////////////////////

@@ -55,57 +55,6 @@
 
   <!-- Server dialog removed — lobby handles room selection now -->
 
-  <!-- Welcome screen -->
-  <div id="welcome" style="display: none;">
-    <h1>Makers2021 Welcome</h1>
-    <div id="online">Please wait...</div>
-    <div id="started"></div>
-
-    <!-- Teams display -->
-    <div id="teams" style="display:none;">
-      <div class="red"><span>Red team: </span><span id="red-team"></span></div>
-      <div class="blue"><span>Blue team: </span><span id="blue-team"></span></div>
-    </div>
-
-    <!-- User inputs -->
-    <div id="inputs" style="display:none">
-      <label for="nick">Nickname:</label>
-      <input type="text" id="nick" name="nick"><br><br>
-
-      <!-- Team selection -->
-      <div id="choose-team" class="disabled">
-        <div>Choose team:</div>
-        <div class="team-label">
-          <input type="radio" id="red" name="team" value="red" checked>
-          <label for="team" class="red">RED</label>
-        </div>
-        <div class="team-label">
-          <input type="radio" id="blue" name="team" value="blue">
-          <label for="team" class="blue">BLUE</label>
-        </div>
-        <input type="button" id="join" class="btn" value="Join">
-      </div>
-    </div>
-
-    <!-- Joined status -->
-    <div id="joined" style="display:none">
-      <div>
-        You are joined as <span id="nick-join"></span> to the <span id="team-join"></span> team
-      </div>
-      <input type="button" id="leave" class="btn" value="Leave">
-    </div>
-
-    <!-- Ready status -->
-    <div id="ready">
-      <div id="ready-text"></div>
-      <input type="button" id="start" class="btn" value="Start Game" style="display:none">
-      <input type="button" id="reset" class="btn" value="Reset Game" style="display:none">
-    </div>
-
-    <!-- Request start -->
-    <div id="req-start" style="display:none">Requesting start from server...</div>
-  </div>
-
   <!-- Flag holder indicator -->
   <div id="flag-holder"></div>
 
