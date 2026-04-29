@@ -23,7 +23,14 @@
   const roomNameInput = document.getElementById('room-name-input');
   const confirmCreate = document.getElementById('confirm-create');
   const cancelCreate = document.getElementById('cancel-create');
+  const trainModal = document.getElementById('train-modal');
+  const trainPickRed = document.getElementById('train-pick-red');
+  const trainPickBlue = document.getElementById('train-pick-blue');
+  const cancelTrain = document.getElementById('cancel-train');
   const toastEl = document.getElementById('toast');
+
+  // Track which room the train modal is targeting
+  let trainTargetRoomId = null;
 
   // --- state ---
   let ws = null;
@@ -108,7 +115,7 @@
     roomList.querySelectorAll('.train-room-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const card = btn.closest('.room-card');
-        trainInRoom(card.dataset.roomId);
+        openTrainModal(card.dataset.roomId);
       });
     });
     roomList.querySelectorAll('.leave-room-card-btn').forEach(btn => {
@@ -214,12 +221,16 @@
     }
   }
 
-  // --- one-click train: join room + pick team A + start training ---
-  async function trainInRoom(roomId) {
+  // --- train: join room + pick chosen team + start training ---
+  async function trainInRoom(roomId, team) {
     myNick = nickInput.value.trim();
     if (!myNick) {
       toast('Enter a callsign first');
       nickInput.focus();
+      return;
+    }
+    if (team !== 'A' && team !== 'B') {
+      toast('Pick a team first');
       return;
     }
 
@@ -228,15 +239,13 @@
         ws = await connectWS();
       }
 
-      // Wait for the room state confirming join, then pick team and start
+      // Wait for room state confirming join, then pick team and start
       const onState = (data) => {
         if (data.id !== roomId) return;
-        // already in this room — proceed with team pick
         const myPlayer = data.teamA.includes(myNick) || data.teamB.includes(myNick);
         if (!myPlayer) {
-          wsSend('pickTeam', { team: 'A' });
+          wsSend('pickTeam', { team });
         } else {
-          // team picked — start training
           ws.removeEventListener('message', stateHandler);
           wsSend('startTraining');
         }
@@ -405,6 +414,35 @@
   // --- train (solo with bots) ---
   trainBtn.addEventListener('click', () => wsSend('startTraining'));
 
+  // --- train team picker modal ---
+  function openTrainModal(roomId) {
+    if (!nickInput.value.trim()) {
+      toast('Enter a callsign first');
+      nickInput.focus();
+      return;
+    }
+    trainTargetRoomId = roomId;
+    trainModal.classList.add('open');
+  }
+  function closeTrainModal() {
+    trainModal.classList.remove('open');
+    trainTargetRoomId = null;
+  }
+  trainPickRed.addEventListener('click', () => {
+    const roomId = trainTargetRoomId;
+    closeTrainModal();
+    if (roomId) trainInRoom(roomId, 'A');
+  });
+  trainPickBlue.addEventListener('click', () => {
+    const roomId = trainTargetRoomId;
+    closeTrainModal();
+    if (roomId) trainInRoom(roomId, 'B');
+  });
+  cancelTrain.addEventListener('click', closeTrainModal);
+  trainModal.addEventListener('click', (e) => {
+    if (e.target === trainModal) closeTrainModal();
+  });
+
   // --- leave room ---
   leaveRoomBtn.addEventListener('click', () => {
     wsSend('leaveRoom');
@@ -428,8 +466,19 @@
   }
 
   // --- init ---
-  // check for ?room= param (invite link)
   const params = new URLSearchParams(location.search);
+
+  // show error message if redirected from game page (e.g. room not found)
+  const errorMsg = params.get('error');
+  if (errorMsg) {
+    setTimeout(() => toast(errorMsg), 100);
+    // strip error from URL so refresh doesn't re-show it
+    const cleanUrl = new URL(location.href);
+    cleanUrl.searchParams.delete('error');
+    window.history.replaceState({}, '', cleanUrl);
+  }
+
+  // check for ?room= param (invite link)
   const inviteRoomId = params.get('room');
 
   if (inviteRoomId) {

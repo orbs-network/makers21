@@ -68,6 +68,24 @@ class Room {
   }
 
   addPlayer(nick, ws) {
+    // Reconnect during active game: same nick rejoining after page redirect/refresh
+    const existing = this.players.get(nick);
+    if (existing && this.isLocked) {
+      // reject if someone else is already connected with this nick
+      if (existing.ws && existing.ws.readyState === 1) {
+        return { error: 'Nickname already in use' };
+      }
+      // re-attach the new WS to the existing player record (team membership preserved)
+      existing.ws = ws;
+      this.lastActivity = Date.now();
+      this.broadcast('roomState', this.toJSON());
+      // also send any active game state so the client can pick up where the game is
+      if (this.gameEngine) {
+        this.sendTo(nick, 'gameState', { type: 'state', state: this.gameEngine.state });
+      }
+      return { ok: true };
+    }
+
     if (this.isLocked) {
       return { error: 'Room is locked — game in progress' };
     }
@@ -84,7 +102,7 @@ class Room {
       sendTransport: null,
       recvTransport: null,
       dataProducer: null,
-      dataConsumers: new Map(), // producerId -> DataConsumer
+      dataConsumers: new Map(),
     });
     this.lastActivity = Date.now();
     this.broadcastExcept(nick, 'playerJoined', { nick });
@@ -94,11 +112,35 @@ class Room {
 
   removePlayer(nick) {
     const player = this.players.get(nick);
-    if (!player) return;
+    if (!player) return null;
 
-    // cleanup mediasoup transports
     this.cleanupPlayerTransports(nick);
 
+    // Active game (locked): preserve record for reconnect, UNLESS this is
+    // the last live player — in which case the game is orphaned, fully
+    // remove and signal the caller to delete the room.
+    if (this.isLocked) {
+      const anyOtherLive = Array.from(this.players.values())
+        .some(p => p !== player && p.ws && p.ws.readyState === 1);
+
+      if (!anyOtherLive) {
+        // last human gone — drop everything and have RoomManager delete the room
+        this.players.delete(nick);
+        this.lastActivity = Date.now();
+        return { shouldDelete: true };
+      }
+
+      // keep record for potential reconnect
+      player.ws = null;
+      player.sendTransport = null;
+      player.recvTransport = null;
+      player.dataProducer = null;
+      player.dataConsumers = new Map();
+      this.lastActivity = Date.now();
+      return { shouldDelete: false };
+    }
+
+    // Waiting room — full removal
     if (player.team === 'A') {
       this.teamA = this.teamA.filter(n => n !== nick);
     } else if (player.team === 'B') {
@@ -115,7 +157,7 @@ class Room {
     }
 
     this.broadcast('playerLeft', { nick });
-    return this.players.size === 0;
+    return { shouldDelete: false };
   }
 
   pickTeam(nick, team) {
@@ -577,6 +619,33 @@ class Room {
     this.broadcast('gameReset', {});
     this.broadcast('roomState', this.toJSON());
     return { ok: true };
+  }
+
+  /**
+   * Tear down all resources. Called by RoomManager.deleteRoom.
+   */
+  dispose() {
+    // close any remaining player WS connections
+    for (const [, player] of this.players) {
+      this.cleanupPlayerTransports(player.nick);
+      if (player.ws && player.ws.readyState === 1) {
+        player.ws.close();
+      }
+    }
+
+    if (this.npcManager) {
+      this.npcManager.stop();
+      this.npcManager = null;
+    }
+    if (this.gameEngine) {
+      this.gameEngine.destroy();
+      this.gameEngine = null;
+    }
+    if (this.serverProducer) { this.serverProducer.close(); this.serverProducer = null; }
+    if (this.directTransport) { this.directTransport.close(); this.directTransport = null; }
+    if (this.router) { this.router.close(); this.router = null; }
+
+    this.players.clear();
   }
 
   // --- messaging (WS) ---

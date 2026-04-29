@@ -24,19 +24,25 @@ class RoomManager {
     const room = this.rooms.get(roomId);
     if (!room) return false;
 
-    // close all player connections
-    for (const [, player] of room.players) {
-      if (player.ws && player.ws.readyState === 1) {
-        player.ws.close();
-      }
-    }
-
+    room.dispose();
     this.rooms.delete(roomId);
     return true;
   }
 
   listRooms() {
     return Array.from(this.rooms.values()).map(r => r.toListJSON());
+  }
+
+  /**
+   * Find all rooms (excluding the optional skipRoomId) that have this nick.
+   */
+  findRoomsByNick(nick, skipRoomId = null) {
+    const matches = [];
+    for (const [, room] of this.rooms) {
+      if (room.id === skipRoomId) continue;
+      if (room.players.has(nick)) matches.push(room);
+    }
+    return matches;
   }
 
   cleanup() {

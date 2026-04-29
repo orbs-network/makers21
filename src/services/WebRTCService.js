@@ -278,12 +278,25 @@ class WebRTCService {
   }
 
   // --- event system ---
+  //
+  // Some events arrive before subscribers register (e.g. gameState arrives
+  // right after WS join, but game.connect() subscribes to 'mngr' only after
+  // Three.js + assets finish loading). We cache the latest value of certain
+  // events and replay them to new subscribers.
+
+  static REPLAYABLE_EVENTS = new Set(['mngr', 'roomState']);
 
   subscribe(name, handler) {
     if (!this._eventHandlers.has(name)) {
       this._eventHandlers.set(name, []);
     }
     this._eventHandlers.get(name).push(handler);
+
+    // Replay cached event if present
+    if (!this._cachedEvents) this._cachedEvents = new Map();
+    if (this._cachedEvents.has(name)) {
+      handler(this._cachedEvents.get(name));
+    }
   }
 
   unsubscribe(name, handler) {
@@ -295,6 +308,12 @@ class WebRTCService {
   }
 
   dispatchEvent(name, data) {
+    // Cache replayable events for subscribers that register later
+    if (WebRTCService.REPLAYABLE_EVENTS.has(name)) {
+      if (!this._cachedEvents) this._cachedEvents = new Map();
+      this._cachedEvents.set(name, data);
+    }
+
     const handlers = this._eventHandlers.get(name);
     if (handlers) {
       handlers.forEach(h => h(data));

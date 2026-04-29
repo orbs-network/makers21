@@ -58,6 +58,7 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.targetPos = new THREE.Vector3();
         this.direction = new THREE.Vector3();
         this.tsRender = Date.now();
+        this.gameSetupDone = false;
     }
 
 
@@ -328,6 +329,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     show321() {
+        if (this.tid321) return; // already counting down
         this.tid321 = setInterval(() => {
             const diff = this.mngrState.startTs - Date.now();
             if (diff > 0) {
@@ -353,48 +355,49 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     onGameStarted() {
+        // Always refresh team rosters (NPCs/players may have been added)
+        this.world.setPlayerTeams(this.mngrState.red, this.mngrState.blue);
+        this.world.players.started = true;
+
+        // Post-countdown setup runs ONCE per game — without this guard,
+        // every gameState event after countdown re-randomizes startLineX
+        // via setTeamPos, teleporting the camera around.
+        if (this.gameSetupDone) return;
+
         this.ui.showGameDisplay();
         if (this.world.shooting) {
             this.world.shooting.hud.visible = true;
             this.world.shooting.hudLabelObj.visible = true;
         }
 
-        // either way update whos on ehich team
-        this.world.setPlayerTeams(this.mngrState.red, this.mngrState.blue);
-        this.world.players.started = true;
-
-        // 3 2 1
+        // 3 2 1 still running — wait for it
         if (Date.now() < this.mngrState.startTs) {
-            // show countdown
             this.show321();
             return;
-        } else { // happens after Reload
-            // update world
-            this.world.setNick(this.localState.nick);
-            this.world.setTeamPos(this.localState.isRed);
-
-            this.world.resetGateRotation();
-
-            // handle Flags
-            this.holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
-            this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
-
-            // drop flag if has it after reloading
-            if (this.holdingFlag) {
-                this.tellDropFlag(this.holdingFlag);
-                this.setGameMsg('Flag was dropped during game page reload');
-            }
-
-            // start broadcast interval
-            this.startUpdateLoop(true);
-            this.startBorderLoop(true);
-
-            // to enable start stop
-            this.setGameMsg('Press Space to start!');
-
-            // start FPS loop
-            this.ui.startFPSCounter();
         }
+
+        // Countdown finished — initial player setup (runs once)
+        this.gameSetupDone = true;
+        this.world.setNick(this.localState.nick);
+        this.world.setTeamPos(this.localState.isRed);
+        this.world.resetGateRotation();
+
+        // handle Flags
+        this.holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
+        this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
+
+        // drop flag if has it after reloading
+        if (this.holdingFlag) {
+            this.tellDropFlag(this.holdingFlag);
+            this.setGameMsg('Flag was dropped during game page reload');
+        }
+
+        // start broadcast + border interval (idempotent — clears existing first)
+        this.startUpdateLoop(true);
+        this.startBorderLoop(true);
+
+        this.setGameMsg('Press Space to start!');
+        this.ui.startFPSCounter();
     }
 
     //////////////////////////////////////////////////////////
@@ -445,29 +448,32 @@ class Game /*extends THREE.EventDispatcher*/ {
 
         // game in progress (always — server starts engine before redirect)
         if (state.started) {
-            if (this.first) {
+            // First state event → run setup (countdown or initial position).
+            // Subsequent events → onGameStarted is a no-op thanks to gameSetupDone guard.
+            if (!this.gameSetupDone) {
                 this.onGameStarted();
-            } else {
-                // Ongoing game update
-                const holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
-                this.world.setFlagHolders(holdingFlag, this.localState, this.mngrState);
+                return;
+            }
 
-                if (holdingFlag && !this.holdingFlag) {
-                    this.setPersistentMsg('Return the flag to your home gate');
-                    this.playAudio('success');
-                } else if (!holdingFlag && this.holdingFlag) {
-                    const newHolder = this.localState.isRed ? this.mngrState.blueHolder : this.mngrState.redHolder;
-                    if (newHolder && !this.exploding) {
-                        this.setGameMsg(`Flag passed to ${newHolder}`);
-                    }
-                    this.clearPersistentMsg();
-                }
-                this.holdingFlag = holdingFlag;
+            // Ongoing game update — flag holder transitions
+            const holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
+            this.world.setFlagHolders(holdingFlag, this.localState, this.mngrState);
 
-                if (this.exploding) {
-                    this.setGameMsg('Flag was dropped during explosion');
-                    this.tellDropFlag();
+            if (holdingFlag && !this.holdingFlag) {
+                this.setPersistentMsg('Return the flag to your home gate');
+                this.playAudio('success');
+            } else if (!holdingFlag && this.holdingFlag) {
+                const newHolder = this.localState.isRed ? this.mngrState.blueHolder : this.mngrState.redHolder;
+                if (newHolder && !this.exploding) {
+                    this.setGameMsg(`Flag passed to ${newHolder}`);
                 }
+                this.clearPersistentMsg();
+            }
+            this.holdingFlag = holdingFlag;
+
+            if (this.exploding) {
+                this.setGameMsg('Flag was dropped during explosion');
+                this.tellDropFlag();
             }
         }
     }

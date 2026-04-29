@@ -76,6 +76,16 @@ class SignalingHandler {
       return this.send(ws, 'error', { message: 'Room not found' });
     }
 
+    // Enforce single-room-per-nick: leave any other rooms this nick is in.
+    // Triggers orphan cleanup if the human was the last live player there.
+    const otherRooms = this.roomManager.findRoomsByNick(nick, roomId);
+    for (const otherRoom of otherRooms) {
+      const result = otherRoom.removePlayer(nick);
+      if (result && result.shouldDelete) {
+        this.roomManager.deleteRoom(otherRoom.id);
+      }
+    }
+
     const result = room.addPlayer(nick, ws);
     if (result.error) {
       return this.send(ws, 'error', { message: result.error });
@@ -90,7 +100,10 @@ class SignalingHandler {
 
     const room = this.roomManager.getRoom(ws.roomId);
     if (room) {
-      room.removePlayer(ws.playerNick);
+      const result = room.removePlayer(ws.playerNick);
+      if (result && result.shouldDelete) {
+        this.roomManager.deleteRoom(room.id);
+      }
     }
 
     ws.playerNick = null;

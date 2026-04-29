@@ -157,22 +157,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadingText.textContent = `Joining room ${roomId}...`;
   loadingBar.style.width = '20%';
 
+  // Redirect back to lobby with error hint
+  function backToLobby(errorMessage) {
+    const params = new URLSearchParams();
+    if (errorMessage) params.set('error', errorMessage);
+    window.location.href = `/${params.toString() ? '?' + params.toString() : ''}`;
+  }
+
   // Connect to server via WebRTCService
   try {
     const wsUrl = getWsUrl(server);
 
-    // rtpCapabilities will be fetched after joining — for now pass null
+    // Subscribe to errors BEFORE joining so we catch room-not-found etc.
+    networkService.subscribe('error', (data) => {
+      const msg = (data && data.message) || '';
+      // Fatal join-time errors: redirect back to lobby
+      if (/room not found|room is locked|nickname already taken|room is full/i.test(msg)) {
+        backToLobby(msg);
+      }
+    });
+
     // The lobby already started the game, so gameState events will arrive via WS
     await networkService.init({
       serverUrl: wsUrl,
       roomId,
       nick,
       team,
-      rtpCapabilities: null, // will set up mediasoup after receiving router capabilities
+      rtpCapabilities: null,
     });
   } catch (err) {
-    loadingText.textContent = `Failed to connect: ${err.message}`;
-    loadingBar.style.width = '0%';
+    backToLobby(`Failed to connect: ${err.message}`);
     return;
   }
 
