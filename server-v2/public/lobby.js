@@ -18,6 +18,7 @@
   const joinTeamA = document.getElementById('join-team-a');
   const joinTeamB = document.getElementById('join-team-b');
   const startGameBtn = document.getElementById('start-game-btn');
+  const trainBtn = document.getElementById('train-btn');
   const createModal = document.getElementById('create-modal');
   const roomNameInput = document.getElementById('room-name-input');
   const confirmCreate = document.getElementById('confirm-create');
@@ -36,6 +37,7 @@
 
   nickInput.addEventListener('change', () => {
     localStorage.setItem('makers21_nick', nickInput.value.trim());
+    refreshRoomList();
   });
 
   // --- API helpers ---
@@ -71,7 +73,13 @@
       return;
     }
 
-    roomList.innerHTML = rooms.map(r => `
+    const currentNick = nickInput.value.trim();
+
+    roomList.innerHTML = rooms.map(r => {
+      const isMine = currentNick && r.hostNick === currentNick;
+      const isAlone = isMine && r.playerCount <= 1 && r.status === 'waiting';
+      const canJoin = r.status === 'waiting' && !isAlone;
+      return `
       <div class="room-card" data-room-id="${r.id}">
         <div class="room-info">
           <div class="room-name">${esc(r.name)}</div>
@@ -81,15 +89,32 @@
             <span class="status-badge status-${r.status}">${r.status}</span>
           </div>
         </div>
-        <button class="join-room-btn" ${r.status !== 'waiting' ? 'disabled' : ''}>Join</button>
+        <div class="room-card-actions">
+          <button class="join-room-btn btn-small" ${canJoin ? '' : 'disabled'}>Join</button>
+          ${isAlone ? '<button class="train-room-btn btn-small btn-primary">Train</button>' : ''}
+          ${isAlone ? '<button class="leave-room-card-btn btn-small btn-danger">Leave</button>' : ''}
+        </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
-    // bind join buttons
+    // bind action buttons
     roomList.querySelectorAll('.join-room-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const card = btn.closest('.room-card');
         joinRoom(card.dataset.roomId);
+      });
+    });
+    roomList.querySelectorAll('.train-room-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const card = btn.closest('.room-card');
+        trainInRoom(card.dataset.roomId);
+      });
+    });
+    roomList.querySelectorAll('.leave-room-card-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const card = btn.closest('.room-card');
+        deleteRoom(card.dataset.roomId);
       });
     });
   }
@@ -189,6 +214,67 @@
     }
   }
 
+  // --- one-click train: join room + pick team A + start training ---
+  async function trainInRoom(roomId) {
+    myNick = nickInput.value.trim();
+    if (!myNick) {
+      toast('Enter a callsign first');
+      nickInput.focus();
+      return;
+    }
+
+    try {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        ws = await connectWS();
+      }
+
+      // Wait for the room state confirming join, then pick team and start
+      const onState = (data) => {
+        if (data.id !== roomId) return;
+        // already in this room — proceed with team pick
+        const myPlayer = data.teamA.includes(myNick) || data.teamB.includes(myNick);
+        if (!myPlayer) {
+          wsSend('pickTeam', { team: 'A' });
+        } else {
+          // team picked — start training
+          ws.removeEventListener('message', stateHandler);
+          wsSend('startTraining');
+        }
+      };
+      const stateHandler = (ev) => {
+        const msg = JSON.parse(ev.data);
+        if (msg.type === 'roomState') onState(msg.data);
+      };
+      ws.addEventListener('message', stateHandler);
+
+      wsSend('joinRoom', { roomId, nick: myNick });
+      stopPolling();
+    } catch (e) {
+      toast('Failed to start training');
+    }
+  }
+
+  // --- delete a room (host only) ---
+  async function deleteRoom(roomId) {
+    const hostNick = nickInput.value.trim();
+    try {
+      const res = await fetch(`${API}/${roomId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hostNick }),
+      });
+      const result = await res.json();
+      if (result.error) {
+        toast(result.error);
+      } else {
+        toast('Room deleted');
+        refreshRoomList();
+      }
+    } catch (e) {
+      toast('Failed to delete room');
+    }
+  }
+
   // --- room view rendering ---
   function renderRoomView() {
     if (!currentRoom) return;
@@ -208,6 +294,11 @@
     const canStart = currentRoom.teamA.length > 0 && currentRoom.teamB.length > 0;
     startGameBtn.style.display = isHost ? '' : 'none';
     startGameBtn.disabled = !canStart;
+
+    // show/hide train button (host only, solo only, must have picked a team)
+    const hasPickedTeam = currentRoom.teamA.includes(myNick) || currentRoom.teamB.includes(myNick);
+    trainBtn.style.display = isHost ? '' : 'none';
+    trainBtn.disabled = currentRoom.playerCount > 1 || !hasPickedTeam;
 
     // bind kick buttons for host
     if (isHost) {
@@ -240,14 +331,14 @@
 
   // --- view switching ---
   function showBrowser() {
-    roomBrowser.style.display = '';
+    roomBrowser.style.display = 'block';
     roomView.style.display = 'none';
     startPolling();
   }
 
   function showRoom() {
     roomBrowser.style.display = 'none';
-    roomView.style.display = '';
+    roomView.style.display = 'block';
   }
 
   // --- toast ---
@@ -310,6 +401,9 @@
 
   // --- start game ---
   startGameBtn.addEventListener('click', () => wsSend('startGame'));
+
+  // --- train (solo with bots) ---
+  trainBtn.addEventListener('click', () => wsSend('startTraining'));
 
   // --- leave room ---
   leaveRoomBtn.addEventListener('click', () => {

@@ -38,6 +38,8 @@ class SignalingHandler {
         return this.onKickPlayer(ws, data);
       case 'startGame':
         return this.onStartGame(ws);
+      case 'startTraining':
+        return this.onStartTraining(ws);
       case 'resetGame':
         return this.onResetGame(ws);
       case 'gameCommand':
@@ -120,6 +122,16 @@ class SignalingHandler {
     if (!room) return;
 
     const result = await room.startGame(ws.playerNick);
+    if (result.error) {
+      return this.send(ws, 'error', { message: result.error });
+    }
+  }
+
+  async onStartTraining(ws) {
+    const room = this.getPlayerRoom(ws);
+    if (!room) return;
+
+    const result = await room.startTraining(ws.playerNick);
     if (result.error) {
       return this.send(ws, 'error', { message: result.error });
     }

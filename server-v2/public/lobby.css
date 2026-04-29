@@ -193,6 +193,12 @@ button:disabled {
   border-color: rgba(100,140,255,0.3);
 }
 
+.room-card-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .room-info {
   flex: 1;
 }

@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const config = require('../config');
 const GameEngine = require('./GameEngine');
+const NPCManager = require('./NPCManager');
 
 const Status = {
   WAITING: 'waiting',
@@ -22,6 +23,7 @@ class Room {
     this.createdAt = Date.now();
     this.lastActivity = Date.now();
     this.gameEngine = null;
+    this.npcManager = null;
 
     // mediasoup
     this.router = null;
@@ -56,6 +58,8 @@ class Room {
       id: this.id,
       name: this.name,
       status: this.status,
+      hostNick: this.hostNick,
+      players: Array.from(this.players.keys()),
       playerCount: this.playerCount,
       teamACount: this.teamA.length,
       teamBCount: this.teamB.length,
@@ -247,6 +251,89 @@ class Room {
     return { ok: true };
   }
 
+  async startTraining(requesterNick) {
+    if (requesterNick !== this.hostNick) {
+      return { error: 'Only the host can start training' };
+    }
+    if (this.status !== Status.WAITING) {
+      return { error: 'Game already started' };
+    }
+    if (this.players.size > 1) {
+      return { error: 'Training mode is solo only' };
+    }
+
+    // find the human's team
+    const human = this.players.get(requesterNick);
+    if (!human || !human.team) {
+      return { error: 'Pick a team first' };
+    }
+
+    this.status = Status.STARTING;
+
+    // spawn NPCs
+    this.npcManager = new NPCManager(this);
+    const npcTeams = this.npcManager.spawnForTraining(human.team);
+
+    // add NPC nicks to team rosters
+    this.teamA.push(...npcTeams.teamA);
+    this.teamB.push(...npcTeams.teamB);
+
+    // create mediasoup Router
+    try {
+      this.router = await this.mediasoupManager.createRouter();
+      this.directTransport = await this.mediasoupManager.createDirectTransport(this.router);
+      this.serverProducer = await this.directTransport.produceData({
+        label: 'gameState',
+        protocol: 'json',
+      });
+    } catch (err) {
+      console.error(`Room ${this.id}: failed to create mediasoup Router:`, err);
+      this.npcManager.stop();
+      this.npcManager = null;
+      this.status = Status.WAITING;
+      return { error: 'Failed to initialize game transport' };
+    }
+
+    // create game engine with NPC flag sync
+    this.gameEngine = new GameEngine((stateMsg) => {
+      this.broadcastGameState(stateMsg);
+      this.broadcast('gameState', stateMsg);
+
+      // sync NPC flag holding state
+      if (stateMsg.state && this.npcManager) {
+        this.npcManager.syncFlagState(stateMsg.state);
+      }
+
+      if (stateMsg.state && stateMsg.state.winnerNick) {
+        this.status = Status.FINISHED;
+      }
+    });
+
+    // register all players (human + NPCs) in game engine
+    for (const nick of this.teamA) {
+      this.gameEngine.onJoin(nick, true);
+    }
+    for (const nick of this.teamB) {
+      this.gameEngine.onJoin(nick, false);
+    }
+
+    this.gameEngine.onStart(requesterNick);
+
+    // start NPC movement (respects countdown)
+    this.npcManager.start(this.gameEngine.state.startTs);
+
+    // notify human to redirect
+    this.sendTo(requesterNick, 'gameStarting', {
+      roomId: this.id,
+      team: human.team,
+      nick: requesterNick,
+      rtpCapabilities: this.router.rtpCapabilities,
+    });
+
+    this.status = Status.PLAYING;
+    return { ok: true };
+  }
+
   // --- mediasoup transport management ---
 
   async createTransport(nick, direction) {
@@ -427,6 +514,10 @@ class Room {
           data: data.data,
           targetNick: data.targetNick,
         });
+        // handle NPC being shot
+        if (this.npcManager && data.targetNick) {
+          this.npcManager.onFireEvent(data.targetNick);
+        }
         return { ok: true };
       case 'playerExplode':
         this.broadcastExcept(nick, 'playerEvent', {
@@ -461,6 +552,11 @@ class Room {
       this.cleanupPlayerTransports(nick);
     }
     if (this.router) { this.router.close(); this.router = null; }
+
+    if (this.npcManager) {
+      this.npcManager.stop();
+      this.npcManager = null;
+    }
 
     if (this.gameEngine) {
       this.gameEngine.destroy();
