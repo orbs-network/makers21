@@ -29,37 +29,74 @@ Makers21 takes a different approach: **the game itself is the adaptive controlle
 
 ## How It Works
 
-Your webcam feeds into [MediaPipe Face Mesh](https://google.github.io/mediapipe/solutions/face_mesh.html), which tracks 468 facial landmarks in real time. Head tilt and rotation map to ship controls — look left to turn left, look up to climb. The game runs on [Three.js](https://threejs.org/) with a [Deepstream](https://deepstream.io/) server syncing all players in real time.
+Your webcam feeds into [MediaPipe Face Mesh](https://google.github.io/mediapipe/solutions/face_mesh.html), which tracks 468 facial landmarks in real time. Head tilt and rotation map to ship controls — look left to turn left, look up to climb. The game runs on [Three.js](https://threejs.org/) with a WebRTC-based server (mediasoup SFU) for low-latency multiplayer.
 
 No data leaves your machine — the video stays local, only control signals are sent to the game.
+
+## Rooms & Lobby
+
+Makers21 uses a lobby system where players create and join rooms before a game starts.
+
+**Lobby** — A lightweight landing page (no 3D, no camera) served at the root URL:
+- Browse active rooms with player counts and team balance
+- Create a room and share the invite link with friends
+- Join a room, pick Team Alpha or Team Bravo (up to 6 per team)
+- Host starts the game — all players are redirected to the 3D game page
+
+**Invite links** — Click "Copy" to get a shareable link (e.g. `https://your-server.com?room=abc123`). Send it over Discord, WhatsApp, or any IM. Friends click the link and land directly in the room.
+
+**Room lifecycle:**
+- Rooms lock when the game starts — no mid-game joining
+- The room host can kick players and start/reset the game
+- Empty rooms are automatically cleaned up after 5 minutes
+
+## Architecture
+
+```
+Browser (lobby)  ──HTTP/WS──>  Server (rooms, signaling, game logic)
+Browser (game)   ──WebRTC───>  mediasoup SFU  ──WebRTC──>  other players
+```
+
+- **Lobby & signaling** — Express HTTP for room CRUD, WebSocket for real-time lobby events and WebRTC negotiation
+- **Game data** — [mediasoup](https://mediasoup.org/) SFU relays position, fire, and game state via WebRTC data channels (UDP-like, unreliable/unordered — no head-of-line blocking)
+- **Game logic** — Server-side game engine per room handles flag capture, gate passes, win conditions, and disconnect detection
+- **Face tracking** — MediaPipe runs client-side; only control signals leave the browser
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (v14+)
+- Node.js v20+ (server-v2 requires it for mediasoup)
 - npm
 - A webcam (or use mouse+keyboard fallback)
-- Modern browser with WebGL support
+- Modern browser with WebGL and WebRTC support
 
 ### Install and Run
 
 ```bash
 git clone https://github.com/orbs-network/makers21.git
 cd makers21
+
+# Build the game client
 npm install
+npm run build
 
-# Terminal 1 — start the game server
-npm run start-server
-
-# Terminal 2 — start the client (dev mode with hot reload)
-npm run dev
+# Start the server (serves both lobby and game)
+cd server-v2
+npm install
+node index.js
 ```
 
-Opens at `http://localhost:3000`. The game server runs on port **6020** by default. To connect to a remote server:
+Open `http://localhost:4000` — you'll land on the lobby. Create a room, pick a team, and start the game.
 
-```
-http://localhost:3000/?server=YOUR_SERVER_IP
+### Development
+
+```bash
+# Terminal 1 — run server-v2
+cd server-v2 && node index.js
+
+# Terminal 2 — webpack dev build (watches for changes, outputs to dist/)
+npm run build -- --watch --mode development
 ```
 
 ### Production Build
@@ -68,7 +105,7 @@ http://localhost:3000/?server=YOUR_SERVER_IP
 npm run build
 ```
 
-Built files go to `dist/`. Serve with any static server (nginx, etc.).
+Built files go to `dist/`. The server-v2 serves them alongside the lobby.
 
 ## Game Controls
 
@@ -92,7 +129,7 @@ Makers21 is open source and open for contributions. Some ideas:
 - **Input methods** — eye tracking, voice control, single-switch support
 - **Accessibility** — screen reader support, audio cues, colorblind modes
 - **Gameplay** — new weapons, power-ups, maps, ship models
-- **Infrastructure** — matchmaking, lobbies, spectator mode
+- **Infrastructure** — matchmaking, spectator mode, TURN server for restrictive NATs
 
 If you work with people with disabilities and want to try the game, [open an issue](https://github.com/orbs-network/makers21/issues) — we'd love to hear from you.
 
@@ -102,7 +139,8 @@ If you work with people with disabilities and want to try the game, [open an iss
 |---|---|
 | 3D Engine | Three.js |
 | Face Tracking | MediaPipe Face Mesh |
-| Multiplayer | Deepstream |
+| Multiplayer | WebRTC via mediasoup SFU |
+| Signaling | Express + WebSocket |
 | Build System | Webpack + Babel |
 
 ## Who Is This For

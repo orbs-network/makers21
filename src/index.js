@@ -36,12 +36,11 @@ window.drawConnectors = drawConnectors;
 window.drawLandmarks = drawLandmarks;
 window.FACEMESH_TESSELATION = FACEMESH_TESSELATION;
 
-// Import Deepstream for multiplayer networking
-import { DeepstreamClient } from '@deepstream/client';
+// Import WebRTCService (replaces DeepStream NetworkService)
+import networkService from './services/WebRTCService.js';
 
 // Import core modules
 import gameState from './core/GameState.js';
-import networkService from './services/NetworkService.js';
 import uiService from './services/UIService.js';
 
 // Make modules available globally during migration
@@ -72,159 +71,39 @@ async function loadGameModules() {
   await import('./components/face.js');
   await import('./components/neckControls.js');
   await import('./components/sound.js');
-  // deepstream.js removed - NetworkService handles all network communication
   await import('./components/game.js');
 }
 
-// Default server address
-const DEFAULT_SERVER = 'ws-makers.orbs.com';
-// Determine protocol and port based on page protocol
-const IS_SECURE = window.location.protocol === 'https:';
-const WS_PROTOCOL = IS_SECURE ? 'wss://' : 'ws://';
-const WS_PORT = IS_SECURE ? 443 : 6020;
+/**
+ * Get game params from URL (set by lobby redirect)
+ */
+function getGameParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    roomId: params.get('roomId'),
+    team: params.get('team'),       // 'A' or 'B'
+    nick: params.get('nick'),
+    server: params.get('server'),   // optional server override
+  };
+}
 
 /**
- * Get server address from URL param or show dialog
- * @returns {Promise<string>} Server address (without protocol)
+ * Build WS URL for the server-v2
  */
-async function getServerAddress() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const serverParam = urlParams.get('server');
-
-  if (serverParam) {
-    console.log('Using server from URL param:', serverParam);
-    return serverParam;
+function getWsUrl(serverOverride) {
+  if (serverOverride) {
+    const proto = serverOverride.startsWith('https') ? 'wss:' : 'ws:';
+    return `${proto}//${serverOverride}/ws`;
   }
-
-  return promptForServer();
-}
-
-/**
- * Show server dialog and wait for user input
- * @param {string} [errorMsg] - Optional error message to display
- * @returns {Promise<string>} Server address (without protocol)
- */
-function promptForServer(errorMsg) {
-  return new Promise((resolve) => {
-    // Hide connecting overlay, show dialog
-    document.getElementById('server-connecting').style.display = 'none';
-
-    const dialog = document.getElementById('server-dialog');
-    const input = document.getElementById('server-input');
-    const connectBtn = document.getElementById('server-connect');
-    const status = document.getElementById('server-status');
-    const protocolLabel = document.getElementById('server-protocol');
-    const portLabel = document.getElementById('server-port');
-
-    // Set protocol prefix and port suffix
-    protocolLabel.textContent = WS_PROTOCOL;
-    portLabel.textContent = `:${WS_PORT}`;
-
-    // Reset to input state
-    input.value = input.value || DEFAULT_SERVER;
-    input.disabled = false;
-    connectBtn.style.display = '';
-    dialog.style.display = 'flex';
-
-    // Show error from previous attempt
-    if (errorMsg) {
-      status.style.display = 'block';
-      status.style.color = '#ff6b6b';
-      status.textContent = errorMsg;
-    } else {
-      status.style.display = 'none';
-    }
-
-    // Clone to remove old listeners
-    const newBtn = connectBtn.cloneNode(true);
-    connectBtn.parentNode.replaceChild(newBtn, connectBtn);
-
-    const newInput = input.cloneNode(true);
-    input.parentNode.replaceChild(newInput, input);
-
-    const handleConnect = () => {
-      const server = newInput.value.trim();
-      if (server) {
-        dialog.style.display = 'none';
-        // Update URL with the selected server (without reload)
-        const newUrl = new URL(window.location);
-        newUrl.searchParams.set('server', server);
-        window.history.replaceState({}, '', newUrl);
-        resolve(server);
-      }
-    };
-
-    newBtn.addEventListener('click', handleConnect);
-    newInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') handleConnect();
-    });
-  });
-}
-
-/**
- * Show the connecting overlay with animated progress bar.
- * @param {string} serverHost - Server being connected to
- * @param {number} timeoutMs - Timeout duration for progress animation
- */
-function showConnectingOverlay(serverHost, timeoutMs = 5000) {
-  document.getElementById('server-dialog').style.display = 'none';
-  const overlay = document.getElementById('server-connecting');
-  const text = document.getElementById('connecting-text');
-  const bar = document.getElementById('connect-progress');
-
-  text.textContent = `Connecting to ${WS_PROTOCOL}${serverHost}:${WS_PORT}...`;
-  bar.style.transition = 'none';
-  bar.style.width = '0%';
-  overlay.style.display = 'flex';
-
-  // Animate progress bar to ~90% over the timeout duration
-  requestAnimationFrame(() => {
-    bar.style.transition = `width ${timeoutMs}ms linear`;
-    bar.style.width = '90%';
-  });
-}
-
-/**
- * Attempt to connect to server with a timeout.
- * @param {string} serverHost - Server address (without protocol)
- * @param {number} timeoutMs - Timeout in ms
- * @returns {Promise<DeepstreamClient>} Connected client
- */
-function connectWithTimeout(serverHost, timeoutMs = 5000) {
-  const serverAddress = `${WS_PROTOCOL}${serverHost}:${WS_PORT}`;
-  console.log('Connecting to server:', serverAddress);
-
-  const client = new DeepstreamClient(serverAddress, { subscriptionTimeout: 3000 });
-
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      try { client.close(); } catch (e) { /* ignore */ }
-      reject(new Error('Connection timed out'));
-    }, timeoutMs);
-
-    client.on('error', (error) => {
-      clearTimeout(timer);
-      try { client.close(); } catch (e) { /* ignore */ }
-      reject(new Error(error));
-    });
-
-    client.login().then(() => {
-      clearTimeout(timer);
-      resolve(client);
-    }).catch((err) => {
-      clearTimeout(timer);
-      try { client.close(); } catch (e) { /* ignore */ }
-      reject(err);
-    });
-  });
+  // Default: same host as the page (lobby and game served from same server)
+  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${proto}//${window.location.host}/ws`;
 }
 
 /**
  * Show camera prompt if user hasn't explicitly disabled neck controls.
- * Sets localStorage 'disableNeck' based on choice.
  */
 function promptCameraChoice() {
-  // Skip if user already made a choice previously
   if (localStorage.getItem('disableNeck') !== null) {
     return Promise.resolve();
   }
@@ -253,45 +132,77 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadGameModules();
   console.log('Makers21 - Three.js Version Loading...');
 
-  // Connection loop: get server address, attempt connection, retry on failure
-  let deepStreamClient;
-  let serverHost = await getServerAddress();
+  // Get params from URL (set by lobby)
+  const { roomId, team, nick, server } = getGameParams();
 
-  while (!deepStreamClient) {
-    showConnectingOverlay(serverHost);
-    try {
-      deepStreamClient = await connectWithTimeout(serverHost);
-    } catch (err) {
-      console.warn('Connection failed:', err.message);
-      serverHost = await promptForServer(`Failed to connect to ${WS_PROTOCOL}${serverHost}:${WS_PORT} — ${err.message}`);
-    }
+  if (!roomId || !nick) {
+    // No room params — redirect back to lobby
+    console.warn('No roomId/nick in URL, redirecting to lobby');
+    window.location.href = '/';
+    return;
   }
 
-  // Keep overlay visible, update status text through loading phases
+  // Set local state from URL params
+  const isRed = team === 'A';
+  gameState.update('local.nick', nick);
+  gameState.update('local.isRed', isRed);
+  gameState.saveLocal();
+
+  // Show loading overlay
+  const overlay = document.getElementById('server-connecting');
   const loadingText = document.getElementById('connecting-text');
   const loadingBar = document.getElementById('connect-progress');
-  document.getElementById('server-dialog').style.display = 'none';
+  overlay.style.display = 'flex';
 
-  loadingText.textContent = 'Connected. Initializing network...';
-  loadingBar.style.transition = 'width 0.3s';
-  loadingBar.style.width = '30%';
-  await networkService.init(deepStreamClient);
+  loadingText.textContent = `Joining room ${roomId}...`;
+  loadingBar.style.width = '20%';
 
-  // Prompt for camera/face tracking if not already decided
+  // Connect to server via WebRTCService
+  try {
+    const wsUrl = getWsUrl(server);
+
+    // rtpCapabilities will be fetched after joining — for now pass null
+    // The lobby already started the game, so gameState events will arrive via WS
+    await networkService.init({
+      serverUrl: wsUrl,
+      roomId,
+      nick,
+      team,
+      rtpCapabilities: null, // will set up mediasoup after receiving router capabilities
+    });
+  } catch (err) {
+    loadingText.textContent = `Failed to connect: ${err.message}`;
+    loadingBar.style.width = '0%';
+    return;
+  }
+
+  loadingText.textContent = 'Connected. Setting up...';
+  loadingBar.style.width = '40%';
+
+  // Listen for roomState which contains rtpCapabilities, then set up mediasoup
+  networkService.subscribe('roomState', async (data) => {
+    if (data.rtpCapabilities && !networkService.device) {
+      try {
+        await networkService.setupMediasoup(data.rtpCapabilities);
+        console.log('mediasoup data channels established');
+      } catch (err) {
+        console.warn('mediasoup setup failed, continuing with WS fallback', err);
+      }
+    }
+  });
+
+  // Prompt for camera/face tracking
   await promptCameraChoice();
-  // Update gameState in case the prompt just changed the setting
   gameState.settings.useNeck = localStorage.getItem('disableNeck') !== 'true';
 
   // Create and initialize the game
   loadingText.textContent = 'Loading game assets...';
   loadingBar.style.width = '50%';
   const game = new Game();
-  window.game = game; // Expose globally for components
+  window.game = game;
 
-  // Create world first
   game.createWorld();
 
-  // Load game assets and initialize
   game.loadAsync(() => {
     console.log('Game assets loaded, initializing...');
     loadingText.textContent = 'Creating scene...';
@@ -303,7 +214,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Create scene and setup controls
     game.world.createScene();
     game.initControls(false);
-    game.world.setTeamPos(null);
+    game.world.setTeamPos(isRed);
+    game.world.setNick(nick);
 
     loadingText.textContent = 'Connecting to game...';
     loadingBar.style.width = '95%';
@@ -311,10 +223,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Connect to game server
     game.connect();
 
-    // Hide loading overlay once everything is ready
+    // Hide loading overlay
     loadingBar.style.width = '100%';
     setTimeout(() => {
-      document.getElementById('server-connecting').style.display = 'none';
+      overlay.style.display = 'none';
     }, 300);
 
     // Start the render loop
@@ -334,7 +246,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Handle window blur (pause game when not focused)
+  // Handle window blur
   window.addEventListener('blur', () => {
     if (game.onblur) {
       game.onblur();

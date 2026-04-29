@@ -1,0 +1,359 @@
+(function () {
+  'use strict';
+
+  // --- DOM refs ---
+  const nickInput = document.getElementById('nick-input');
+  const roomBrowser = document.getElementById('room-browser');
+  const roomList = document.getElementById('room-list');
+  const createRoomBtn = document.getElementById('create-room-btn');
+  const roomView = document.getElementById('room-view');
+  const roomNameEl = document.getElementById('room-name');
+  const leaveRoomBtn = document.getElementById('leave-room-btn');
+  const inviteLinkInput = document.getElementById('invite-link');
+  const copyInviteBtn = document.getElementById('copy-invite');
+  const teamAList = document.getElementById('team-a-list');
+  const teamBList = document.getElementById('team-b-list');
+  const teamACount = document.getElementById('team-a-count');
+  const teamBCount = document.getElementById('team-b-count');
+  const joinTeamA = document.getElementById('join-team-a');
+  const joinTeamB = document.getElementById('join-team-b');
+  const startGameBtn = document.getElementById('start-game-btn');
+  const createModal = document.getElementById('create-modal');
+  const roomNameInput = document.getElementById('room-name-input');
+  const confirmCreate = document.getElementById('confirm-create');
+  const cancelCreate = document.getElementById('cancel-create');
+  const toastEl = document.getElementById('toast');
+
+  // --- state ---
+  let ws = null;
+  let currentRoom = null;   // room JSON from server
+  let myNick = '';
+  let pollTimer = null;
+
+  // restore nick from localStorage
+  const savedNick = localStorage.getItem('makers21_nick');
+  if (savedNick) nickInput.value = savedNick;
+
+  nickInput.addEventListener('change', () => {
+    localStorage.setItem('makers21_nick', nickInput.value.trim());
+  });
+
+  // --- API helpers ---
+  const API = '/api/rooms';
+
+  function getBaseUrl() {
+    return `${location.protocol}//${location.host}`;
+  }
+
+  function getWsUrl() {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${proto}//${location.host}/ws`;
+  }
+
+  async function fetchRooms() {
+    const res = await fetch(API);
+    return res.json();
+  }
+
+  async function createRoom(name, hostNick) {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, hostNick }),
+    });
+    return res.json();
+  }
+
+  // --- room list rendering ---
+  function renderRoomList(rooms) {
+    if (rooms.length === 0) {
+      roomList.innerHTML = '<div class="empty-state">No rooms yet. Create one!</div>';
+      return;
+    }
+
+    roomList.innerHTML = rooms.map(r => `
+      <div class="room-card" data-room-id="${r.id}">
+        <div class="room-info">
+          <div class="room-name">${esc(r.name)}</div>
+          <div class="room-meta">
+            ${r.playerCount}/${r.maxTeamSize * 2} players
+            &middot; A: ${r.teamACount} / B: ${r.teamBCount}
+            <span class="status-badge status-${r.status}">${r.status}</span>
+          </div>
+        </div>
+        <button class="join-room-btn" ${r.status !== 'waiting' ? 'disabled' : ''}>Join</button>
+      </div>
+    `).join('');
+
+    // bind join buttons
+    roomList.querySelectorAll('.join-room-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const card = btn.closest('.room-card');
+        joinRoom(card.dataset.roomId);
+      });
+    });
+  }
+
+  async function refreshRoomList() {
+    try {
+      const rooms = await fetchRooms();
+      renderRoomList(rooms);
+    } catch (e) {
+      console.error('Failed to fetch rooms', e);
+    }
+  }
+
+  function startPolling() {
+    refreshRoomList();
+    pollTimer = setInterval(refreshRoomList, 3000);
+  }
+
+  function stopPolling() {
+    clearInterval(pollTimer);
+  }
+
+  // --- WebSocket ---
+  function connectWS() {
+    return new Promise((resolve, reject) => {
+      const socket = new WebSocket(getWsUrl());
+      socket.addEventListener('open', () => resolve(socket));
+      socket.addEventListener('error', reject);
+      socket.addEventListener('message', (ev) => {
+        const msg = JSON.parse(ev.data);
+        handleServerMessage(msg);
+      });
+      socket.addEventListener('close', () => {
+        // if we're in a room, go back to browser
+        if (currentRoom) {
+          currentRoom = null;
+          showBrowser();
+          toast('Disconnected from room');
+        }
+        ws = null;
+      });
+    });
+  }
+
+  function wsSend(type, data = {}) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type, data }));
+    }
+  }
+
+  function handleServerMessage(msg) {
+    switch (msg.type) {
+      case 'roomState':
+        currentRoom = msg.data;
+        renderRoomView();
+        break;
+      case 'playerJoined':
+        // full state will follow via roomState broadcast
+        break;
+      case 'playerLeft':
+        break;
+      case 'playerKicked':
+        if (msg.data.nick === myNick) {
+          currentRoom = null;
+          showBrowser();
+          toast('You were kicked from the room');
+        }
+        break;
+      case 'gameStarting':
+        onGameStarting(msg.data);
+        break;
+      case 'error':
+        toast(msg.data.message);
+        break;
+    }
+  }
+
+  // --- join room ---
+  async function joinRoom(roomId) {
+    myNick = nickInput.value.trim();
+    if (!myNick) {
+      toast('Enter a callsign first');
+      nickInput.focus();
+      return;
+    }
+    localStorage.setItem('makers21_nick', myNick);
+
+    try {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        ws = await connectWS();
+      }
+      wsSend('joinRoom', { roomId, nick: myNick });
+      stopPolling();
+      showRoom();
+    } catch (e) {
+      toast('Failed to connect');
+    }
+  }
+
+  // --- room view rendering ---
+  function renderRoomView() {
+    if (!currentRoom) return;
+
+    roomNameEl.textContent = currentRoom.name;
+    inviteLinkInput.value = `${getBaseUrl()}?room=${currentRoom.id}`;
+
+    // teams
+    teamACount.textContent = `${currentRoom.teamA.length}/${currentRoom.maxTeamSize}`;
+    teamBCount.textContent = `${currentRoom.teamB.length}/${currentRoom.maxTeamSize}`;
+
+    teamAList.innerHTML = currentRoom.teamA.map(nick => renderPlayerLi(nick)).join('');
+    teamBList.innerHTML = currentRoom.teamB.map(nick => renderPlayerLi(nick)).join('');
+
+    // show/hide start button (host only, both teams need players)
+    const isHost = myNick === currentRoom.hostNick;
+    const canStart = currentRoom.teamA.length > 0 && currentRoom.teamB.length > 0;
+    startGameBtn.style.display = isHost ? '' : 'none';
+    startGameBtn.disabled = !canStart;
+
+    // bind kick buttons for host
+    if (isHost) {
+      document.querySelectorAll('.kick-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          wsSend('kickPlayer', { targetNick: btn.dataset.nick });
+        });
+      });
+    }
+  }
+
+  function renderPlayerLi(nick) {
+    const isHost = nick === currentRoom.hostNick;
+    const isMe = nick === myNick;
+    const canKick = myNick === currentRoom.hostNick && !isMe;
+
+    return `<li>
+      <span>${esc(nick)}${isHost ? '<span class="host-badge">HOST</span>' : ''}${isMe ? ' (you)' : ''}</span>
+      ${canKick ? `<button class="kick-btn btn-danger btn-small" data-nick="${esc(nick)}">Kick</button>` : ''}
+    </li>`;
+  }
+
+  // --- game start redirect ---
+  function onGameStarting(data) {
+    const { roomId, team, nick } = data;
+    // redirect to game page
+    const gameUrl = `game.html?roomId=${roomId}&team=${team}&nick=${encodeURIComponent(nick)}`;
+    window.location.href = gameUrl;
+  }
+
+  // --- view switching ---
+  function showBrowser() {
+    roomBrowser.style.display = '';
+    roomView.style.display = 'none';
+    startPolling();
+  }
+
+  function showRoom() {
+    roomBrowser.style.display = 'none';
+    roomView.style.display = '';
+  }
+
+  // --- toast ---
+  function toast(message) {
+    toastEl.textContent = message;
+    toastEl.classList.add('show');
+    setTimeout(() => toastEl.classList.remove('show'), 2500);
+  }
+
+  // --- create room modal ---
+  createRoomBtn.addEventListener('click', () => {
+    myNick = nickInput.value.trim();
+    if (!myNick) {
+      toast('Enter a callsign first');
+      nickInput.focus();
+      return;
+    }
+    roomNameInput.value = '';
+    createModal.classList.add('open');
+    roomNameInput.focus();
+  });
+
+  cancelCreate.addEventListener('click', () => {
+    createModal.classList.remove('open');
+  });
+
+  createModal.addEventListener('click', (e) => {
+    if (e.target === createModal) createModal.classList.remove('open');
+  });
+
+  confirmCreate.addEventListener('click', async () => {
+    const name = roomNameInput.value.trim();
+    if (!name) {
+      toast('Enter a room name');
+      return;
+    }
+    localStorage.setItem('makers21_nick', myNick);
+
+    try {
+      const result = await createRoom(name, myNick);
+      if (result.error) {
+        toast(result.error);
+        return;
+      }
+      createModal.classList.remove('open');
+      // join the room we just created
+      joinRoom(result.roomId);
+    } catch (e) {
+      toast('Failed to create room');
+    }
+  });
+
+  roomNameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') confirmCreate.click();
+  });
+
+  // --- team buttons ---
+  joinTeamA.addEventListener('click', () => wsSend('pickTeam', { team: 'A' }));
+  joinTeamB.addEventListener('click', () => wsSend('pickTeam', { team: 'B' }));
+
+  // --- start game ---
+  startGameBtn.addEventListener('click', () => wsSend('startGame'));
+
+  // --- leave room ---
+  leaveRoomBtn.addEventListener('click', () => {
+    wsSend('leaveRoom');
+    currentRoom = null;
+    if (ws) ws.close();
+    showBrowser();
+  });
+
+  // --- copy invite link ---
+  copyInviteBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(inviteLinkInput.value).then(() => {
+      toast('Copied!');
+    });
+  });
+
+  // --- escape html ---
+  function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // --- init ---
+  // check for ?room= param (invite link)
+  const params = new URLSearchParams(location.search);
+  const inviteRoomId = params.get('room');
+
+  if (inviteRoomId) {
+    // auto-join after user sets nick
+    const tryJoin = () => {
+      if (nickInput.value.trim()) {
+        joinRoom(inviteRoomId);
+      } else {
+        toast('Enter a callsign to join the room');
+        nickInput.focus();
+        nickInput.addEventListener('change', function once() {
+          nickInput.removeEventListener('change', once);
+          if (nickInput.value.trim()) joinRoom(inviteRoomId);
+        });
+      }
+    };
+    tryJoin();
+  }
+
+  startPolling();
+})();

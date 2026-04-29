@@ -63,7 +63,7 @@ module.exports = (env, argv) => {
     plugins: [
       new HtmlWebpackPlugin({
         template: './src/index.html',
-        filename: 'index.html',
+        filename: 'game.html',
         chunks: ['main'],
         title: 'Makers 2021 - Three.js Version'
       }),
@@ -79,7 +79,7 @@ module.exports = (env, argv) => {
           }
         ]
       }),
-      // Provide Buffer polyfill for DeepStream client
+      // Buffer polyfill (kept for potential dependencies)
       new webpack.ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
       })
