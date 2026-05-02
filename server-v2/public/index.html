@@ -7,6 +7,11 @@
   <link rel="stylesheet" href="lobby.css">
 </head>
 <body>
+  <video id="bg-video" autoplay muted loop playsinline preload="auto">
+    <source src="/assets/video/lobby2.mp4" type="video/mp4">
+  </video>
+  <div id="bg-dim"></div>
+
   <header>
     <h1>MAKERS21</h1>
     <p>Space Capture the Flag</p>
@@ -54,7 +59,7 @@
 
       <div id="room-actions">
         <button id="train-btn" class="btn-primary" style="display:none">Train</button>
-        <button id="start-game-btn" class="btn-primary" style="display:none">Start Game</button>
+        <button id="start-game-btn" class="btn-primary" style="display:none">Go to Game</button>
       </div>
     </section>
   </div>

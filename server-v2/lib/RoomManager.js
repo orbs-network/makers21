@@ -12,6 +12,8 @@ class RoomManager {
 
   createRoom(name, hostNick) {
     const room = new Room(name, hostNick, this.mediasoupManager);
+    // self-destruct after orphan grace period expires
+    room.onOrphan = (id) => this.deleteRoom(id);
     this.rooms.set(room.id, room);
     return room;
   }

@@ -72,21 +72,38 @@ class GameEngine {
     return { ok: true };
   }
 
-  onStart(nick) {
+  /**
+   * Prepare the game (Phase A): mark started=true so the room is locked,
+   * but leave startTs=null so clients show a "waiting for host" gate.
+   */
+  prepare(nick) {
     if (this.state.started) {
       return { error: 'Game already started' };
     }
-
-    const dt = new Date();
-    dt.setSeconds(dt.getSeconds() + 4, 0);
-
     this.state.started = true;
     this.state.startedBy = nick;
-    this.state.startTs = dt.getTime();
+    this.state.startTs = null;
     this.state.winnerNick = null;
     this.state.winnerIsRed = false;
+    this.tellState();
+    return { ok: true };
+  }
 
-    console.log('Game start time:', dt.toISOString());
+  /**
+   * Commence (Phase B): set startTs to 4 seconds from now to trigger
+   * the 3-2-1 countdown on all clients.
+   */
+  commence() {
+    if (!this.state.started) {
+      return { error: 'Game not prepared' };
+    }
+    if (this.state.startTs) {
+      return { error: 'Game already commenced' };
+    }
+    const dt = new Date();
+    dt.setSeconds(dt.getSeconds() + 4, 0);
+    this.state.startTs = dt.getTime();
+    console.log('Game commence time:', dt.toISOString());
     this.tellState();
     return { ok: true };
   }

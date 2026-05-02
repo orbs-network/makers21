@@ -40,6 +40,8 @@ class SignalingHandler {
         return this.onStartGame(ws);
       case 'startTraining':
         return this.onStartTraining(ws);
+      case 'commenceGame':
+        return this.onCommenceGame(ws);
       case 'resetGame':
         return this.onResetGame(ws);
       case 'gameCommand':
@@ -135,6 +137,16 @@ class SignalingHandler {
     if (!room) return;
 
     const result = await room.startGame(ws.playerNick);
+    if (result.error) {
+      return this.send(ws, 'error', { message: result.error });
+    }
+  }
+
+  onCommenceGame(ws) {
+    const room = this.getPlayerRoom(ws);
+    if (!room) return;
+
+    const result = room.commenceGame(ws.playerNick);
     if (result.error) {
       return this.send(ws, 'error', { message: result.error });
     }

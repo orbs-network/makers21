@@ -109,6 +109,7 @@ class WebRTCService {
       case 'playerKicked':
       case 'gameStarting':
       case 'gameReset':
+      case 'roomClosed':
         this.dispatchEvent(type, data);
         break;
 
@@ -323,8 +324,8 @@ class WebRTCService {
   // --- game-specific methods (same interface as NetworkService) ---
 
   sendEvent(name, data) {
-    // Map to game commands via WS
     if (data.type === 'pos') {
+      // Position has its own dedicated path (data-channel preferred)
       this.wsSend('gameCommand', {
         command: 'playerPosition',
         pos: data.pos,
@@ -332,25 +333,11 @@ class WebRTCService {
         moving: data.moving,
         targetTS: data.targetTS,
       });
-    } else if (data.type === 'fire') {
-      this.wsSend('gameCommand', {
-        command: 'playerFire',
-        data: data.data,
-        targetNick: data.targetNick,
-      });
-    } else if (data.type === 'explode') {
-      this.wsSend('gameCommand', {
-        command: 'playerExplode',
-        pos: data.pos,
-        dir: data.dir,
-      });
-    } else if (data.type === 'lockOn') {
-      this.wsSend('gameCommand', {
-        command: 'playerLockOn',
-        targetNick: data.targetNick,
-        data: data.data,
-      });
+      return;
     }
+    // Generic player event — forward the entire payload so all fields
+    // (flag, on, targetNick, targetTS, etc.) reach other clients.
+    this.wsSend('gameCommand', { command: 'playerEvent', payload: data });
   }
 
   broadcastPosition(positionData) {
@@ -408,6 +395,11 @@ class WebRTCService {
 
   async start(nick) {
     this.wsSend('startGame');
+    return 'ok';
+  }
+
+  async commenceGame() {
+    this.wsSend('commenceGame');
     return 'ok';
   }
 

@@ -29,6 +29,45 @@ class Room {
     this.router = null;
     this.directTransport = null;   // server-side transport for game state broadcasts
     this.serverProducer = null;    // server's DataProducer for game state
+
+    // grace timer for orphan-room cleanup (set by RoomManager.createRoom)
+    this.onOrphan = null;
+    this.orphanTimer = null;
+    this.hostGoneTimer = null;
+  }
+
+  startOrphanTimer() {
+    if (this.orphanTimer) return;
+    // 10s grace lets the lobby->game redirect reconnect on the new WS.
+    // If no one returns by then, the room is orphaned — delete it.
+    this.orphanTimer = setTimeout(() => {
+      this.orphanTimer = null;
+      if (this.onOrphan) this.onOrphan(this.id);
+    }, 10_000);
+  }
+
+  cancelOrphanTimer() {
+    if (this.orphanTimer) {
+      clearTimeout(this.orphanTimer);
+      this.orphanTimer = null;
+    }
+  }
+
+  startHostGoneTimer() {
+    if (this.hostGoneTimer) return;
+    this.hostGoneTimer = setTimeout(() => {
+      this.hostGoneTimer = null;
+      // Notify remaining players the host gave up, then dispose the room
+      this.broadcast('roomClosed', { reason: 'Host disconnected' });
+      if (this.onOrphan) this.onOrphan(this.id);
+    }, 10_000);
+  }
+
+  cancelHostGoneTimer() {
+    if (this.hostGoneTimer) {
+      clearTimeout(this.hostGoneTimer);
+      this.hostGoneTimer = null;
+    }
   }
 
   get playerCount() {
@@ -75,11 +114,12 @@ class Room {
       if (existing.ws && existing.ws.readyState === 1) {
         return { error: 'Nickname already in use' };
       }
-      // re-attach the new WS to the existing player record (team membership preserved)
+      // re-attach the new WS — cancel any pending deletion timers
       existing.ws = ws;
+      this.cancelOrphanTimer();
+      if (nick === this.hostNick) this.cancelHostGoneTimer();
       this.lastActivity = Date.now();
       this.broadcast('roomState', this.toJSON());
-      // also send any active game state so the client can pick up where the game is
       if (this.gameEngine) {
         this.sendTo(nick, 'gameState', { type: 'state', state: this.gameEngine.state });
       }
@@ -116,27 +156,30 @@ class Room {
 
     this.cleanupPlayerTransports(nick);
 
-    // Active game (locked): preserve record for reconnect, UNLESS this is
-    // the last live player — in which case the game is orphaned, fully
-    // remove and signal the caller to delete the room.
+    // Active game (locked): preserve record for reconnect (handles the
+    // brief WS gap during lobby->game.html redirect). If no other live
+    // players remain, schedule an orphan-room deletion that gets cancelled
+    // if anyone reconnects within the grace window.
     if (this.isLocked) {
-      const anyOtherLive = Array.from(this.players.values())
-        .some(p => p !== player && p.ws && p.ws.readyState === 1);
-
-      if (!anyOtherLive) {
-        // last human gone — drop everything and have RoomManager delete the room
-        this.players.delete(nick);
-        this.lastActivity = Date.now();
-        return { shouldDelete: true };
-      }
-
-      // keep record for potential reconnect
       player.ws = null;
       player.sendTransport = null;
       player.recvTransport = null;
       player.dataProducer = null;
       player.dataConsumers = new Map();
       this.lastActivity = Date.now();
+
+      // host disconnect in active game — schedule room dispose if they don't return
+      if (nick === this.hostNick) {
+        this.startHostGoneTimer();
+      }
+
+      // last live player gone — schedule generic orphan cleanup
+      const anyOtherLive = Array.from(this.players.values())
+        .some(p => p !== player && p.ws && p.ws.readyState === 1);
+      if (!anyOtherLive) {
+        this.startOrphanTimer();
+      }
+
       return { shouldDelete: false };
     }
 
@@ -216,80 +259,65 @@ class Room {
     return { ok: true };
   }
 
+  /**
+   * Per-player "Go to Game" — any team member can call.
+   * First caller prepares the game engine (idempotent). Subsequent callers
+   * just receive their own gameStarting redirect.
+   */
   async startGame(requesterNick) {
-    if (requesterNick !== this.hostNick) {
-      return { error: 'Only the host can start the game' };
-    }
-    if (this.status !== Status.WAITING) {
-      return { error: 'Game already started' };
-    }
-    if (this.teamA.length === 0 || this.teamB.length === 0) {
-      return { error: 'Both teams need at least one player' };
+    const player = this.players.get(requesterNick);
+    if (!player) return { error: 'Not in room' };
+    if (!player.team) return { error: 'Pick a team first' };
+    if (this.status === Status.FINISHED) {
+      return { error: 'Game has finished — wait for reset' };
     }
 
-    this.status = Status.STARTING;
-
-    // kick spectators
-    for (const [nick, player] of this.players) {
-      if (!player.team) {
-        this.sendTo(nick, 'playerKicked', { nick, reason: 'Game started — no team selected' });
-        if (player.ws && player.ws.readyState === 1) {
-          player.ws.close();
-        }
-        this.players.delete(nick);
+    // First caller prepares the engine
+    if (!this.gameEngine) {
+      if (this.teamA.length === 0 || this.teamB.length === 0) {
+        return { error: 'Both teams need at least one player' };
       }
-    }
 
-    // create mediasoup Router for this room
-    try {
-      this.router = await this.mediasoupManager.createRouter();
+      this.status = Status.STARTING;
 
-      // create DirectTransport for server → client game state broadcasts
-      this.directTransport = await this.mediasoupManager.createDirectTransport(this.router);
-      this.serverProducer = await this.directTransport.produceData({
-        label: 'gameState',
-        protocol: 'json',
+      try {
+        this.router = await this.mediasoupManager.createRouter();
+        this.directTransport = await this.mediasoupManager.createDirectTransport(this.router);
+        this.serverProducer = await this.directTransport.produceData({
+          label: 'gameState',
+          protocol: 'json',
+        });
+        console.log(`Room ${this.id}: mediasoup Router + DirectTransport created`);
+      } catch (err) {
+        console.error(`Room ${this.id}: failed to create mediasoup Router:`, err);
+        this.status = Status.WAITING;
+        return { error: 'Failed to initialize game transport' };
+      }
+
+      this.gameEngine = new GameEngine((stateMsg) => {
+        this.broadcastGameState(stateMsg);
+        this.broadcast('gameState', stateMsg);
+        if (stateMsg.state && stateMsg.state.winnerNick) {
+          this.status = Status.FINISHED;
+        }
       });
 
-      console.log(`Room ${this.id}: mediasoup Router + DirectTransport created`);
-    } catch (err) {
-      console.error(`Room ${this.id}: failed to create mediasoup Router:`, err);
-      this.status = Status.WAITING;
-      return { error: 'Failed to initialize game transport' };
+      for (const nick of this.teamA) this.gameEngine.onJoin(nick, true);
+      for (const nick of this.teamB) this.gameEngine.onJoin(nick, false);
+
+      // Phase A: prepared, awaiting host commence inside game.html
+      this.gameEngine.prepare(requesterNick);
+      this.status = Status.PLAYING;
     }
 
-    // create game engine
-    this.gameEngine = new GameEngine((stateMsg) => {
-      // broadcast game state via DirectTransport data channel
-      this.broadcastGameState(stateMsg);
-      // also send via WS as fallback (for clients not yet on WebRTC)
-      this.broadcast('gameState', stateMsg);
-
-      if (stateMsg.state && stateMsg.state.winnerNick) {
-        this.status = Status.FINISHED;
-      }
+    // Send gameStarting only to the requester — each player transitions on their own
+    this.sendTo(requesterNick, 'gameStarting', {
+      roomId: this.id,
+      team: player.team,
+      nick: requesterNick,
+      rtpCapabilities: this.router.rtpCapabilities,
     });
 
-    for (const nick of this.teamA) {
-      this.gameEngine.onJoin(nick, true);
-    }
-    for (const nick of this.teamB) {
-      this.gameEngine.onJoin(nick, false);
-    }
-
-    this.gameEngine.onStart(requesterNick);
-
-    // notify all to redirect — include rtpCapabilities so clients can set up WebRTC
-    for (const [nick, player] of this.players) {
-      this.sendTo(nick, 'gameStarting', {
-        roomId: this.id,
-        team: player.team,
-        nick,
-        rtpCapabilities: this.router.rtpCapabilities,
-      });
-    }
-
-    this.status = Status.PLAYING;
     return { ok: true };
   }
 
@@ -359,7 +387,9 @@ class Room {
       this.gameEngine.onJoin(nick, false);
     }
 
-    this.gameEngine.onStart(requesterNick);
+    // Training mode: prepare AND commence right away — no waiting for others
+    this.gameEngine.prepare(requesterNick);
+    this.gameEngine.commence();
 
     // start NPC movement (respects countdown)
     this.npcManager.start(this.gameEngine.state.startTs);
@@ -373,6 +403,28 @@ class Room {
     });
 
     this.status = Status.PLAYING;
+    return { ok: true };
+  }
+
+  /**
+   * Host commences a prepared multiplayer game (Phase B).
+   * Triggers the 4-second countdown for all players.
+   */
+  commenceGame(requesterNick) {
+    if (requesterNick !== this.hostNick) {
+      return { error: 'Only the host can start the game' };
+    }
+    if (!this.gameEngine || !this.gameEngine.state.started) {
+      return { error: 'Game not prepared' };
+    }
+    if (this.gameEngine.state.startTs) {
+      return { error: 'Game already commenced' };
+    }
+    const result = this.gameEngine.commence();
+    if (result.error) return result;
+    if (this.npcManager) {
+      this.npcManager.start(this.gameEngine.state.startTs);
+    }
     return { ok: true };
   }
 
@@ -549,34 +601,18 @@ class Room {
           targetTS: data.targetTS,
         });
         return { ok: true };
-      case 'playerFire':
-        this.broadcastExcept(nick, 'playerEvent', {
-          type: 'fire',
-          nick,
-          data: data.data,
-          targetNick: data.targetNick,
-        });
-        // handle NPC being shot
-        if (this.npcManager && data.targetNick) {
-          this.npcManager.onFireEvent(data.targetNick);
+      case 'playerEvent': {
+        // Generic player event: forward the entire payload, override nick
+        // to prevent spoofing. All fields (flag, on, pos, dir, targetNick,
+        // targetTS, etc.) reach the other clients intact.
+        const payload = { ...(data.payload || {}), nick };
+        this.broadcastExcept(nick, 'playerEvent', payload);
+        // NPC fire targeting
+        if (payload.type === 'fire' && payload.targetNick && this.npcManager) {
+          this.npcManager.onFireEvent(payload.targetNick);
         }
         return { ok: true };
-      case 'playerExplode':
-        this.broadcastExcept(nick, 'playerEvent', {
-          type: 'explode',
-          nick,
-          pos: data.pos,
-          dir: data.dir,
-        });
-        return { ok: true };
-      case 'playerLockOn':
-        this.broadcastExcept(nick, 'playerEvent', {
-          type: 'lockOn',
-          nick,
-          targetNick: data.targetNick,
-          data: data.data,
-        });
-        return { ok: true };
+      }
       default:
         return { error: `Unknown game command: ${command}` };
     }
@@ -625,6 +661,8 @@ class Room {
    * Tear down all resources. Called by RoomManager.deleteRoom.
    */
   dispose() {
+    this.cancelOrphanTimer();
+    this.cancelHostGoneTimer();
     // close any remaining player WS connections
     for (const [, player] of this.players) {
       this.cleanupPlayerTransports(player.nick);

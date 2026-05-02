@@ -298,14 +298,16 @@
     teamAList.innerHTML = currentRoom.teamA.map(nick => renderPlayerLi(nick)).join('');
     teamBList.innerHTML = currentRoom.teamB.map(nick => renderPlayerLi(nick)).join('');
 
-    // show/hide start button (host only, both teams need players)
     const isHost = myNick === currentRoom.hostNick;
-    const canStart = currentRoom.teamA.length > 0 && currentRoom.teamB.length > 0;
-    startGameBtn.style.display = isHost ? '' : 'none';
-    startGameBtn.disabled = !canStart;
-
-    // show/hide train button (host only, solo only, must have picked a team)
     const hasPickedTeam = currentRoom.teamA.includes(myNick) || currentRoom.teamB.includes(myNick);
+    const bothTeamsHavePlayers = currentRoom.teamA.length > 0 && currentRoom.teamB.length > 0;
+
+    // Go to Game: any team member can transition individually.
+    // Disabled until they've picked a team AND both teams have ≥1 player.
+    startGameBtn.style.display = hasPickedTeam ? '' : 'none';
+    startGameBtn.disabled = !bothTeamsHavePlayers;
+
+    // Train: host only, solo only, must have picked a team
     trainBtn.style.display = isHost ? '' : 'none';
     trainBtn.disabled = currentRoom.playerCount > 1 || !hasPickedTeam;
 

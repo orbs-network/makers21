@@ -31,6 +31,9 @@ async function main() {
   // serve built game files (game.html + assets from webpack dist/)
   app.use(express.static(path.join(__dirname, '..', 'dist')));
 
+  // serve raw source assets (for lobby video, etc. — no build step needed)
+  app.use('/assets', express.static(path.join(__dirname, '..', 'src', 'assets')));
+
   // REST API
   const roomManager = new RoomManager(mediasoupManager);
   app.use('/api/rooms', createRoomRoutes(roomManager));

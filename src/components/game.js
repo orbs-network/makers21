@@ -127,11 +127,16 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     async onReset() {
+        // Play Again: host triggers server reset (which broadcasts to all),
+        // anyone else just heads back to the lobby room view.
         try {
-            await this.network.reset(this.localState.nick);
+            if (this.localState.nick === this.hostNick) {
+                await this.network.reset(this.localState.nick);
+            }
         } catch (error) {
             console.error('reset', error);
         }
+        window.location.href = '/?room=' + (this.roomId || '');
     }
 
     //////////////////////////////////////////////////////////
@@ -448,6 +453,15 @@ class Game /*extends THREE.EventDispatcher*/ {
 
         // game in progress (always — server starts engine before redirect)
         if (state.started) {
+            // Phase A: prepared but not commenced — show pregame overlay, wait
+            if (!state.startTs) {
+                this.updatePregameUI();
+                return;
+            }
+
+            // Phase B: commenced — make sure pregame overlay is hidden
+            this.updatePregameUI();
+
             // First state event → run setup (countdown or initial position).
             // Subsequent events → onGameStarted is a no-op thanks to gameSetupDone guard.
             if (!this.gameSetupDone) {
@@ -498,6 +512,32 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.ui.setOnlineStatus("connecting...");
         // send join - receive state
         this.network.subscribe('mngr', this.onEvent.bind(this));
+        this.network.subscribe('roomState', this.onRoomState.bind(this));
+        this.network.subscribe('roomClosed', this.onRoomClosed.bind(this));
+        this.network.subscribe('gameReset', () => {
+            // host clicked Play Again — redirect everyone back to the lobby
+            window.location.href = '/?room=' + (this.roomId || '');
+        });
+
+        // wire pregame Start button (host only — see updatePregameUI)
+        const startBtn = document.getElementById('pregame-start');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                this.network.commenceGame();
+            });
+        }
+        // pregame Back to Lobby
+        const pregameBack = document.getElementById('pregame-back');
+        if (pregameBack) {
+            pregameBack.addEventListener('click', () => {
+                window.location.href = '/?room=' + (this.roomId || '');
+            });
+        }
+        // wire room-closed Back button
+        const backBtn = document.getElementById('room-closed-back');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => { window.location.href = '/'; });
+        }
 
         try {
             const result = await this.network.checkOnline();
@@ -505,6 +545,41 @@ class Game /*extends THREE.EventDispatcher*/ {
         } catch (error) {
             console.error(error);
             this.onOffline();
+        }
+    }
+
+    onRoomState(data) {
+        this.hostNick = data.hostNick;
+        this.roomId = data.id;
+        this.updatePregameUI();
+    }
+
+    onRoomClosed(data) {
+        const reason = (data && data.reason) || 'The host left the game.';
+        const reasonEl = document.getElementById('room-closed-reason');
+        if (reasonEl) reasonEl.textContent = reason;
+        const overlay = document.getElementById('room-closed-overlay');
+        if (overlay) overlay.style.display = 'flex';
+    }
+
+    updatePregameUI() {
+        const overlay = document.getElementById('pregame-overlay');
+        if (!overlay) return;
+        const startBtn = document.getElementById('pregame-start');
+        const messageEl = document.getElementById('pregame-message');
+
+        const inPregame = this.mngrState && this.mngrState.started && !this.mngrState.startTs;
+        if (inPregame) {
+            overlay.style.display = 'flex';
+            const isHost = this.localState.nick === this.hostNick;
+            if (startBtn) startBtn.style.display = isHost ? '' : 'none';
+            if (messageEl) {
+                messageEl.textContent = isHost
+                    ? 'When ready, hit Start to begin the countdown.'
+                    : `Waiting for ${this.hostNick || 'host'} to start the game…`;
+            }
+        } else {
+            overlay.style.display = 'none';
         }
     }
 
