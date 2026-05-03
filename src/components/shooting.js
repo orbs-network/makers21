@@ -281,8 +281,16 @@ class Shooting {
   }
   //////////////////////////////////////////////
   resetHUD() {
+    // Tell any peer we were locking onto that we're no longer aiming —
+    // otherwise their alarm loops forever (audio element has loop=true).
+    if (this.targetPlayer) {
+      this.broadcastLock(false);
+      this.targetPlayer.showBoundingSphere(false);
+    }
     this.tsEnemyLock = 0;
     this.target = null;
+    this.targetPlayer = null;
+    this.locked = false;
     this.changeHudState();
   }
   //////////////////////////////////////////////

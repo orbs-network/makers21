@@ -413,6 +413,8 @@ class Game /*extends THREE.EventDispatcher*/ {
         if (this.world.shooting) {
             this.world.shooting.hud.visible = false;
             this.world.shooting.hudLabelObj.visible = false;
+            // Release any active lock so peers' alarms stop
+            this.world.shooting.resetHUD();
         }
         this.moving = false;
         if (this.controls) {
@@ -514,6 +516,14 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.network.subscribe('mngr', this.onEvent.bind(this));
         this.network.subscribe('roomState', this.onRoomState.bind(this));
         this.network.subscribe('roomClosed', this.onRoomClosed.bind(this));
+        // If the player who locked onto us disconnects, the unlock event
+        // never arrives — kill the alarm via the playerLeft signal instead.
+        this.network.subscribe('playerLeft', (data) => {
+            if (data && data.nick && data.nick === this.lockedByNick) {
+                this.lockedByNick = null;
+                this.stopWarning();
+            }
+        });
         this.network.subscribe('gameReset', () => {
             // host clicked Play Again — redirect everyone back to the lobby
             window.location.href = '/?room=' + (this.roomId || '');
@@ -814,9 +824,12 @@ class Game /*extends THREE.EventDispatcher*/ {
         if (msg) this.setGameMsg(msg);
         this.playAudio('alarm');
         this.world.turnWarningEffect(true);
-        if (!manualStop) {
-            this.tidWarning = setTimeout(() => this.stopWarning(), config.targetLockMs);
-        }
+        // Always set a max-duration timer. Without this the alarm could loop
+        // forever if the unlock event never arrives (locker crashed/disconnected).
+        // Re-arming is automatic — every fresh startWarning resets the timer.
+        if (this.tidWarning) clearTimeout(this.tidWarning);
+        const ttl = manualStop ? 10000 : config.targetLockMs;
+        this.tidWarning = setTimeout(() => this.stopWarning(), ttl);
     }
 
     //////////////////////////////////////////////////////////
@@ -833,6 +846,7 @@ class Game /*extends THREE.EventDispatcher*/ {
             clearTimeout(this.tidWarning);
             this.tidWarning = 0;
         }
+        this.lockedByNick = null;
     }
 
     //////////////////////////////////////////////////////////
@@ -842,6 +856,8 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.passingGate = null;
 
         this.stopWarning();
+        // Release any active lock so the targeted player's alarm stops
+        if (this.world.shooting) this.world.shooting.resetHUD();
         this.setGameMsg(msg || 'BOOM!!!');
 
         // return flag if holders
@@ -903,10 +919,12 @@ class Game /*extends THREE.EventDispatcher*/ {
         if (this.exploding) return;
         if (data.targetNick == this.localState.nick) {
             if (data.on) {
+                this.lockedByNick = data.nick;
                 this.startWarning(`WARNING! ${data.nick} is locking on you!`, true);
-            } else {
+            } else if (data.nick === this.lockedByNick) {
+                // Only stop if this lockOff is from the same player who locked us
+                this.lockedByNick = null;
                 this.stopWarning();
-                //this.setGameMsg(`${data.nick} lost aim on you`);
             }
         }
     }
