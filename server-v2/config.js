@@ -2,7 +2,11 @@ module.exports = {
   port: 4000,
   roomCleanupInterval: 60_000,       // check for empty rooms every 60s
   roomEmptyTimeout: 5 * 60_000,      // delete empty rooms after 5 min
-  maxTeamSize: 6,
+
+  // Capacity caps — enforced in server, surfaced in lobby UI
+  maxTeamSize: 4,                    // 4 + 4 = 8 players per room
+  maxRooms: 8,                       // active rooms across the server
+  maxConcurrentPlayers: 64,          // total live players across all rooms (8 rooms × 8 players)
 
   mediasoup: {
     numWorkers: 1,

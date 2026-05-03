@@ -82,10 +82,20 @@ class SignalingHandler {
     // Triggers orphan cleanup if the human was the last live player there.
     const otherRooms = this.roomManager.findRoomsByNick(nick, roomId);
     for (const otherRoom of otherRooms) {
-      const result = otherRoom.removePlayer(nick);
-      if (result && result.shouldDelete) {
+      const removed = otherRoom.removePlayer(nick);
+      if (removed && removed.shouldDelete) {
         this.roomManager.deleteRoom(otherRoom.id);
       }
+    }
+
+    // Server-wide concurrent-player cap (after cleanup so we don't double-count
+    // the same nick that just left another room).
+    const config = require('../config');
+    const isReconnect = room.players.has(nick); // nick already in this room (live game reconnect)
+    if (!isReconnect && this.roomManager.totalPlayers() >= config.maxConcurrentPlayers) {
+      return this.send(ws, 'error', {
+        message: `Server is at capacity — ${config.maxConcurrentPlayers} players maximum`,
+      });
     }
 
     const result = room.addPlayer(nick, ws);

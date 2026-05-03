@@ -14,10 +14,13 @@ function createRoomRoutes(roomManager) {
     if (!name || !hostNick) {
       return res.status(400).json({ error: 'name and hostNick are required' });
     }
-    const room = roomManager.createRoom(name, hostNick);
+    const result = roomManager.createRoom(name, hostNick);
+    if (result.error) {
+      return res.status(503).json({ error: result.error });
+    }
     res.status(201).json({
-      roomId: room.id,
-      inviteLink: `${req.protocol}://${req.get('host')}?room=${room.id}`,
+      roomId: result.room.id,
+      inviteLink: `${req.protocol}://${req.get('host')}?room=${result.room.id}`,
     });
   });
 

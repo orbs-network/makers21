@@ -11,11 +11,25 @@ class RoomManager {
   }
 
   createRoom(name, hostNick) {
+    if (this.rooms.size >= config.maxRooms) {
+      return { error: `Server is at capacity — ${config.maxRooms} rooms maximum` };
+    }
     const room = new Room(name, hostNick, this.mediasoupManager);
     // self-destruct after orphan grace period expires
     room.onOrphan = (id) => this.deleteRoom(id);
     this.rooms.set(room.id, room);
-    return room;
+    return { room };
+  }
+
+  /**
+   * Total live players across all rooms (humans only — NPCs are not counted).
+   */
+  totalPlayers() {
+    let count = 0;
+    for (const [, room] of this.rooms) {
+      count += room.players.size;
+    }
+    return count;
   }
 
   getRoom(roomId) {

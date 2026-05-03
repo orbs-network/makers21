@@ -55,6 +55,10 @@
   }
 
   function getWsUrl() {
+    // Production: WS goes to a different host (e.g. wss://ws-makers.orbs.com/ws)
+    // bypassing the CDN. Server injects this via /runtime-config.js.
+    const override = window.MAKERS21_CONFIG && window.MAKERS21_CONFIG.wsUrl;
+    if (override) return override;
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
     return `${proto}//${location.host}/ws`;
   }
@@ -128,11 +132,25 @@
 
   async function refreshRoomList() {
     try {
-      const rooms = await fetchRooms();
+      const [rooms, info] = await Promise.all([
+        fetchRooms(),
+        fetch('/api/info').then(r => r.json()).catch(() => null),
+      ]);
       renderRoomList(rooms);
+      updateCapacityIndicators(info);
     } catch (e) {
       console.error('Failed to fetch rooms', e);
     }
+  }
+
+  function updateCapacityIndicators(info) {
+    if (!info) return;
+    // Disable Create Room when room cap reached
+    const atRoomCap = info.currentRooms >= info.maxRooms;
+    createRoomBtn.disabled = atRoomCap;
+    createRoomBtn.title = atRoomCap
+      ? `Server is at capacity (${info.currentRooms}/${info.maxRooms} rooms)`
+      : '';
   }
 
   function startPolling() {

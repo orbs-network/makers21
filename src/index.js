@@ -95,7 +95,11 @@ function getWsUrl(serverOverride) {
     const proto = serverOverride.startsWith('https') ? 'wss:' : 'ws:';
     return `${proto}//${serverOverride}/ws`;
   }
-  // Default: same host as the page (lobby and game served from same server)
+  // Production override (e.g. wss://ws-makers.orbs.com/ws) — set on the
+  // server via WS_URL env var, injected through /runtime-config.js.
+  if (window.MAKERS21_CONFIG && window.MAKERS21_CONFIG.wsUrl) {
+    return window.MAKERS21_CONFIG.wsUrl;
+  }
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   return `${proto}//${window.location.host}/ws`;
 }
