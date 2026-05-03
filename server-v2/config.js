@@ -16,9 +16,12 @@ module.exports = {
       logLevel: 'warn',
     },
     webRtcTransport: {
+      // mediasoup binds to 0.0.0.0 but needs the public reachable IP to
+      // advertise in ICE candidates. On EC2, set ANNOUNCED_IP to the
+      // instance's Elastic IP. Falls back to null for local dev.
       listenInfos: [
-        { protocol: 'udp', ip: '0.0.0.0', announcedAddress: null },
-        { protocol: 'tcp', ip: '0.0.0.0', announcedAddress: null },
+        { protocol: 'udp', ip: '0.0.0.0', announcedAddress: process.env.ANNOUNCED_IP || null },
+        { protocol: 'tcp', ip: '0.0.0.0', announcedAddress: process.env.ANNOUNCED_IP || null },
       ],
       numSctpStreams: { OS: 1024, MIS: 1024 },
     },

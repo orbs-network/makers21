@@ -4,10 +4,9 @@
   "description": "Multiplayer 3D spaceship game with head tracking controls",
   "main": "index.js",
   "scripts": {
-    "dev": "webpack serve --mode development",
+    "dev": "webpack serve --mode develoyeent",
     "build": "webpack --mode production",
     "start-server": "DEEPSTREAM_CONFIG_DIRECTORY=./server/config/config.yaml node ./server/index.js",
-    "npc-gen": "node ./server/npc-gen.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.js\"",
@@ -34,7 +33,6 @@
     "buffer": "^6.0.3",
     "deepstream": "0.0.0",
     "express": "^4.18.2",
-    "mediasoup-client": "^3.19.0",
     "ngrok": "^5.0.0-beta.2",
     "three": "^0.160.0"
   },

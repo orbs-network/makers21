@@ -8,7 +8,7 @@ Spawns AI-controlled players into a Makers21 game for demo videos and testing. N
 # Start the game server first
 npm run start-server
 
-# Then run the NPC generator
+# Then run the NPC generatorwh
 node server/npc-gen.js num=3 serverHost=localhost:6020
 ```
 

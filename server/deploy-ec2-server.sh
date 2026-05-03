@@ -5,8 +5,8 @@ INSTANCE_NAME="makers26"
 REGION="eu-central-1"
 INSTANCE_TYPE="t3.micro"
 DISK_SIZE=32
-KEY_NAME="YOUR_SSH_KEY_NAME"
-SSH_PUB_KEY_PATH="$HOME/.ssh/YOUR_SSH_KEY.pub"
+KEY_NAME="OrbsSharedSSH"
+SSH_PUB_KEY_PATH="$HOME/.ssh/OrbsSharedSSH.pub"
 AMI_ID="" # resolved below
 
 # Ubuntu 22.04 LTS AMI (latest, x86_64) in eu-central-1

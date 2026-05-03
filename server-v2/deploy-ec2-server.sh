@@ -10,8 +10,8 @@ INSTANCE_NAME="makers21-v2"
 REGION="eu-central-1"
 INSTANCE_TYPE="c7g.medium"           # 1 vCPU dedicated (Graviton ARM), 2 GB RAM
 DISK_SIZE=32                          # gp3 — 32 GB is plenty
-KEY_NAME="YOUR_SSH_KEY_NAME"
-SSH_PUB_KEY_PATH="$HOME/.ssh/YOUR_SSH_KEY.pub"
+KEY_NAME="OrbsSharedSSHKey"
+SSH_PUB_KEY_PATH="$HOME/.ssh/OrbsSharedSSH.pub"
 ARCH="arm64"                          # MUST match c7g (Graviton)
 
 # Ubuntu 22.04 LTS AMI for matching architecture
@@ -49,7 +49,7 @@ if [ "$SG_ID" = "None" ] || [ -z "$SG_ID" ]; then
   SG_ID=$(aws ec2 create-security-group \
     --region "$REGION" \
     --group-name "$SG_NAME" \
-    --description "makers21-v2 — Express + WS + mediasoup SFU" \
+    --description "makers21-v2 - Express + WS + mediasoup SFU" \
     --query 'GroupId' \
     --output text)
 
@@ -149,6 +149,10 @@ Environment=NODE_ENV=production
 # WS goes through ws-makers.orbs.com (nginx terminates TLS, bypasses Fastly).
 # The /runtime-config.js endpoint serves this to the lobby + game pages.
 Environment=WS_URL=wss://ws-makers.orbs.com/ws
+# mediasoup advertises this IP to WebRTC clients in ICE candidates.
+# MUST be the instance's public/Elastic IP (clients can't reach 0.0.0.0).
+# Set this AFTER attaching the EIP, then `sudo systemctl daemon-reload && sudo systemctl restart makers21`.
+Environment=ANNOUNCED_IP=3.120.234.202
 
 [Install]
 WantedBy=multi-user.target
