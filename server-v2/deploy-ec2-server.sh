@@ -131,7 +131,9 @@ systemctl enable nginx
 
 # --- systemd unit for server-v2 ---
 # The deploy step (git clone, npm install, npm run build) is performed
-# AFTER this bootstrap completes. The unit assumes the repo is at /home/ubuntu/app.
+# AFTER this bootstrap completes. The unit defaults to /home/ubuntu/makers21
+# (i.e. the repo cloned as-is). If you clone elsewhere, edit
+# /etc/systemd/system/makers21.service afterward.
 cat > /etc/systemd/system/makers21.service <<'SERVICE'
 [Unit]
 Description=Makers21 server-v2
@@ -140,7 +142,7 @@ After=network.target
 [Service]
 Type=simple
 User=ubuntu
-WorkingDirectory=/home/ubuntu/app/server-v2
+WorkingDirectory=/home/ubuntu/makers21/server-v2
 ExecStart=/usr/bin/node index.js
 Restart=on-failure
 RestartSec=5
@@ -215,10 +217,10 @@ echo "  2. Set the announced address in server-v2/config.js to your Elastic IP."
 echo ""
 echo "  3. Deploy app code:"
 echo "     ssh ubuntu@<EIP>"
-echo "     git clone <repo> /home/ubuntu/app"
-echo "     cd /home/ubuntu/app && npm install && npm run build"
-echo "     cd /home/ubuntu/app/server-v2 && npm install"
-echo "     sudo cp /home/ubuntu/app/server-v2/nginx/nginx.conf /etc/nginx/nginx.conf"
+echo "     git clone <repo> /home/ubuntu/makers21"
+echo "     cd /home/ubuntu/makers21 && npm install && npm run build"
+echo "     cd /home/ubuntu/makers21/server-v2 && npm install"
+echo "     sudo cp /home/ubuntu/makers21/server-v2/nginx/nginx.conf /etc/nginx/nginx.conf"
 echo "     sudo systemctl restart nginx"
 echo "     sudo systemctl start makers21 && sudo systemctl enable makers21"
 echo ""
