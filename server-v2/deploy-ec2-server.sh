@@ -115,8 +115,8 @@ apt-get install -y \
   git nginx certbot python3-certbot-nginx \
   build-essential python3 python3-pip pkg-config
 
-# --- Node 20 (mediasoup requires >=20) ---
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+# --- Node 22 (current LTS; latest mediasoup-client requires >=22) ---
+curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
 apt-get install -y nodejs
 
 # --- Nginx ---
