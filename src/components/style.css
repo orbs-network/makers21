@@ -7,6 +7,12 @@ body {
     margin: 0;
 }
 
+/* canvas is inline by default — that reserves a baseline gap at the top.
+   block removes the thin black sliver above the WebGL renderer. */
+canvas {
+    display: block;
+}
+
 /* .input_video needed???
 {
     transform: rotateY(180deg);
