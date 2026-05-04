@@ -1,5 +1,5 @@
 {
-  "name": "makers21-server-v2",
+  "name": "makers21-server",
   "version": "1.0.0",
   "description": "Makers21 game server with rooms, WS signaling, and mediasoup SFU",
   "main": "index.js",

@@ -1,6 +1,6 @@
 /**
  * UIService - Handles in-game DOM manipulation.
- * Lobby UI lives in the lobby page (server-v2/public/) — this only handles
+ * Lobby UI lives in the lobby page (server/public/) — this only handles
  * the in-game HUD, countdown, game-over screen, and FPS counter.
  */
 class UIService {

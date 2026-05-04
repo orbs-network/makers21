@@ -88,7 +88,7 @@ function getGameParams() {
 }
 
 /**
- * Build WS URL for the server-v2
+ * Build WS URL for the server
  */
 function getWsUrl(serverOverride) {
   if (serverOverride) {
