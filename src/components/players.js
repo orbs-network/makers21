@@ -72,7 +72,10 @@ class Player {
   }
   //////////////////////////////////////////////////////////
   addSound(sound) {
-    sound.add('fly-by.wav', this.obj, true, config.size / 5);
+    // refDistance doubled — fly-by audible from twice the previous range.
+    // 6th arg = duration: loops back to start at 15s instead of playing
+    // the whole tail of the WAV.
+    sound.add('fly-by.wav', this.obj, true, (config.size / 5) * 2, undefined, 15);
     sound.add('explode.wav', this.obj, false, config.size / 2, 1);
     sound.add('laser.wav', this.obj, false, config.size / 5, 1);
     sound.add('laser_up.wav', this.obj, false, config.size / 5, 1);

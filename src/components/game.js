@@ -619,6 +619,12 @@ class Game /*extends THREE.EventDispatcher*/ {
             const begin = sound.getAttribute('begin');
             sound.currentTime = begin ? parseFloat(begin) : 0;
 
+            // Per-sound volume override via `vol` attribute (0..1)
+            const vol = sound.getAttribute('vol');
+            if (vol !== null) {
+                sound.volume = Math.max(0, Math.min(1, parseFloat(vol)));
+            }
+
             // Auto-stop after 'dur' attribute (seconds) if set
             const dur = sound.getAttribute('dur');
             if (dur) {

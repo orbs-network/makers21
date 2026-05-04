@@ -213,6 +213,16 @@
         break;
       case 'error':
         toast(msg.data.message);
+        // If we're stuck in the room view because the join failed
+        // (e.g. invite link to a non-existent room), bounce back to
+        // the browser so the UI doesn't get stranded.
+        if (!currentRoom && roomView.style.display !== 'none') {
+          // also strip ?room=… from URL so a refresh doesn't loop
+          const cleanUrl = new URL(location.href);
+          cleanUrl.searchParams.delete('room');
+          window.history.replaceState({}, '', cleanUrl);
+          showBrowser();
+        }
         break;
     }
   }
