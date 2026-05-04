@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "webpack serve --mode development",
     "build": "webpack --mode production",
-    "start-server": "DEEPSTREAM_CONFIG_DIRECTORY=./server/config/config.yaml node ./server/index.js",
-    "npc-gen": "node ./server/npc-gen.js",
+    "start-server": "cd server && node index.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.js\"",
@@ -24,17 +23,13 @@
   },
   "homepage": "https://github.com/uv-orbs/makers21#readme",
   "dependencies": {
-    "@deepstream/client": "^5.2.4",
-    "@deepstream/server": "^5.2.4",
     "@mediapipe/camera_utils": "^0.3.1675466862",
     "@mediapipe/drawing_utils": "^0.3.1675466124",
     "@mediapipe/face_mesh": "^0.4.1633559619",
     "aframe": "^1.5.0",
     "aframe-environment-component": "^1.3.3",
     "buffer": "^6.0.3",
-    "deepstream": "0.0.0",
-    "express": "^4.18.2",
-    "ngrok": "^5.0.0-beta.2",
+    "mediasoup-client": "^3.19.0",
     "three": "^0.160.0"
   },
   "devDependencies": {

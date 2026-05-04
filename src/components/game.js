@@ -58,21 +58,9 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.targetPos = new THREE.Vector3();
         this.direction = new THREE.Vector3();
         this.tsRender = Date.now();
+        this.gameSetupDone = false;
     }
 
-    //////////////////////////////////////////////////////////
-    loadLocalState() {
-        // State is loaded by GameState constructor
-        this.state.loadLocal();
-    }
-
-    //////////////////////////////////////////////////////////
-    saveLocalState() {
-        // update localState from UI
-        this.state.update('local.isRed', this.ui.isRedSelected());
-        // Save to localStorage
-        this.state.saveLocal();
-    }
 
     //////////////////////////////////////////////////////////
     // Async method to load face tracking (neck controls)
@@ -138,80 +126,26 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 
     //////////////////////////////////////////////////////////
-    async onJoin() {
-        // save current local state
-        this.saveLocalState();
-        // check team size limit before sending RPC
-        const MAX_TEAM_SIZE = 6;
-        const team = this.localState.isRed ? this.mngrState?.red : this.mngrState?.blue;
-        if (team && team.length >= MAX_TEAM_SIZE) {
-            this.setGameMsg(`Team is full (max ${MAX_TEAM_SIZE} players)`);
-            return;
-        }
-        try {
-            const result = await this.network.join(this.localState.nick, this.localState.isRed);
-            if (result !== 'ok') {
-                this.setGameMsg('join: ' + result);
-            }
-        } catch (error) {
-            this.onError(error);
-        }
-        // update world
-        this.world.setNick(this.localState.nick);
-        this.world.setTeamPos(this.localState.isRed);
-    }
-
-    //////////////////////////////////////////////////////////
-    async onLeave() {
-        // save current local state
-        this.saveLocalState();
-        try {
-            const result = await this.network.leave(this.localState.nick, this.localState.isRed);
-            if (result !== 'ok') {
-                this.setGameMsg('leave: ' + result);
-            }
-        } catch (error) {
-            this.onError(error);
-        }
-    }
-
-    //////////////////////////////////////////////////////////
-    async onStart() {
-        this.ui.showRequestStart();
-        try {
-            await this.network.start(this.localState.nick);
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    //////////////////////////////////////////////////////////
     async onReset() {
+        // Play Again: host triggers server reset (which broadcasts to all),
+        // anyone else just heads back to the lobby room view.
         try {
-            await this.network.reset(this.localState.nick);
+            if (this.localState.nick === this.hostNick) {
+                await this.network.reset(this.localState.nick);
+            }
         } catch (error) {
             console.error('reset', error);
         }
+        window.location.href = '/?room=' + (this.roomId || '');
     }
 
     //////////////////////////////////////////////////////////
     uxInit() {
-        // Initialize UI with event handlers
+        // Initialize in-game UI handlers (lobby is in lobby.html — separate page)
         this.ui.init({
-            onJoin: this.onJoin.bind(this),
-            onLeave: this.onLeave.bind(this),
-            onStart: this.onStart.bind(this),
             onReset: this.onReset.bind(this),
             onKeydown: this.keydown.bind(this),
-            onNickChange: (value) => {
-                if (value.length > 2) {
-                    this.localState.nick = value;
-                    this.saveLocalState();
-                }
-            },
         });
-        // Set initial input values
-        this.setInputs();
 
         // Show face control panel (toolbar always visible for toggle)
         const facePanel = document.getElementById('face-panel');
@@ -385,11 +319,6 @@ class Game /*extends THREE.EventDispatcher*/ {
     }
 
     //////////////////////////////////////////////////////////
-    setInputs() {
-        this.ui.setInputs(this.localState.nick, this.localState.isRed);
-    }
-
-    //////////////////////////////////////////////////////////
     setGameMsg(html) {
         this.ui.setGameMsg(html);
     }
@@ -405,6 +334,7 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     show321() {
+        if (this.tid321) return; // already counting down
         this.tid321 = setInterval(() => {
             const diff = this.mngrState.startTs - Date.now();
             if (diff > 0) {
@@ -430,48 +360,49 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     onGameStarted() {
+        // Always refresh team rosters (NPCs/players may have been added)
+        this.world.setPlayerTeams(this.mngrState.red, this.mngrState.blue);
+        this.world.players.started = true;
+
+        // Post-countdown setup runs ONCE per game — without this guard,
+        // every gameState event after countdown re-randomizes startLineX
+        // via setTeamPos, teleporting the camera around.
+        if (this.gameSetupDone) return;
+
         this.ui.showGameDisplay();
         if (this.world.shooting) {
             this.world.shooting.hud.visible = true;
             this.world.shooting.hudLabelObj.visible = true;
         }
 
-        // either way update whos on ehich team
-        this.world.setPlayerTeams(this.mngrState.red, this.mngrState.blue);
-        this.world.players.started = true;
-
-        // 3 2 1
+        // 3 2 1 still running — wait for it
         if (Date.now() < this.mngrState.startTs) {
-            // show countdown
             this.show321();
             return;
-        } else { // happens after Reload
-            // update world
-            this.world.setNick(this.localState.nick);
-            this.world.setTeamPos(this.localState.isRed);
-
-            this.world.resetGateRotation();
-
-            // handle Flags
-            this.holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
-            this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
-
-            // drop flag if has it after reloading
-            if (this.holdingFlag) {
-                this.tellDropFlag(this.holdingFlag);
-                this.setGameMsg('Flag was dropped during game page reload');
-            }
-
-            // start broadcast interval
-            this.startUpdateLoop(true);
-            this.startBorderLoop(true);
-
-            // to enable start stop
-            this.setGameMsg('Press Space to start!');
-
-            // start FPS loop
-            this.ui.startFPSCounter();
         }
+
+        // Countdown finished — initial player setup (runs once)
+        this.gameSetupDone = true;
+        this.world.setNick(this.localState.nick);
+        this.world.setTeamPos(this.localState.isRed);
+        this.world.resetGateRotation();
+
+        // handle Flags
+        this.holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
+        this.world.setFlagHolders(this.holdingFlag, this.localState, this.mngrState);
+
+        // drop flag if has it after reloading
+        if (this.holdingFlag) {
+            this.tellDropFlag(this.holdingFlag);
+            this.setGameMsg('Flag was dropped during game page reload');
+        }
+
+        // start broadcast + border interval (idempotent — clears existing first)
+        this.startUpdateLoop(true);
+        this.startBorderLoop(true);
+
+        this.setGameMsg('Press Space to start!');
+        this.ui.startFPSCounter();
     }
 
     //////////////////////////////////////////////////////////
@@ -482,6 +413,8 @@ class Game /*extends THREE.EventDispatcher*/ {
         if (this.world.shooting) {
             this.world.shooting.hud.visible = false;
             this.world.shooting.hudLabelObj.visible = false;
+            // Release any active lock so peers' alarms stop
+            this.world.shooting.resetHUD();
         }
         this.moving = false;
         if (this.controls) {
@@ -499,97 +432,66 @@ class Game /*extends THREE.EventDispatcher*/ {
 
     //////////////////////////////////////////////////////////
     onMngrState(state) {
-        this.tellingGatePass = false; //- must have been finished
+        this.tellingGatePass = false;
 
-        // store
         this.mngrState = state;
-        // to add dummies during game
         this.world.setPlayerTeams(state.red, state.blue);
 
-        // reset from mngr
+        // host reset triggered from server (returns to lobby)
         if (state.needReset) {
-            this.resetAll();
-            this.ui.showWelcome();
+            window.location.href = `/?room=${this.roomId || ''}`;
+            return;
         }
 
-        const joined = this.isJoined();
-        // update players module - to avoid events
-        this.world.players.gameJoined = joined;
+        // user is always joined here (lobby ensured team selection before redirect)
+        this.world.players.gameJoined = true;
 
-
-        // online status
-        this.ui.setOnlineStatus("connected!");
-
-        //////////////////////////////////////////////////////////
-        // game you have joined - is WON
-        if (joined && state.winnerNick) {
+        // game won
+        if (state.winnerNick) {
             this.onGameOver();
             return;
         }
         this.ui.hideGameOver();
 
-        //////////////////////////////////////////////////////////
-        // game already started
+        // game in progress (always — server starts engine before redirect)
         if (state.started) {
-            // first means hasnt moved, after reload
-            if (joined) {
-                if (this.first) {
-                    // return/start game
-                    this.onGameStarted();
-                } else {
-                    // Ongoing game update (not first since reload)
+            // Phase A: prepared but not commenced — show pregame overlay, wait
+            if (!state.startTs) {
+                this.updatePregameUI();
+                return;
+            }
 
-                    // Handle Flags
-                    const holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
+            // Phase B: commenced — make sure pregame overlay is hidden
+            this.updatePregameUI();
 
-                    this.world.setFlagHolders(holdingFlag, this.localState, this.mngrState);
+            // First state event → run setup (countdown or initial position).
+            // Subsequent events → onGameStarted is a no-op thanks to gameSetupDone guard.
+            if (!this.gameSetupDone) {
+                this.onGameStarted();
+                return;
+            }
 
-                    // play success if it was flag got captured
-                    if (holdingFlag && !this.holdingFlag) {
-                        // SUCCESS - you are the holder of the flag
-                        this.setPersistentMsg('Return the flag to your home gate');
-                        this.playAudio('success');
-                    } else if (!holdingFlag && this.holdingFlag) {
-                        // Flag was passed to a teammate (not dropped — drop happens in explode)
-                        const newHolder = this.localState.isRed ? this.mngrState.blueHolder : this.mngrState.redHolder;
-                        if (newHolder && !this.exploding) {
-                            this.setGameMsg(`Flag passed to ${newHolder}`);
-                        }
-                        this.clearPersistentMsg();
-                    }
-                    this.holdingFlag = holdingFlag;
+            // Ongoing game update — flag holder transitions
+            const holdingFlag = (this.localState.nick === this.mngrState.redHolder || this.localState.nick === this.mngrState.blueHolder);
+            this.world.setFlagHolders(holdingFlag, this.localState, this.mngrState);
 
-                    // drop flag if exploding during this update from nanager
-                    if (this.exploding) {
-                        this.setGameMsg('Flag was dropped during explosion');
-                        this.tellDropFlag();
-                    }
+            if (holdingFlag && !this.holdingFlag) {
+                this.setPersistentMsg('Return the flag to your home gate');
+                this.playAudio('success');
+            } else if (!holdingFlag && this.holdingFlag) {
+                const newHolder = this.localState.isRed ? this.mngrState.blueHolder : this.mngrState.redHolder;
+                if (newHolder && !this.exploding) {
+                    this.setGameMsg(`Flag passed to ${newHolder}`);
                 }
+                this.clearPersistentMsg();
             }
-            // game started but not joined
-            else {
-                this.ui.showWaitingForNextGame();
+            this.holdingFlag = holdingFlag;
+
+            if (this.exploding) {
+                this.setGameMsg('Flag was dropped during explosion');
+                this.tellDropFlag();
             }
-            return;
         }
-
-        // Show lobby state
-        this.ui.showLobby({
-            ready: state.ready,
-            red: state.red,
-            blue: state.blue,
-            joined: joined,
-            localNick: this.localState.nick,
-            localIsRed: this.localState.isRed,
-        });
-
-        if (!joined) {
-            // neutral position
-            this.world.setTeamPos(null);
-            return;
-        }
-        // world team (on load after joined)
-        this.world.setTeamPos(this.localState.isRed);
     }
 
     //////////////////////////////////////////////////////////
@@ -612,6 +514,40 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.ui.setOnlineStatus("connecting...");
         // send join - receive state
         this.network.subscribe('mngr', this.onEvent.bind(this));
+        this.network.subscribe('roomState', this.onRoomState.bind(this));
+        this.network.subscribe('roomClosed', this.onRoomClosed.bind(this));
+        // If the player who locked onto us disconnects, the unlock event
+        // never arrives — kill the alarm via the playerLeft signal instead.
+        this.network.subscribe('playerLeft', (data) => {
+            if (data && data.nick && data.nick === this.lockedByNick) {
+                this.lockedByNick = null;
+                this.stopWarning();
+            }
+        });
+        this.network.subscribe('gameReset', () => {
+            // host clicked Play Again — redirect everyone back to the lobby
+            window.location.href = '/?room=' + (this.roomId || '');
+        });
+
+        // wire pregame Start button (host only — see updatePregameUI)
+        const startBtn = document.getElementById('pregame-start');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                this.network.commenceGame();
+            });
+        }
+        // pregame Back to Lobby
+        const pregameBack = document.getElementById('pregame-back');
+        if (pregameBack) {
+            pregameBack.addEventListener('click', () => {
+                window.location.href = '/?room=' + (this.roomId || '');
+            });
+        }
+        // wire room-closed Back button
+        const backBtn = document.getElementById('room-closed-back');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => { window.location.href = '/'; });
+        }
 
         try {
             const result = await this.network.checkOnline();
@@ -619,6 +555,41 @@ class Game /*extends THREE.EventDispatcher*/ {
         } catch (error) {
             console.error(error);
             this.onOffline();
+        }
+    }
+
+    onRoomState(data) {
+        this.hostNick = data.hostNick;
+        this.roomId = data.id;
+        this.updatePregameUI();
+    }
+
+    onRoomClosed(data) {
+        const reason = (data && data.reason) || 'The host left the game.';
+        const reasonEl = document.getElementById('room-closed-reason');
+        if (reasonEl) reasonEl.textContent = reason;
+        const overlay = document.getElementById('room-closed-overlay');
+        if (overlay) overlay.style.display = 'flex';
+    }
+
+    updatePregameUI() {
+        const overlay = document.getElementById('pregame-overlay');
+        if (!overlay) return;
+        const startBtn = document.getElementById('pregame-start');
+        const messageEl = document.getElementById('pregame-message');
+
+        const inPregame = this.mngrState && this.mngrState.started && !this.mngrState.startTs;
+        if (inPregame) {
+            overlay.style.display = 'flex';
+            const isHost = this.localState.nick === this.hostNick;
+            if (startBtn) startBtn.style.display = isHost ? '' : 'none';
+            if (messageEl) {
+                messageEl.textContent = isHost
+                    ? 'When ready, hit Start to begin the countdown.'
+                    : `Waiting for ${this.hostNick || 'host'} to start the game…`;
+            }
+        } else {
+            overlay.style.display = 'none';
         }
     }
 
@@ -853,9 +824,12 @@ class Game /*extends THREE.EventDispatcher*/ {
         if (msg) this.setGameMsg(msg);
         this.playAudio('alarm');
         this.world.turnWarningEffect(true);
-        if (!manualStop) {
-            this.tidWarning = setTimeout(() => this.stopWarning(), config.targetLockMs);
-        }
+        // Always set a max-duration timer. Without this the alarm could loop
+        // forever if the unlock event never arrives (locker crashed/disconnected).
+        // Re-arming is automatic — every fresh startWarning resets the timer.
+        if (this.tidWarning) clearTimeout(this.tidWarning);
+        const ttl = manualStop ? 10000 : config.targetLockMs;
+        this.tidWarning = setTimeout(() => this.stopWarning(), ttl);
     }
 
     //////////////////////////////////////////////////////////
@@ -872,6 +846,7 @@ class Game /*extends THREE.EventDispatcher*/ {
             clearTimeout(this.tidWarning);
             this.tidWarning = 0;
         }
+        this.lockedByNick = null;
     }
 
     //////////////////////////////////////////////////////////
@@ -881,6 +856,8 @@ class Game /*extends THREE.EventDispatcher*/ {
         this.passingGate = null;
 
         this.stopWarning();
+        // Release any active lock so the targeted player's alarm stops
+        if (this.world.shooting) this.world.shooting.resetHUD();
         this.setGameMsg(msg || 'BOOM!!!');
 
         // return flag if holders
@@ -942,10 +919,12 @@ class Game /*extends THREE.EventDispatcher*/ {
         if (this.exploding) return;
         if (data.targetNick == this.localState.nick) {
             if (data.on) {
+                this.lockedByNick = data.nick;
                 this.startWarning(`WARNING! ${data.nick} is locking on you!`, true);
-            } else {
+            } else if (data.nick === this.lockedByNick) {
+                // Only stop if this lockOff is from the same player who locked us
+                this.lockedByNick = null;
                 this.stopWarning();
-                //this.setGameMsg(`${data.nick} lost aim on you`);
             }
         }
     }

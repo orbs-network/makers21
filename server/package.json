@@ -1,0 +1,15 @@
+{
+  "name": "makers21-server",
+  "version": "1.0.0",
+  "description": "Makers21 game server with rooms, WS signaling, and mediasoup SFU",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "mediasoup": "^3.19.3",
+    "ws": "^8.18.0"
+  }
+}

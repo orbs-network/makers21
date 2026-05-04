@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAKERS21 - Lobby</title>
+  <link rel="stylesheet" href="lobby.css">
+  <script src="/runtime-config.js"></script>
+</head>
+<body>
+  <video id="bg-video" autoplay muted loop playsinline preload="auto">
+    <source src="/assets/video/lobby2.mp4" type="video/mp4">
+  </video>
+  <div id="bg-dim"></div>
+
+  <header>
+    <h1>MAKERS21</h1>
+    <p>Space Capture the Flag</p>
+  </header>
+
+  <div id="app">
+    <!-- Nick bar -->
+    <div id="nick-bar">
+      <label for="nick-input">Callsign</label>
+      <input type="text" id="nick-input" placeholder="Enter your callsign..." maxlength="16" autocomplete="off">
+    </div>
+
+    <!-- View 1: Room Browser -->
+    <section id="room-browser">
+      <div id="room-list">
+        <div class="empty-state">No rooms yet. Create one!</div>
+      </div>
+      <button id="create-room-btn" class="btn-primary">Create Room</button>
+    </section>
+
+    <!-- View 2: Inside a Room -->
+    <section id="room-view">
+      <div id="room-header">
+        <h2 id="room-name"></h2>
+        <button id="leave-room-btn" class="btn-danger btn-small">Leave</button>
+      </div>
+
+      <div id="invite-bar">
+        <input type="text" id="invite-link" readonly>
+        <button id="copy-invite" class="btn-small">Copy</button>
+      </div>
+
+      <div id="teams-container">
+        <div class="team-column team-a">
+          <h3>RED <span class="count" id="team-a-count"></span></h3>
+          <ul class="team-list" id="team-a-list"></ul>
+          <button class="join-team-btn" id="join-team-a">Join RED</button>
+        </div>
+        <div class="team-column team-b">
+          <h3>BLUE <span class="count" id="team-b-count"></span></h3>
+          <ul class="team-list" id="team-b-list"></ul>
+          <button class="join-team-btn" id="join-team-b">Join BLUE</button>
+        </div>
+      </div>
+
+      <div id="room-actions">
+        <button id="train-btn" class="btn-primary" style="display:none">Train</button>
+        <button id="start-game-btn" class="btn-primary" style="display:none">Go to Game</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Create Room Modal -->
+  <div id="create-modal">
+    <div class="modal-content">
+      <h3>Create Room</h3>
+      <input type="text" id="room-name-input" placeholder="Room name..." maxlength="30" autocomplete="off">
+      <div class="modal-buttons">
+        <button id="cancel-create">Cancel</button>
+        <button id="confirm-create" class="btn-primary">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Train Team Picker Modal -->
+  <div id="train-modal">
+    <div class="modal-content">
+      <h3>Choose your team</h3>
+      <div class="modal-buttons">
+        <button id="train-pick-red" class="btn-primary" style="flex:1; border-color: rgba(255,100,100,0.5); color: #ff8888;">RED</button>
+        <button id="train-pick-blue" class="btn-primary" style="flex:1; border-color: rgba(100,160,255,0.5); color: #88b8ff;">BLUE</button>
+      </div>
+      <div class="modal-buttons">
+        <button id="cancel-train">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="lobby.js"></script>
+</body>
+</html>

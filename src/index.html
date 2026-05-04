@@ -9,6 +9,9 @@
   </title>
   <meta name="description" content="Multiplayer spaceship game with head tracking controls - capture the flag style">
 
+  <!-- Server-side runtime config (sets window.MAKERS21_CONFIG.wsUrl) -->
+  <script src="/runtime-config.js"></script>
+
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-61VHXBDG88"></script>
   <script>
@@ -53,75 +56,27 @@
     </div>
   </div>
 
-  <!-- Server selection dialog (shown when user needs to pick/change server) -->
-  <div id="server-dialog" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center;">
-    <div style="background: #222; padding: 30px; border-radius: 10px; text-align: center; border: 2px solid #444;">
-      <h2 style="color: #fff; margin-bottom: 20px;">Choose Server</h2>
-      <div id="server-input-section" style="margin-bottom: 15px;">
-        <div style="display: inline-flex; align-items: stretch; border-radius: 5px; overflow: hidden; border: 1px solid #666;">
-          <span id="server-protocol" style="padding: 10px 8px; font-size: 16px; background: #444; color: #888; white-space: nowrap; user-select: none;">ws://</span>
-          <input type="text" id="server-input" placeholder="host or IP" style="width: 220px; padding: 10px; font-size: 16px; border: none; background: #333; color: #fff; outline: none;">
-          <span id="server-port" style="padding: 10px 8px; font-size: 16px; background: #444; color: #888; white-space: nowrap; user-select: none;">:6020</span>
-        </div>
-      </div>
-      <input type="button" id="server-connect" class="btn" value="Connect" style="padding: 10px 30px; font-size: 16px; cursor: pointer;">
-      <div id="server-status" style="display: none; color: #aaa; margin-top: 15px; font-size: 14px;"></div>
-    </div>
-  </div>
-
-  <!-- Welcome screen -->
-  <div id="welcome" style="display: none;">
-    <h1>Makers2021 Welcome</h1>
-    <div id="online">Please wait...</div>
-    <div id="started"></div>
-
-    <!-- Teams display -->
-    <div id="teams" style="display:none;">
-      <div class="red"><span>Red team: </span><span id="red-team"></span></div>
-      <div class="blue"><span>Blue team: </span><span id="blue-team"></span></div>
-    </div>
-
-    <!-- User inputs -->
-    <div id="inputs" style="display:none">
-      <label for="nick">Nickname:</label>
-      <input type="text" id="nick" name="nick"><br><br>
-
-      <!-- Team selection -->
-      <div id="choose-team" class="disabled">
-        <div>Choose team:</div>
-        <div class="team-label">
-          <input type="radio" id="red" name="team" value="red" checked>
-          <label for="team" class="red">RED</label>
-        </div>
-        <div class="team-label">
-          <input type="radio" id="blue" name="team" value="blue">
-          <label for="team" class="blue">BLUE</label>
-        </div>
-        <input type="button" id="join" class="btn" value="Join">
-      </div>
-    </div>
-
-    <!-- Joined status -->
-    <div id="joined" style="display:none">
-      <div>
-        You are joined as <span id="nick-join"></span> to the <span id="team-join"></span> team
-      </div>
-      <input type="button" id="leave" class="btn" value="Leave">
-    </div>
-
-    <!-- Ready status -->
-    <div id="ready">
-      <div id="ready-text"></div>
-      <input type="button" id="start" class="btn" value="Start Game" style="display:none">
-      <input type="button" id="reset" class="btn" value="Reset Game" style="display:none">
-    </div>
-
-    <!-- Request start -->
-    <div id="req-start" style="display:none">Requesting start from server...</div>
-  </div>
+  <!-- Server dialog removed — lobby handles room selection now -->
 
   <!-- Flag holder indicator -->
   <div id="flag-holder"></div>
+
+  <!-- Pregame overlay (waiting for host to commence) -->
+  <div id="pregame-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,10,26,0.95); z-index: 9000; justify-content: center; align-items: center; flex-direction: column;">
+    <h2 id="pregame-title" style="color: #c8d8ff; margin-bottom: 16px; letter-spacing: 0.1em;">READY TO LAUNCH</h2>
+    <p id="pregame-message" style="color: #6a7a9a; margin-bottom: 30px; font-size: 14px;">Waiting for host to start the game…</p>
+    <div style="display: flex; gap: 16px;">
+      <button id="pregame-start" class="btn" style="display: none; padding: 14px 40px; font-size: 16px; cursor: pointer; background: rgba(100,140,255,0.2); border: 1px solid rgba(100,140,255,0.5); border-radius: 6px; color: #c8d8ff; letter-spacing: 0.1em;">START GAME</button>
+      <button id="pregame-back" class="btn" style="padding: 14px 40px; font-size: 14px; cursor: pointer; background: transparent; border: 1px solid rgba(255,100,100,0.4); border-radius: 6px; color: #e08888;">Back to Lobby</button>
+    </div>
+  </div>
+
+  <!-- Room closed overlay (host disconnected) -->
+  <div id="room-closed-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,10,26,0.95); z-index: 9001; justify-content: center; align-items: center; flex-direction: column;">
+    <h2 style="color: #e08888; margin-bottom: 16px;">Room Closed</h2>
+    <p id="room-closed-reason" style="color: #6a7a9a; margin-bottom: 30px; font-size: 14px;">The host left the game.</p>
+    <button id="room-closed-back" class="btn" style="padding: 12px 30px; font-size: 15px; cursor: pointer; background: rgba(100,140,255,0.2); border: 1px solid rgba(100,140,255,0.5); border-radius: 6px; color: #c8d8ff;">Back to Lobby</button>
+  </div>
 
   <!-- Game display -->
   <div id="game-display">
