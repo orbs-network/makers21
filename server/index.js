@@ -31,14 +31,27 @@ async function main() {
     next();
   });
 
-  // static lobby files (index.html = lobby)
-  app.use(express.static(path.join(__dirname, 'public')));
+  // static lobby files (index.html = lobby) — short TTL so updates show up
+  app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: '5m',
+  }));
 
-  // serve built game files (game.html + assets from webpack dist/)
-  app.use(express.static(path.join(__dirname, '..', 'dist')));
+  // serve built game files (game.html + content-hashed bundles from webpack dist/)
+  // hashed JS/CSS can be cached aggressively; game.html is short-lived.
+  app.use(express.static(path.join(__dirname, '..', 'dist'), {
+    maxAge: '1h',
+    setHeaders: (res, filePath) => {
+      // Hashed bundles are immutable — webpack output filename includes contenthash
+      if (/\.[0-9a-f]{16,}\.(js|css|map)$/.test(filePath)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+    },
+  }));
 
-  // serve raw source assets (for lobby video, etc. — no build step needed)
-  app.use('/assets', express.static(path.join(__dirname, '..', 'src', 'assets')));
+  // raw source assets (lobby video, sounds, models) — large + change rarely
+  app.use('/assets', express.static(path.join(__dirname, '..', 'src', 'assets'), {
+    maxAge: '7d',
+  }));
 
   // REST API
   const roomManager = new RoomManager(mediasoupManager);
