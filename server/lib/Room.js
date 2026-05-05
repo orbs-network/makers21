@@ -38,12 +38,13 @@ class Room {
 
   startOrphanTimer() {
     if (this.orphanTimer) return;
-    // 10s grace lets the lobby->game redirect reconnect on the new WS.
-    // If no one returns by then, the room is orphaned — delete it.
+    // 60s grace covers the lobby->game redirect on slow production loads
+    // (heavy bundle, mediasoup negotiation, etc). If no one returns by
+    // then, the room is genuinely orphaned and we delete it.
     this.orphanTimer = setTimeout(() => {
       this.orphanTimer = null;
       if (this.onOrphan) this.onOrphan(this.id);
-    }, 10_000);
+    }, 60_000);
   }
 
   cancelOrphanTimer() {
@@ -60,7 +61,7 @@ class Room {
       // Notify remaining players the host gave up, then dispose the room
       this.broadcast('roomClosed', { reason: 'Host disconnected' });
       if (this.onOrphan) this.onOrphan(this.id);
-    }, 10_000);
+    }, 60_000);
   }
 
   cancelHostGoneTimer() {
