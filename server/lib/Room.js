@@ -197,9 +197,11 @@ class Room {
     // transfer host if host left
     if (nick === this.hostNick && this.players.size > 0) {
       this.hostNick = this.players.keys().next().value;
-      this.broadcast('roomState', this.toJSON());
     }
 
+    // Broadcast updated state so remaining clients re-evaluate UI
+    // (e.g. host's Train button re-enables when the second player leaves).
+    this.broadcast('roomState', this.toJSON());
     this.broadcast('playerLeft', { nick });
     return { shouldDelete: false };
   }
