@@ -38,14 +38,33 @@
   let myNick = '';
   let pollTimer = null;
 
+  function setCurrentRoom(room) {
+    currentRoom = room;
+    syncCreateBtnState();
+  }
+
   // restore nick from localStorage
   const savedNick = localStorage.getItem('makers21_nick');
   if (savedNick) nickInput.value = savedNick;
 
-  nickInput.addEventListener('change', () => {
+  function syncCreateBtnState() {
+    // gated by: nickname non-empty AND not at room cap AND not already in a room
+    const hasNick = nickInput.value.trim().length > 0;
+    const atCap = createRoomBtn.dataset.atCap === '1';
+    const inRoom = currentRoom !== null;
+    createRoomBtn.disabled = atCap || !hasNick || inRoom;
+  }
+
+  // every keystroke updates the button + saves nick
+  nickInput.addEventListener('input', () => {
     localStorage.setItem('makers21_nick', nickInput.value.trim());
+    syncCreateBtnState();
+  });
+  nickInput.addEventListener('change', () => {
     refreshRoomList();
   });
+  // initial state on load (in case we restored a saved nick)
+  syncCreateBtnState();
 
   // --- API helpers ---
   const API = '/api/rooms';
@@ -145,12 +164,12 @@
 
   function updateCapacityIndicators(info) {
     if (!info) return;
-    // Disable Create Room when room cap reached
     const atRoomCap = info.currentRooms >= info.maxRooms;
-    createRoomBtn.disabled = atRoomCap;
+    createRoomBtn.dataset.atCap = atRoomCap ? '1' : '0';
     createRoomBtn.title = atRoomCap
       ? `Server is at capacity (${info.currentRooms}/${info.maxRooms} rooms)`
       : '';
+    syncCreateBtnState();
   }
 
   function startPolling() {
@@ -175,7 +194,7 @@
       socket.addEventListener('close', () => {
         // if we're in a room, go back to browser
         if (currentRoom) {
-          currentRoom = null;
+          setCurrentRoom(null);
           showBrowser();
           toast('Disconnected from room');
         }
@@ -193,7 +212,7 @@
   function handleServerMessage(msg) {
     switch (msg.type) {
       case 'roomState':
-        currentRoom = msg.data;
+        setCurrentRoom(msg.data);
         renderRoomView();
         break;
       case 'playerJoined':
@@ -203,7 +222,7 @@
         break;
       case 'playerKicked':
         if (msg.data.nick === myNick) {
-          currentRoom = null;
+          setCurrentRoom(null);
           showBrowser();
           toast('You were kicked from the room');
         }
@@ -231,7 +250,7 @@
   async function joinRoom(roomId) {
     myNick = nickInput.value.trim();
     if (!myNick) {
-      toast('Enter a callsign first');
+      toast('Enter a nickname first');
       nickInput.focus();
       return;
     }
@@ -253,7 +272,7 @@
   async function trainInRoom(roomId, team) {
     myNick = nickInput.value.trim();
     if (!myNick) {
-      toast('Enter a callsign first');
+      toast('Enter a nickname first');
       nickInput.focus();
       return;
     }
@@ -391,21 +410,19 @@
   createRoomBtn.addEventListener('click', () => {
     myNick = nickInput.value.trim();
     if (!myNick) {
-      toast('Enter a callsign first');
+      toast('Enter a nickname first');
       nickInput.focus();
       return;
     }
     roomNameInput.value = '';
-    createModal.classList.add('open');
+    openModal(createModal);
     roomNameInput.focus();
   });
 
-  cancelCreate.addEventListener('click', () => {
-    createModal.classList.remove('open');
-  });
+  cancelCreate.addEventListener('click', () => closeModal(createModal));
 
   createModal.addEventListener('click', (e) => {
-    if (e.target === createModal) createModal.classList.remove('open');
+    if (e.target === createModal) closeModal(createModal);
   });
 
   confirmCreate.addEventListener('click', async () => {
@@ -422,7 +439,7 @@
         toast(result.error);
         return;
       }
-      createModal.classList.remove('open');
+      closeModal(createModal);
       // join the room we just created
       joinRoom(result.roomId);
     } catch (e) {
@@ -444,19 +461,37 @@
   // --- train (solo with bots) ---
   trainBtn.addEventListener('click', () => wsSend('startTraining'));
 
+  // --- modal helpers (centralize body class + Esc handling) ---
+  function openModal(modal) {
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+  }
+  function closeModal(modal) {
+    modal.classList.remove('open');
+    if (modal === trainModal) trainTargetRoomId = null;
+    if (!createModal.classList.contains('open') && !trainModal.classList.contains('open')) {
+      document.body.classList.remove('modal-open');
+    }
+  }
+  // Esc closes whichever modal is open
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (createModal.classList.contains('open')) closeModal(createModal);
+    if (trainModal.classList.contains('open')) closeModal(trainModal);
+  });
+
   // --- train team picker modal ---
   function openTrainModal(roomId) {
     if (!nickInput.value.trim()) {
-      toast('Enter a callsign first');
+      toast('Enter a nickname first');
       nickInput.focus();
       return;
     }
     trainTargetRoomId = roomId;
-    trainModal.classList.add('open');
+    openModal(trainModal);
   }
   function closeTrainModal() {
-    trainModal.classList.remove('open');
-    trainTargetRoomId = null;
+    closeModal(trainModal);
   }
   trainPickRed.addEventListener('click', () => {
     const roomId = trainTargetRoomId;
@@ -476,7 +511,7 @@
   // --- leave room ---
   leaveRoomBtn.addEventListener('click', () => {
     wsSend('leaveRoom');
-    currentRoom = null;
+    setCurrentRoom(null);
     if (ws) ws.close();
     showBrowser();
   });
@@ -517,7 +552,7 @@
       if (nickInput.value.trim()) {
         joinRoom(inviteRoomId);
       } else {
-        toast('Enter a callsign to join the room');
+        toast('Enter a nickname to join the room');
         nickInput.focus();
         nickInput.addEventListener('change', function once() {
           nickInput.removeEventListener('change', once);

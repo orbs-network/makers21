@@ -71,6 +71,7 @@ header p {
   gap: 12px;
   margin-bottom: 24px;
   align-items: center;
+  justify-content: center;
 }
 #nick-bar label {
   font-size: 0.85rem;
@@ -100,7 +101,8 @@ input::placeholder {
 }
 
 #nick-input {
-  flex: 1;
+  flex: 0 0 50%;   /* half the row width */
+  max-width: 50%;
 }
 
 /* --- buttons --- */
@@ -379,6 +381,13 @@ button:disabled {
 #create-modal.open,
 #train-modal.open {
   display: flex;
+}
+
+/* When a modal is open, dim and disable background buttons inside #app
+   so the user understands they're not actionable until the modal closes. */
+body.modal-open #app button {
+  opacity: 0.4;
+  pointer-events: none;
 }
 .modal-content {
   background: #12142a;
